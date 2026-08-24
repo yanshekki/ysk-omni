@@ -8,6 +8,8 @@
 
 **Languages:** English · [中文](./README-ZH.md)
 
+**Product page:** [ysk.hk/products/gctoac](https://ysk.hk/products/gctoac) · EN: [ysk.hk/en/products/gctoac](https://ysk.hk/en/products/gctoac)
+
 Production OpenAI-compatible HTTP gateway for local **[Grok CLI](https://x.ai)** (`grok -p`).
 
 | | |
@@ -815,7 +817,7 @@ npm publish --access public --otp=<2FA_CODE>
 
 **Ki (yanshekki)** — Full-stack developer, quant trader, founder of [YSK Limited](https://ysk.hk/).
 
-🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 🏢 [ysk.hk](https://ysk.hk/)
+🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 📄 [Product page](https://ysk.hk/products/gctoac) · 🏢 [ysk.hk](https://ysk.hk/)
 
 ### ☕ Support / Donate
 

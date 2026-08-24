@@ -8,6 +8,8 @@
 
 **語言：** [English](./README.md) · 中文
 
+**產品頁：** [ysk.hk/products/gctoac](https://ysk.hk/products/gctoac) · EN：[ysk.hk/en/products/gctoac](https://ysk.hk/en/products/gctoac)
+
 將本機 **[Grok CLI](https://x.ai)**（`grok -p` headless）包裝成可上線的 **OpenAI 相容 HTTP API**。
 
 | | |
@@ -752,7 +754,7 @@ npm publish --access public --otp=<2FA六位碼>
 
 **Ki (yanshekki)** — 全端工程師、量化交易者，[YSK Limited](https://ysk.hk/) 創辦人。
 
-🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 🏢 [ysk.hk](https://ysk.hk/)
+🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 📄 [產品頁](https://ysk.hk/products/gctoac) · 🏢 [ysk.hk](https://ysk.hk/)
 
 ### ☕ 支持 / 打賞
 
