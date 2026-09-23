@@ -43,6 +43,12 @@ import { auditService } from './audit.service';
 import { documentService } from './document.service';
 import { encryptionService } from './encryption.service';
 import { grokCliService } from './grok-cli.service';
+import {
+  ECHO_MODEL_ID,
+  echoCompletion,
+  echoChunks,
+  isEchoModel,
+} from './runtimes/echo';
 import { grokSessionMapService } from './grok-session-map.service';
 import { policyService } from './policy.service';
 import { settingsService } from './settings.service';
@@ -267,8 +273,11 @@ export class ChatService {
   ): Promise<OpenAiChatCompletion | void> {
     const settings = await settingsService.getAll();
     const features = await apiFeaturesService.get();
-    const model = dto.model || settings.defaultModel;
+    const model = dto.model || settings.defaultModel || ECHO_MODEL_ID;
     const stream = Boolean(dto.stream);
+    if (isEchoModel(model)) {
+      return this.executeEchoCompletion(dto, ctx, res, model, stream);
+    }
     // OTP sessions use synthetic ids — ChatRequest.apiKeyId requires a real key row
     const { toPersistentApiKeyId } = await import('../utils/api-key-id');
     const ownerApiKeyId = await toPersistentApiKeyId(ctx.apiKey.id);
@@ -574,6 +583,62 @@ export class ChatService {
         await rmSafe(attachDir);
       }
     }
+  }
+
+  private async executeEchoCompletion(
+    dto: CreateChatCompletionDto,
+    ctx: ChatContext,
+    res: Response | undefined,
+    model: string,
+    stream: boolean,
+  ): Promise<OpenAiChatCompletion | void> {
+    const { toPersistentApiKeyId } = await import('../utils/api-key-id');
+    const ownerApiKeyId = await toPersistentApiKeyId(ctx.apiKey.id);
+    const chatRequestDbId = createId();
+    const completion = echoCompletion(model, dto.messages || []);
+    const started = Date.now();
+    const promptEnc = encryptionService.encrypt(
+      JSON.stringify(dto.messages || []),
+    );
+    await prisma.chatRequest.create({
+      data: {
+        id: chatRequestDbId,
+        requestId: ctx.requestId,
+        apiKeyId: ownerApiKeyId,
+        model,
+        stream,
+        status: CHAT_STATUS.PENDING,
+        promptCiphertext: toBytes(promptEnc.ciphertext),
+        promptIv: toBytes(promptEnc.iv),
+        promptTag: toBytes(promptEnc.tag),
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+        policyMode: 'safe',
+      },
+    });
+    const responseEnc = encryptionService.encrypt(
+      completion.choices[0]?.message?.content || '',
+    );
+    await prisma.chatRequest.update({
+      where: { id: chatRequestDbId },
+      data: {
+        status: CHAT_STATUS.SUCCESS,
+        durationMs: Date.now() - started,
+        responseCiphertext: toBytes(responseEnc.ciphertext),
+        responseIv: toBytes(responseEnc.iv),
+        responseTag: toBytes(responseEnc.tag),
+      },
+    });
+    if (stream && res) {
+      initSse(res);
+      for (const chunk of echoChunks(model, dto.messages || [])) {
+        writeSseData(res, chunk);
+      }
+      writeSseDone(res);
+      res.end();
+      return;
+    }
+    return completion;
   }
 
   private async rememberGrokSession(

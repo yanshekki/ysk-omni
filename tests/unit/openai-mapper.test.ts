@@ -79,6 +79,6 @@ describe('openai-mapper', () => {
     const list = mapModelsList(['a', 'b']);
     expect(list.object).toBe('list');
     expect(list.data).toHaveLength(2);
-    expect(list.data[0]?.owned_by).toBe('xai');
+    expect(list.data[0]?.owned_by).toBe('ysk-omni');
   });
 });

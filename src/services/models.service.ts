@@ -2,6 +2,8 @@ import { env } from '../config/env';
 import type { OpenAiModel, OpenAiModelList } from '../interfaces';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 import { mapModelsList } from '../utils/openai-mapper';
+import { ECHO_MODEL_ID } from './runtimes/echo';
+import { loadRegistry } from './hf/registry';
 
 export class ModelsService {
   private cache: { models: string[]; fetchedAt: number; source: string } | null =
@@ -10,7 +12,12 @@ export class ModelsService {
 
   async list(): Promise<OpenAiModelList> {
     const models = await this.getModelIds();
-    return mapModelsList(models);
+    const body = mapModelsList(models);
+    body.data = body.data.map((m) => ({
+      ...m,
+      owned_by: m.id === ECHO_MODEL_ID ? 'ysk-omni' : m.owned_by || 'ysk-omni',
+    }));
+    return body;
   }
 
   async get(modelId: string): Promise<OpenAiModel> {
@@ -40,7 +47,11 @@ export class ModelsService {
       return this.cache.models;
     }
 
-    const models: string[] = [];
+    const ids = new Set<string>([ECHO_MODEL_ID]);
+    for (const m of loadRegistry().models) {
+      ids.add(m.id);
+    }
+    const models = [...ids];
     this.cache = { models, fetchedAt: now, source: 'registry' };
     return models;
   }
@@ -54,8 +65,8 @@ export class ModelsService {
     const models = await this.getModelIds(forceRefresh);
     return {
       models,
-      source: this.cache?.source ?? 'fallback',
-      defaultModel: env.GROK_DEFAULT_MODEL,
+      source: this.cache?.source ?? 'registry',
+      defaultModel: env.GROK_DEFAULT_MODEL || ECHO_MODEL_ID,
       fetchedAt: this.cache?.fetchedAt ?? Date.now(),
     };
   }

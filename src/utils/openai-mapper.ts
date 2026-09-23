@@ -182,7 +182,7 @@ export function mapModelsList(models: string[]): OpenAiModelList {
     id,
     object: 'model',
     created: Math.floor(Date.now() / 1000),
-    owned_by: 'xai',
+    owned_by: 'ysk-omni',
   }));
   return { object: 'list', data };
 }
