@@ -20,6 +20,7 @@ import type {
 import { grokToolsMediaProvider } from './providers/grok-tools.provider';
 import { mockMediaProvider } from './providers/mock.provider';
 import { stubMediaProvider } from './providers/stub.provider';
+import { HttpWorkerMediaProvider } from './providers/http-worker.provider';
 
 /** Test / forced provider override */
 let providerOverride: MediaProvider | null = null;
@@ -30,13 +31,22 @@ export function setMediaProviderForTests(p: MediaProvider | null): void {
 
 export function resolveMediaProvider(): MediaProvider {
   if (providerOverride) return providerOverride;
+  const imageUrl = (process.env.OMNI_IMAGE_URL || '').trim();
+  if (imageUrl) return new HttpWorkerMediaProvider(imageUrl);
   const envName = (process.env.MEDIA_PROVIDER || '').toLowerCase();
   if (envName === 'mock') return mockMediaProvider;
   if (envName === 'none' || envName === 'stub') return stubMediaProvider;
-  if (envName === 'grok' || envName === 'grok-tools' || !envName) {
+  if (envName === 'grok' || envName === 'grok-tools') {
     return grokToolsMediaProvider;
   }
   return stubMediaProvider;
+}
+
+function assertImageRuntime(): void {
+  if (providerOverride) return;
+  if ((process.env.OMNI_IMAGE_URL || '').trim()) return;
+  if ((process.env.MEDIA_PROVIDER || '').toLowerCase() === 'mock') return;
+  throw ExceptionFactory.engineUnconfigured('image runtime not attached');
 }
 
 export type ImageGenerationResult = {
@@ -203,6 +213,7 @@ export class MediaOrchestratorService {
     baseUrl?: string;
     ip?: string;
   }): Promise<ImageGenerationResult> {
+    assertImageRuntime();
     await assertImagesEnabled();
     assertImageAccess(input.apiKey);
 
@@ -249,6 +260,7 @@ export class MediaOrchestratorService {
     baseUrl?: string;
     ip?: string;
   }): Promise<ImageGenerationResult> {
+    assertImageRuntime();
     await assertImagesEnabled();
     assertImageAccess(input.apiKey);
 

@@ -20,6 +20,23 @@ export class AudioController {
     }
 
     const dto = req.body as CreateSpeechDto;
+    const ttsUrl = (process.env.OMNI_TTS_URL || '').trim();
+    if (ttsUrl) {
+      const upstream = await fetch(ttsUrl.replace(/\/$/, '') + '/v1/audio/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto),
+      });
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      if (!upstream.ok) {
+        throw ExceptionFactory.engineUnconfigured(
+          `TTS worker HTTP ${upstream.status}`,
+        );
+      }
+      res.setHeader('Content-Type', upstream.headers.get('content-type') || 'audio/mpeg');
+      res.status(200).send(buf);
+      return;
+    }
     const provider = (process.env.AUDIO_TTS_PROVIDER || process.env.MEDIA_PROVIDER || '')
       .toLowerCase();
 
@@ -37,9 +54,7 @@ export class AudioController {
       return;
     }
 
-    throw ExceptionFactory.mediaProviderUnavailable(
-      'No TTS provider configured. Set AUDIO_TTS_PROVIDER=mock for tests, or wire an external TTS HTTP backend.',
-    );
+    throw ExceptionFactory.engineUnconfigured('speech runtime not attached');
   });
 
   transcriptions = asyncHandler(async (req: Request, res: Response) => {
@@ -55,6 +70,22 @@ export class AudioController {
       throw ExceptionFactory.validation('Multipart field "file" is required');
     }
 
+    const sttUrl = (process.env.OMNI_STT_URL || '').trim();
+    if (sttUrl) {
+      const upstream = await fetch(sttUrl.replace(/\/$/, '') + '/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: req.file.originalname, bytes: req.file.size }),
+      });
+      const json = await upstream.json().catch(() => ({}));
+      if (!upstream.ok) {
+        throw ExceptionFactory.engineUnconfigured(
+          `STT worker HTTP ${upstream.status}`,
+        );
+      }
+      res.status(200).json(json);
+      return;
+    }
     const provider = (process.env.AUDIO_STT_PROVIDER || process.env.MEDIA_PROVIDER || '')
       .toLowerCase();
     if (provider === 'mock') {
@@ -65,9 +96,7 @@ export class AudioController {
       return;
     }
 
-    throw ExceptionFactory.mediaProviderUnavailable(
-      'No STT provider configured. Set AUDIO_STT_PROVIDER=mock for tests, or wire Whisper-compatible backend.',
-    );
+    throw ExceptionFactory.engineUnconfigured('transcription runtime not attached');
   });
 }
 
