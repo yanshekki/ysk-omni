@@ -4,6 +4,7 @@ import {
   pickGgufFile,
   listQuants,
 } from '../../src/services/hf/spec';
+import { encodeRepoId } from '../../src/services/hf/client';
 
 describe('parseHfSpec', () => {
   it('parses org/repo', () => {
@@ -24,6 +25,15 @@ describe('parseHfSpec', () => {
       repoId: 'Qwen/Qwen2.5-7B-Instruct',
       quant: 'Q8_0',
     });
+  });
+});
+
+describe('encodeRepoId', () => {
+  it('keeps the slash between org and repo', () => {
+    expect(encodeRepoId('Qwen/Qwen2.5-0.5B-Instruct-GGUF')).toBe(
+      'Qwen/Qwen2.5-0.5B-Instruct-GGUF',
+    );
+    expect(encodeRepoId('Qwen/Qwen2.5-0.5B-Instruct-GGUF')).not.toContain('%2F');
   });
 });
 

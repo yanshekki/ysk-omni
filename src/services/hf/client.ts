@@ -34,8 +34,15 @@ function getJson(url: string): Promise<unknown> {
   });
 }
 
+export function encodeRepoId(repoId: string): string {
+  return repoId
+    .split('/')
+    .map((p) => encodeURIComponent(p))
+    .join('/');
+}
+
 export async function listHubFiles(repoId: string): Promise<HubFile[]> {
-  const treeUrl = `https://huggingface.co/api/models/${encodeURIComponent(repoId)}/tree/main?recursive=1`;
+  const treeUrl = `https://huggingface.co/api/models/${encodeRepoId(repoId)}/tree/main?recursive=1`;
   try {
     const data = await getJson(treeUrl);
     if (Array.isArray(data)) {
@@ -50,7 +57,7 @@ export async function listHubFiles(repoId: string): Promise<HubFile[]> {
   } catch {
     /* fallback */
   }
-  const infoUrl = `https://huggingface.co/api/models/${encodeURIComponent(repoId)}`;
+  const infoUrl = `https://huggingface.co/api/models/${encodeRepoId(repoId)}`;
   const info = (await getJson(infoUrl)) as { siblings?: Array<{ rfilename?: string; size?: number }> };
   return (info.siblings || [])
     .map((s) => ({ path: String(s.rfilename || ''), size: s.size }))
@@ -104,7 +111,7 @@ export async function pullModel(
     emit(skipped);
     return skipped;
   }
-  const url = `https://huggingface.co/${spec.repoId}/resolve/main/${picked.path}`;
+  const url = `https://huggingface.co/${encodeRepoId(spec.repoId)}/resolve/main/${picked.path.split('/').map((p) => encodeURIComponent(p)).join('/')}`;
   fs.mkdirSync(destDir, { recursive: true });
   const dest = path.join(destDir, path.basename(picked.path));
   try {
