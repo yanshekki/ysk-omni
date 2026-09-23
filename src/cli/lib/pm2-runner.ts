@@ -50,11 +50,11 @@ function writePreferredRunner(packageRoot: string, runner: 'pm2' | 'ysk-omni'): 
 }
 
 async function freePort(paths: RuntimePaths, port: number): Promise<void> {
-  const ysk-omniPid = readPid(paths.pidFile);
-  if (ysk-omniPid && isProcessRunning(ysk-omniPid)) {
-    await killPid(ysk-omniPid);
+  const omniPid = readPid(paths.pidFile);
+  if (omniPid && isProcessRunning(omniPid)) {
+    await killPid(omniPid);
     clearPid(paths.pidFile);
-    info(`Stopped ysk-omni pid ${ysk-omniPid}`);
+    info(`Stopped ysk-omni pid ${omniPid}`);
   }
   for (const p of findPidsOnPort(port)) {
     await killPid(p);

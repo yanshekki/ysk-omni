@@ -29,8 +29,8 @@ export async function cmdStatus(opts: {
   info(`Preferred:  ${det.preferred ?? '(none)'}`);
   info(`Runner:     ${det.runner}`);
 
-  if (det.ysk-omniRunning) {
-    ok(`ysk-omni:     pid ${det.ysk-omniPid}`);
+  if (det.omniRunning) {
+    ok(`ysk-omni:     pid ${det.omniPid}`);
   } else {
     info('ysk-omni:     not running');
   }

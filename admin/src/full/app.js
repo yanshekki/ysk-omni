@@ -6637,7 +6637,7 @@ async function renderPm2() {
       <div class="panel-pad">
         <div class="grid">
           <div class="card"><div class="label">${escapeHtml(t('pm2.currentRunner'))}</div><div class="value value-sm">${runnerBadge(runner)}</div></div>
-          <div class="card"><div class="label">${escapeHtml(t('pm2.ysk-omniPid'))}</div><div class="value value-sm">${d.ysk-omni?.running && d.ysk-omni?.pid ? d.ysk-omni.pid : '—'}</div></div>
+          <div class="card"><div class="label">${escapeHtml(t('pm2.omniPid'))}</div><div class="value value-sm">${d.omni?.running && d.omni?.pid ? d.ysk-omni.pid : '—'}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('pm2.port'))}</div><div class="value value-sm">${d.port ?? '—'}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('pm2.portBusy'))}</div><div class="value value-sm">${portBusy ? t('common.yes') : t('common.no')}</div></div>
         </div>

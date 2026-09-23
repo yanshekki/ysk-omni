@@ -29,7 +29,7 @@ import { ExceptionFactory } from '../exceptions/exception.factory';
 const execFileAsync = promisify(execFile);
 
 
-function ysk-omniPidFile(): string {
+function omniPidFile(): string {
   const home = process.env.OMNI_HOME?.trim() || getDefaultHome();
   const candidates = [
     path.join(process.cwd(), 'ysk-omni.pid'),
@@ -168,28 +168,28 @@ function tailErrorLog(lines = 40): string {
 
 function detectPortHolders(port: number): {
   pids: number[];
-  ysk-omniPid: number | null;
-  ysk-omniRunning: boolean;
+  omniPid: number | null;
+  omniRunning: boolean;
 } {
   const pids = findPidsOnPort(port);
-  const ysk-omniPid = readPid(ysk-omniPidFile());
-  const ysk-omniRunning = ysk-omniPid != null && isProcessRunning(ysk-omniPid);
+  const omniPid = readPid(omniPidFile());
+  const omniRunning = omniPid != null && isProcessRunning(omniPid);
   return {
     pids,
-    ysk-omniPid: ysk-omniRunning ? ysk-omniPid : null,
-    ysk-omniRunning,
+    omniPid: omniRunning ? omniPid : null,
+    omniRunning,
   };
 }
 
 /** Free port by stopping known ysk-omni/pm2 gateway processes only (never kill strangers). */
 async function freePortForPm2(port: number): Promise<string[]> {
   const notes: string[] = [];
-  const pidFile = ysk-omniPidFile();
-  const ysk-omniPid = readPid(pidFile);
-  if (ysk-omniPid && isProcessRunning(ysk-omniPid)) {
-    await killPid(ysk-omniPid);
+  const pidFile = omniPidFile();
+  const omniPid = readPid(pidFile);
+  if (omniPid && isProcessRunning(omniPid)) {
+    await killPid(omniPid);
     clearPid(pidFile);
-    notes.push(`stopped ysk-omni pid ${ysk-omniPid}`);
+    notes.push(`stopped ysk-omni pid ${omniPid}`);
   }
   // Try stop/delete our PM2 app if it holds the port
   try {
@@ -348,10 +348,10 @@ export class Pm2Service {
     const cfg = readPm2Config();
     const appName = cfg.name;
 
-    const ysk-omniInfo = {
-      running: holders.ysk-omniRunning,
-      pid: holders.ysk-omniPid,
-      pidFile: ysk-omniPidFile(),
+    const omniInfo = {
+      running: holders.omniRunning,
+      pid: holders.omniPid,
+      pidFile: omniPidFile(),
     };
 
     if (!this.isEnabled()) {
@@ -365,7 +365,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        ysk-omni: ysk-omniInfo,
+        omni: omniInfo,
         config: cfg,
         portHolders: holders,
       };
@@ -383,7 +383,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        ysk-omni: ysk-omniInfo,
+        omni: omniInfo,
         config: cfg,
         portHolders: holders,
       };
@@ -401,13 +401,13 @@ export class Pm2Service {
         let messageParams: Record<string, string | number> = { app: appName };
         let message = `App "${appName}" not in PM2 list — Start with PM2 or Switch to PM2.`;
         if (holders.pids.length) {
-          if (holders.ysk-omniRunning) {
+          if (holders.omniRunning) {
             messageKey = 'pm2.msgPortGctoac';
             messageParams = {
               port,
-              pid: holders.ysk-omniPid ?? 0,
+              pid: holders.omniPid ?? 0,
             };
-            message = `Port ${port} is served by ysk-omni (pid ${holders.ysk-omniPid}). Use “Switch to PM2” to hand over.`;
+            message = `Port ${port} is served by ysk-omni (pid ${holders.omniPid}). Use “Switch to PM2” to hand over.`;
           } else {
             messageKey = 'pm2.msgPortBusy';
             messageParams = {
@@ -427,7 +427,7 @@ export class Pm2Service {
           appName,
           port,
           runner: this.inferRunner(null, holders) as RunnerMode,
-          ysk-omni: ysk-omniInfo,
+          omni: omniInfo,
           config: cfg,
           portHolders: holders,
           lastError: '',
@@ -450,13 +450,13 @@ export class Pm2Service {
           'PM2 process errored — check logs / config, then Restart or fix port conflicts.';
       } else if (
         status === 'online' &&
-        holders.ysk-omniRunning &&
-        holders.ysk-omniPid &&
-        holders.ysk-omniPid !== pmPid
+        holders.omniRunning &&
+        holders.omniPid &&
+        holders.omniPid !== pmPid
       ) {
         messageKey = 'pm2.msgBothRunners';
-        messageParams = { pid: holders.ysk-omniPid };
-        message = `Both runners detected; ysk-omni pid ${holders.ysk-omniPid} also holds resources. Prefer one runner via Switch.`;
+        messageParams = { pid: holders.omniPid };
+        message = `Both runners detected; ysk-omni pid ${holders.omniPid} also holds resources. Prefer one runner via Switch.`;
       }
 
       return {
@@ -486,7 +486,7 @@ export class Pm2Service {
           { status, pid: pmPid },
           holders,
         ) as RunnerMode,
-        ysk-omni: ysk-omniInfo,
+        omni: omniInfo,
         config: cfg,
         portHolders: holders,
         lastError: errored || restarts > 5 ? tailErrorLog(25) : '',
@@ -503,7 +503,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        ysk-omni: ysk-omniInfo,
+        omni: omniInfo,
         config: cfg,
         portHolders: holders,
         lastError: tailErrorLog(25),
@@ -513,15 +513,15 @@ export class Pm2Service {
 
   private inferRunner(
     pm2App: { status: string; pid: number } | null,
-    holders: { ysk-omniRunning: boolean; ysk-omniPid: number | null; pids: number[] },
+    holders: { omniRunning: boolean; omniPid: number | null; pids: number[] },
   ): RunnerMode {
     const pm2Online =
       pm2App &&
       (pm2App.status === 'online' || pm2App.status === 'launching') &&
       pm2App.pid > 0;
-    if (pm2Online && !holders.ysk-omniRunning) return 'pm2';
-    if (holders.ysk-omniRunning && !pm2Online) return 'ysk-omni';
-    if (pm2Online && holders.ysk-omniRunning) return 'unknown';
+    if (pm2Online && !holders.omniRunning) return 'pm2';
+    if (holders.omniRunning && !pm2Online) return 'ysk-omni';
+    if (pm2Online && holders.omniRunning) return 'unknown';
     if (holders.pids.length > 0) return 'unknown';
     return 'none';
   }
@@ -868,7 +868,7 @@ export class Pm2Service {
   async freeEverything(port?: number): Promise<string[]> {
     const p = port ?? env.PORT;
     const notes = [...(await this.stopPm2IfRunning())];
-    const g = await stopGateway({ pidFile: ysk-omniPidFile(), port: p });
+    const g = await stopGateway({ pidFile: omniPidFile(), port: p });
     if (g.stoppedPid) notes.push('stopped ysk-omni');
     if (g.freedPort.length) notes.push(`freed pids ${g.freedPort.join(',')}`);
     return notes;

@@ -124,8 +124,8 @@ export async function cmdDoctor(opts: {
     if (det.runner === 'mixed') {
       fail('Both ysk-omni and PM2 appear online — fix with: ysk-omni stop && ysk-omni start [--pm2]');
       issues += 1;
-    } else if (det.ysk-omniRunning) {
-      ok(`ysk-omni running (pid ${det.ysk-omniPid})`);
+    } else if (det.omniRunning) {
+      ok(`ysk-omni running (pid ${det.omniPid})`);
     } else if (det.pm2.online) {
       ok(`PM2 online (${det.pm2.name}, ${det.pm2.status})`);
     } else {

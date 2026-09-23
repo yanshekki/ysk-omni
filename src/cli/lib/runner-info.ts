@@ -111,28 +111,28 @@ export function detectRunner(
 ): {
   runner: RunnerKind;
   preferred: 'pm2' | 'ysk-omni' | null;
-  ysk-omniPid: number | null;
-  ysk-omniRunning: boolean;
+  omniPid: number | null;
+  omniRunning: boolean;
   pm2: ReturnType<typeof pm2AppStatus>;
   portPids: number[];
 } {
-  const ysk-omniPid = readPid(paths.pidFile);
-  const ysk-omniRunning = Boolean(ysk-omniPid && isProcessRunning(ysk-omniPid));
+  const omniPid = readPid(paths.pidFile);
+  const omniRunning = Boolean(omniPid && isProcessRunning(omniPid));
   const pm2 = pm2AppStatus(paths.packageRoot);
   const preferred = readPreferredRunner(paths.packageRoot);
   const portPids = findPidsOnPort(port);
 
   let runner: RunnerKind = 'none';
-  if (pm2.online && ysk-omniRunning) runner = 'mixed';
+  if (pm2.online && omniRunning) runner = 'mixed';
   else if (pm2.online) runner = 'pm2';
-  else if (ysk-omniRunning) runner = 'ysk-omni';
+  else if (omniRunning) runner = 'ysk-omni';
   else if (portPids.length) runner = 'unknown';
 
   return {
     runner,
     preferred,
-    ysk-omniPid: ysk-omniRunning ? ysk-omniPid : null,
-    ysk-omniRunning,
+    omniPid: omniRunning ? omniPid : null,
+    omniRunning,
     pm2,
     portPids,
   };
