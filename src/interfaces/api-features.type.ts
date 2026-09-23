@@ -75,8 +75,8 @@ export const DEFAULT_API_FEATURES: ApiFeatures = {
 
   // Media: images on by default (provider may still 503 if Grok tools fail)
   imagesApi: true,
-  audioApi: false,
-  videoApi: false,
+  audioApi: true,
+  videoApi: true,
   filesOpenAiAlias: false,
 };
 
