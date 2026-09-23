@@ -166,6 +166,7 @@ export const pageApiPaths = {
   pm2: endpoints.pm2,
   system: endpoints.system,
   models: endpoints.models,
+  catalog: endpoints.catalog,
 } as const;
 
 export type PageApiName = keyof typeof pageApiPaths;
@@ -179,6 +180,7 @@ export const pagePrimaryGetPath: Record<string, string> = {
   keys: pageApiPaths.keys,
   documents: pageApiPaths.documents,
   media: pageApiPaths.mediaAssets,
+  catalog: pageApiPaths.catalog,
   audit: pageApiPaths.audit,
   settings: pageApiPaths.settings,
   apiFeatures: pageApiPaths.apiFeatures,

@@ -899,7 +899,7 @@ apiFeaturesCmd
 program
   .command('doctor')
   .description(
-    'Check Node, Grok CLI, env (proxy/port), build, runner (ysk-omni/PM2), conflicts',
+    'Check Node, env, loaded models, VRAM, build, runner (ysk-omni/PM2), conflicts',
   )
   .action(async () => {
     await cmdDoctor(globalOpts());

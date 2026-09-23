@@ -33,21 +33,27 @@ export async function cmdDoctor(opts: {
   info(`Home (${paths.mode}): ${paths.home}`);
 
   try {
-    const v = execSync('grok --version', { encoding: 'utf8' }).trim();
-    const line = v.split('\n')[0] || v;
-    ok(`Grok CLI: ${line}`);
-    const sem = line.match(/(\d+)\.(\d+)\.(\d+)/);
-    if (sem) {
-      const major = Number(sem[1]);
-      if (major < 1) {
-        warn(
-          `Grok CLI ${sem[1]}.${sem[2]}.${sem[3]} is older than 1.0.0 — session_id / --best-of-n / --check flags changed. Upgrade with: grok update`,
-        );
-      }
+    const { loadRegistry } = await import('../../services/hf/registry');
+    const { vramScheduler } = await import('../../services/vram-scheduler');
+    const { ECHO_MODEL_ID } = await import('../../services/runtimes/echo');
+    const snap = vramScheduler.snapshot();
+    const local = loadRegistry().models;
+    ok(`Echo engine: ${ECHO_MODEL_ID}`);
+    if (!snap.loaded.length) {
+      info('Loaded models: (none)');
+    } else {
+      ok(
+        `Loaded models: ${snap.loaded.map((m) => `${m.id} (${m.vramMb} MB)`).join(', ')}`,
+      );
     }
-  } catch {
-    fail('Grok CLI not found on PATH (install + grok login)');
-    issues += 1;
+    info(`Estimated VRAM: ${snap.usedMb} MB / ${snap.budgetMb} MB budget`);
+    if (local.length) {
+      info(`Registry: ${local.map((m) => m.id).join(', ')}`);
+    }
+  } catch (err) {
+    warn(
+      `Could not read model registry: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   if (!fs.existsSync(paths.envFile)) {

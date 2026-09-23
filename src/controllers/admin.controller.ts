@@ -10,6 +10,7 @@ import { adminPm2Handlers } from './admin/pm2.handlers';
 import { adminQueueHandlers } from './admin/queue.handlers';
 import { adminApiFeaturesHandlers } from './admin/api-features.handlers';
 import { adminMediaHandlers } from './admin/media.handlers';
+import { adminCatalogHandlers } from './admin/catalog.handlers';
 
 /** Composed Admin API handlers (split by domain for maintainability). */
 export const adminController = {
@@ -23,6 +24,10 @@ export const adminController = {
   ...adminDdosHandlers,
   ...adminPm2Handlers,
   ...adminMediaHandlers,
+  catalog: adminCatalogHandlers.catalog,
+  catalogPull: adminCatalogHandlers.pull,
+  loadModel: adminCatalogHandlers.loadModel,
+  unloadModel: adminCatalogHandlers.unloadModel,
   apiFeaturesGet: adminApiFeaturesHandlers.get,
   apiFeaturesPut: adminApiFeaturesHandlers.put,
   apiFeaturesPreset: adminApiFeaturesHandlers.preset,

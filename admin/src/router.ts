@@ -6,6 +6,7 @@ import type { PageId } from './config/constants';
 import { renderLoginPage } from './pages/login.page';
 import { renderDashboardPage } from './pages/dashboard.page';
 import { renderMediaPage } from './pages/media.page';
+import { renderCatalogPage } from './pages/catalog.page';
 import { renderApiFeaturesPage } from './pages/api-features.page';
 import { renderKeysPage } from './pages/keys.page';
 import { renderDocumentsPage } from './pages/documents.page';
@@ -71,6 +72,7 @@ export const pageRegistry: Record<Exclude<PageId, 'login'>, PageRenderer> = {
   keys: renderKeysPage,
   documents: renderDocumentsPage,
   media: renderMediaPage,
+  catalog: renderCatalogPage,
   audit: renderAudit,
   settings: renderSettings,
   apiFeatures: renderApiFeaturesPage,

@@ -78,6 +78,10 @@ router.post(
 router.get('/stats', adminController.stats);
 router.get('/usage', adminController.usage);
 router.get('/models', adminController.models);
+router.get('/catalog', adminController.catalog);
+router.post('/catalog/pull', adminController.catalogPull);
+router.post('/models/load', adminController.loadModel);
+router.post('/models/unload', adminController.unloadModel);
 router.get('/system', adminController.system);
 router.get('/grok/inspect', adminController.grokInspect);
 router.get('/grok/sessions', adminController.grokSessionsList);
