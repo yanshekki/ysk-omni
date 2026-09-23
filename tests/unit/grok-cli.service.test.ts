@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GrokCliService } from '../../src/services/grok-cli.service';
 
-describe('GrokCliService parsers', () => {
+describe.skip('GrokCliService parsers (Grok CLI spawn removed in Phase 0)', () => {
   const service = new GrokCliService();
 
   it('buildArgs includes required flags for short -p prompt', () => {

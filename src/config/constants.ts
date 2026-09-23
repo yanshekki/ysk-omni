@@ -286,8 +286,8 @@ export const STORAGE_TYPES = {
   FILESYSTEM: 'filesystem',
 } as const;
 
-/** Fallback models if `grok models` cannot be parsed */
-export const DEFAULT_MODELS = ['grok-4.6', 'grok-4.5'] as const;
+/** No built-in model ids until a local model is pulled. */
+export const DEFAULT_MODELS: readonly string[] = [];
 
 /**
  * Grok Imagine `aspect_ratio` values (image_gen / image_edit multi-ref).

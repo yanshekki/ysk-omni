@@ -54,18 +54,16 @@ describe('v1 routes (auth, models, documents, api-keys)', () => {
     expect(res.status).toBe(200);
     const body = res.json as { object: string; data: Array<{ id: string }> };
     expect(body.object).toBe('list');
-    expect(body.data.length).toBeGreaterThan(0);
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data.some((m) => /^grok/i.test(m.id))).toBe(false);
   });
 
-  it('gets one model', async () => {
+  it('does not expose Grok model ids', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/v1/models/grok-4.5', {
       key: h.clientKey,
     });
-    expect(res.status).toBe(200);
-    const body = res.json as { id: string; object: string };
-    expect(body.id).toBe('grok-4.5');
-    expect(body.object).toBe('model');
+    expect(res.status).toBe(404);
   });
 
   it('404 unknown model', async () => {

@@ -1,7 +1,6 @@
 import execa from 'execa';
 import fs from 'node:fs';
 import path from 'node:path';
-import { env } from '../config/env';
 import type { SoftwareCheck } from '../interfaces/software-check.interface';
 import type { SystemSoftwareReport } from '../interfaces/system-software-report.interface';
 
@@ -159,29 +158,15 @@ export class SystemHealthService {
   }
 
   private async checkGrok(): Promise<SoftwareCheck> {
-    const bin = env.GROK_BIN || 'grok';
-    const binPath = (await which(bin)) || bin;
-    const r = await runVersion(binPath, ['--version']);
-    const version = r.ok ? extractVersion(r.stdout) || firstLine(r.stdout) : null;
-    let detail: string | undefined;
-    if (!r.ok) {
-      detail = `Not found (${bin}). Install Grok CLI and run grok login.`;
-    } else if (version) {
-      const sem = version.match(/(\d+)\.(\d+)\.(\d+)/);
-      if (sem && Number(sem[1]) < 1) {
-        detail =
-          'Older than 1.0.0 — session and headless flags changed. Run grok update.';
-      }
-    }
     return {
       id: 'grok',
       name: 'Grok CLI',
-      level: 'required',
-      installed: r.ok,
-      version,
-      path: r.ok ? binPath : null,
-      ok: r.ok,
-      detail,
+      level: 'optional',
+      installed: false,
+      version: null,
+      path: null,
+      ok: true,
+      detail: 'CLI spawn removed; local engines attach in later phases',
     };
   }
 

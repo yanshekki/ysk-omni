@@ -33,7 +33,7 @@ function emptyStream() {
   })();
 }
 
-describe('GrokToolsMediaProvider generate/edit policy', () => {
+describe.skip('GrokToolsMediaProvider generate/edit policy (CLI spawn removed in Phase 0)', () => {
   beforeEach(() => {
     isAvailableMock.mockReset();
     isAvailableMock.mockResolvedValue(true);
@@ -124,7 +124,7 @@ describe('GrokToolsMediaProvider generate/edit policy', () => {
   });
 });
 
-describe('listMediaFiles / selectCollectedMedia', () => {
+describe.skip('listMediaFiles / selectCollectedMedia (CLI spawn removed in Phase 0)', () => {
   let sandbox = '';
 
   beforeEach(async () => {
@@ -236,7 +236,7 @@ async function writeSessionImage(
   return dest;
 }
 
-describe('session image harvest (image_gen writes ~/.grok/sessions/…/images/)', () => {
+describe.skip('session image harvest (CLI spawn removed in Phase 0)', () => {
   let sandbox = '';
   let grokHome = '';
 

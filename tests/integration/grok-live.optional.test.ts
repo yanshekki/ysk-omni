@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process';
 
 const live = process.env.GROK_LIVE === '1';
 
-describe.runIf(live)('live Grok e2e (GROK_LIVE=1)', () => {
+describe.skip('live Grok e2e (Grok CLI spawn removed in Phase 0)', () => {
   it(
     'grok CLI responds to a one-shot prompt',
     () => {

@@ -1,11 +1,8 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import execa from 'execa';
-import { env } from '../config/env';
 import { isUuid } from '../utils/grok-session';
-import { logger } from '../utils/logger';
-import { grokCliService } from './grok-cli.service';
+import { ExceptionFactory } from '../exceptions/exception.factory';
 
 export type GrokSessionRow = {
   id: string;
@@ -135,17 +132,9 @@ export class GrokSessionsService {
     if (!isUuid(id)) {
       throw new Error('Session id must be a UUID');
     }
-    const result = await execa(env.GROK_BIN, ['sessions', 'delete', id], {
-      timeout: 20_000,
-      reject: false,
-      env: grokCliService.sanitizedEnv(),
-    });
-    if (result.exitCode !== 0) {
-      const stderr = (result.stderr || result.stdout || '').slice(0, 500);
-      logger.warn({ id, stderr, exitCode: result.exitCode }, 'grok sessions delete failed');
-      throw new Error(stderr || `grok sessions delete exited ${result.exitCode}`);
-    }
-    return { id, deleted: true };
+    throw ExceptionFactory.engineUnconfigured(
+      'Grok session delete is unavailable; CLI spawn was removed',
+    );
   }
 }
 

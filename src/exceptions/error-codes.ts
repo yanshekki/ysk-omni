@@ -9,6 +9,7 @@ export const ErrorCodes = {
   GROK_ERROR: 'grok_error',
   GROK_TIMEOUT: 'grok_timeout',
   GROK_NOT_AVAILABLE: 'grok_not_available',
+  ENGINE_UNCONFIGURED: 'engine_unconfigured',
   DOCUMENT_TOO_LARGE: 'document_too_large',
   DOCUMENT_TYPE_NOT_ALLOWED: 'document_type_not_allowed',
   INVALID_CWD: 'invalid_cwd',

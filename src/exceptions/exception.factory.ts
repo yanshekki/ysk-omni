@@ -38,6 +38,13 @@ export const ExceptionFactory = {
     return new HttpException(503, message, ErrorCodes.GROK_NOT_AVAILABLE);
   },
 
+  engineUnconfigured(
+    message = 'Text runtime is not attached',
+    details?: unknown,
+  ): HttpException {
+    return new HttpException(501, message, ErrorCodes.ENGINE_UNCONFIGURED, details);
+  },
+
   invalidCwd(message = 'Working directory is not allowed'): HttpException {
     return new HttpException(400, message, ErrorCodes.INVALID_CWD);
   },
