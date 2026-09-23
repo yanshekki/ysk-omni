@@ -1,0 +1,70 @@
+{
+  "packs": [
+    {
+      "id": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "repoId": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "modality": "text",
+      "runtime": "llamacpp",
+      "quants": ["Q4_K_M", "Q5_K_M", "Q8_0"],
+      "vramMb": 512
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "repoId": "Qwen/Qwen2.5-7B-Instruct",
+      "modality": "text",
+      "runtime": "vllm",
+      "quants": [],
+      "vramMb": 16000
+    },
+    {
+      "id": "Tongyi-MAI/Z-Image-Turbo",
+      "repoId": "Tongyi-MAI/Z-Image-Turbo",
+      "modality": "image",
+      "runtime": "diffusion",
+      "quants": [],
+      "vramMb": 8000
+    },
+    {
+      "id": "black-forest-labs/FLUX.2-klein-4B",
+      "repoId": "black-forest-labs/FLUX.2-klein-4B",
+      "modality": "image",
+      "runtime": "diffusion",
+      "quants": [],
+      "vramMb": 8000
+    },
+    {
+      "id": "Qwen/Qwen3-TTS",
+      "repoId": "Qwen/Qwen3-TTS",
+      "modality": "tts",
+      "runtime": "diffusion",
+      "quants": [],
+      "vramMb": 4000
+    },
+    {
+      "id": "Systran/faster-whisper-small",
+      "repoId": "Systran/faster-whisper-small",
+      "modality": "stt",
+      "runtime": "whisper",
+      "quants": [],
+      "vramMb": 1000
+    },
+    {
+      "id": "Lightricks/LTX-2.5",
+      "repoId": "Lightricks/LTX-2.5",
+      "modality": "video",
+      "runtime": "diffusion",
+      "quants": [],
+      "vramMb": 12000,
+      "flag": "fast"
+    },
+    {
+      "id": "Wan-AI/Wan2.2",
+      "repoId": "Wan-AI/Wan2.2",
+      "modality": "video",
+      "runtime": "diffusion",
+      "quants": [],
+      "vramMb": 20000,
+      "flag": "quality"
+    }
+  ]
+}

@@ -71,7 +71,13 @@ import {
 } from './commands/conversations';
 import { cmdAuditList } from './commands/audit';
 import { cmdStats } from './commands/stats';
-import { cmdModels } from './commands/models';
+import {
+  cmdCatalog,
+  cmdShow,
+  cmdPull,
+  cmdLocalModels,
+  cmdRm,
+} from './commands/catalog';
 import {
   cmdGrokInspect,
   cmdGrokSessionsList,
@@ -724,11 +730,42 @@ program
   });
 
 program
+  .command('catalog')
+  .description('List curated Hugging Face packs')
+  .option('--modality <m>', 'Filter: text|image|video|tts|stt')
+  .action(async (opts: { modality?: string }) => {
+    await cmdCatalog({ ...globalOpts(), modality: opts.modality });
+  });
+
+program
+  .command('show')
+  .description('List GGUF quants for a Hugging Face spec')
+  .argument('<spec>', 'org/repo or org/repo:Q4_K_M')
+  .action(async (spec: string) => {
+    await cmdShow({ ...globalOpts(), spec });
+  });
+
+program
+  .command('pull')
+  .description('Pull a GGUF (or record a safetensors id) into the local registry')
+  .argument('<spec>', 'org/repo or org/repo:quant')
+  .action(async (spec: string) => {
+    await cmdPull({ ...globalOpts(), spec });
+  });
+
+program
   .command('models')
-  .description('List Grok CLI models')
-  .option('--refresh', 'Bypass cache')
-  .action(async (opts: { refresh?: boolean }) => {
-    await cmdModels({ ...globalOpts(), refresh: opts.refresh });
+  .description('List local registry models (includes echo)')
+  .action(async () => {
+    await cmdLocalModels({ ...globalOpts() });
+  });
+
+program
+  .command('rm')
+  .description('Remove a model from the local registry')
+  .argument('<id>', 'Registry id')
+  .action(async (id: string) => {
+    await cmdRm({ ...globalOpts(), id });
   });
 
 const grokEnvCmd = program
