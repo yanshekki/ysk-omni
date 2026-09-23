@@ -46,9 +46,9 @@ import { grokCliService } from './grok-cli.service';
 import {
   ECHO_MODEL_ID,
   echoCompletion,
-  echoChunks,
   isEchoModel,
 } from './runtimes/echo';
+import { tryLlamaChat } from './runtimes/llama-server';
 import { grokSessionMapService } from './grok-session-map.service';
 import { policyService } from './policy.service';
 import { settingsService } from './settings.service';
@@ -277,6 +277,10 @@ export class ChatService {
     const stream = Boolean(dto.stream);
     if (isEchoModel(model)) {
       return this.executeEchoCompletion(dto, ctx, res, model, stream);
+    }
+    const llama = await tryLlamaChat(model, dto.messages || []);
+    if (llama) {
+      return this.executeLocalCompletion(dto, ctx, res, model, stream, llama);
     }
     // OTP sessions use synthetic ids — ChatRequest.apiKeyId requires a real key row
     const { toPersistentApiKeyId } = await import('../utils/api-key-id');
@@ -592,10 +596,27 @@ export class ChatService {
     model: string,
     stream: boolean,
   ): Promise<OpenAiChatCompletion | void> {
+    return this.executeLocalCompletion(
+      dto,
+      ctx,
+      res,
+      model,
+      stream,
+      echoCompletion(model, dto.messages || []),
+    );
+  }
+
+  private async executeLocalCompletion(
+    dto: CreateChatCompletionDto,
+    ctx: ChatContext,
+    res: Response | undefined,
+    model: string,
+    stream: boolean,
+    completion: OpenAiChatCompletion,
+  ): Promise<OpenAiChatCompletion | void> {
     const { toPersistentApiKeyId } = await import('../utils/api-key-id');
     const ownerApiKeyId = await toPersistentApiKeyId(ctx.apiKey.id);
     const chatRequestDbId = createId();
-    const completion = echoCompletion(model, dto.messages || []);
     const started = Date.now();
     const promptEnc = encryptionService.encrypt(
       JSON.stringify(dto.messages || []),
@@ -631,9 +652,11 @@ export class ChatService {
     });
     if (stream && res) {
       initSse(res);
-      for (const chunk of echoChunks(model, dto.messages || [])) {
-        writeSseData(res, chunk);
-      }
+      const text = String(completion.choices[0]?.message?.content || '');
+      const id = completion.id;
+      const created = completion.created;
+      writeSseData(res, mapRoleChunk(model, id, created));
+      writeSseData(res, mapTextDeltaChunk(model, text, id, created));
       writeSseDone(res);
       res.end();
       return;
