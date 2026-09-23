@@ -4,6 +4,7 @@ import { createId } from '../../utils/id';
 import { toPersistentApiKeyId } from '../../utils/api-key-id';
 import { apiFeaturesService } from '../api-features.service';
 import { mediaStoreService } from './media-store.service';
+import { vramScheduler } from '../vram-scheduler';
 import type { AuthenticatedApiKey } from '../../interfaces';
 
 /** Deterministic fixture bytes for completed video jobs without a GPU worker. */
@@ -138,6 +139,24 @@ export class MediaJobsService {
       data: { status: 'in_progress', startedAt: new Date() },
     });
 
+    const exclusiveId = `video:${jobId}`;
+    const plan = vramScheduler.load({
+      id: exclusiveId,
+      vramMb: 12_000,
+      exclusive: true,
+    });
+    if (!plan.accept) {
+      await prisma.mediaJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'failed',
+          errorMessage: 'VRAM does not fit exclusive video job',
+          completedAt: new Date(),
+        },
+      });
+      return;
+    }
+
     try {
       const stored = await mediaStoreService.save({
         apiKeyId,
@@ -172,6 +191,8 @@ export class MediaJobsService {
           completedAt: new Date(),
         },
       });
+    } finally {
+      vramScheduler.unload(exclusiveId);
     }
   }
 

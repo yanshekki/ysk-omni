@@ -75,6 +75,10 @@ export class VramScheduler {
     if (hit) hit.lastUsedAt = Date.now();
   }
 
+  reset(): void {
+    this.loaded = [];
+  }
+
   unload(id: string): boolean {
     const before = this.loaded.length;
     this.loaded = this.loaded.filter((m) => m.id !== id);

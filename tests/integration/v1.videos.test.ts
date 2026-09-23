@@ -7,6 +7,7 @@ import {
 } from '../helpers/api-harness';
 import { apiFeaturesService } from '../../src/services/api-features.service';
 import { VIDEO_FIXTURE_BYTES } from '../../src/services/media/media-jobs.service';
+import { vramScheduler } from '../../src/services/vram-scheduler';
 
 describe('v1 video jobs', () => {
   let h: Harness | null = null;
@@ -18,6 +19,35 @@ describe('v1 video jobs', () => {
 
   afterAll(async () => {
     await stopHarness(h);
+  });
+
+  it('exclusive video job unloads models already in the VRAM scheduler', async () => {
+    if (!h) return;
+    vramScheduler.reset();
+    vramScheduler.load({ id: 'text-a', vramMb: 8000 });
+    vramScheduler.load({ id: 'text-b', vramMb: 8000 });
+    expect(vramScheduler.snapshot().loaded.map((m) => m.id).sort()).toEqual([
+      'text-a',
+      'text-b',
+    ]);
+    const created = await apiFetch(h.baseUrl, '/v1/videos', {
+      method: 'POST',
+      key: h.adminKey,
+      body: { prompt: 'exclusive vram', seconds: 6 },
+    });
+    expect(created.status).toBe(200);
+    const job = created.json as { id: string };
+    for (let i = 0; i < 40; i += 1) {
+      const poll = await apiFetch(h.baseUrl, `/v1/videos/${job.id}`, {
+        key: h.adminKey,
+      });
+      const status = (poll.json as { status: string }).status;
+      if (status === 'completed' || status === 'failed') break;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    const ids = vramScheduler.snapshot().loaded.map((m) => m.id);
+    expect(ids).not.toContain('text-a');
+    expect(ids).not.toContain('text-b');
   });
 
   it('create is queued then completes with fixture content', async () => {
