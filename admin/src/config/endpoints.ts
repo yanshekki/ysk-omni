@@ -1,0 +1,41 @@
+/**
+ * Admin API path constants — align with src/routes/admin.routes.ts
+ * Paths are relative to API_BASE (/admin/api).
+ */
+export const endpoints = {
+  auth: {
+    login: '/auth/login',
+    logout: '/auth/logout',
+  },
+  me: '/me',
+  stats: '/stats',
+  usage: '/usage',
+  models: '/models',
+  system: '/system',
+  systemUpdateCheck: '/system/update-check',
+  systemUpdate: '/system/update',
+  chats: '/chats',
+  chatCompletions: '/chat/completions',
+  keys: '/keys',
+  key: (id: string) => `/keys/${id}`,
+  documents: '/documents',
+  document: (id: string) => `/documents/${id}`,
+  documentDownload: (id: string) => `/documents/${id}/download`,
+  mediaAssets: '/media/assets',
+  mediaAsset: (id: string) => `/media/assets/${id}`,
+  mediaAssetDownload: (id: string) => `/media/assets/${id}/download`,
+  mediaJobs: '/media/jobs',
+  audit: '/audit-logs',
+  settings: '/settings',
+  apiFeatures: '/api-features',
+  apiFeaturesPreset: '/api-features/preset',
+  ddos: '/ddos/stats',
+  ddosPolicy: '/ddos/policy',
+  ddosConnections: '/ddos/connections',
+  ddosBlacklist: '/ddos/blacklist',
+  queue: '/queue/stats',
+  queuePolicy: '/queue/policy',
+  queueJobs: '/queue/jobs',
+  pm2: '/pm2/status',
+  conversations: '/conversations',
+} as const;

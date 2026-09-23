@@ -1,0 +1,34 @@
+{
+  "object": "list",
+  "total": 20,
+  "limit": 50,
+  "offset": 0,
+  "items": [
+    {
+      "id": "chat-1",
+      "requestId": "req_abc",
+      "model": "grok-4.5",
+      "status": "success",
+      "policyMode": "safe",
+      "durationMs": 1200,
+      "createdAt": "2026-07-16T10:00:00.000Z",
+      "promptPreview": "hello",
+      "contentPreview": "world",
+      "documentCount": 0,
+      "apiKey": { "name": "admin", "keyPrefix": "gog_" }
+    },
+    {
+      "id": "chat-2",
+      "requestId": "req_def",
+      "model": "grok-4.5",
+      "status": "error",
+      "policyMode": "agent",
+      "durationMs": 100,
+      "createdAt": "2026-07-16T11:00:00.000Z",
+      "promptPreview": "fail",
+      "contentPreview": "err",
+      "documentCount": 1,
+      "apiKey": { "name": "client", "keyPrefix": "cli_" }
+    }
+  ]
+}

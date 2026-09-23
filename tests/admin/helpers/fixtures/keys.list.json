@@ -1,0 +1,31 @@
+{
+  "object": "list",
+  "total": 2,
+  "limit": 20,
+  "offset": 0,
+  "data": [
+    {
+      "id": "k1",
+      "name": "admin",
+      "keyPrefix": "gog_",
+      "role": "admin",
+      "mode": "agent",
+      "rateLimit": 60,
+      "maxTurns": null,
+      "timeoutMs": null,
+      "ipWhitelist": [],
+      "isActive": true,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "k2",
+      "name": "client",
+      "keyPrefix": "cli_",
+      "role": "client",
+      "mode": "safe",
+      "rateLimit": 30,
+      "isActive": true,
+      "createdAt": "2026-02-01T00:00:00.000Z"
+    }
+  ]
+}

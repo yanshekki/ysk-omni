@@ -1,0 +1,34 @@
+node_modules/
+# Built output is published via npm only (not committed to git)
+# Note: .github/workflows is tracked for CI badges; npm "files" field already excludes it from the package.
+dist/
+.env
+.env.local
+storage/*
+!storage/.gitkeep
+logs/*
+!logs/.gitkeep
+data/*
+!data/.gitkeep
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log
+gctoac.pid
+pm2.runtime.json
+.DS_Store
+coverage/
+.prisma/
+*.tsbuildinfo
+.vitest/
+*.tgz
+generated/
+
+# --- Admin SPA (Vite) ---
+# Source of truth: admin/src/  (commit this)
+# Runtime entry:   public/admin/boot.js  (commit — also rebuilt by `npm run build`)
+# Sourcemaps / WIP outputs only:
+public/admin/**/*.map
+public/admin/ts/
+public/admin/boot.legacy.js

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <title>Admin panel disabled · Grok Gateway</title>
+    <link rel="icon" href="/admin/assets/logo.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --blue: #3b82f6;
+        --green: #10b981;
+        --text: #0f172a;
+        --muted: #64748b;
+        --bg: #fafbfc;
+        --card: #fff;
+        --border: #e2e8f0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+        background:
+          radial-gradient(ellipse 70% 50% at 50% 30%, rgba(59, 130, 246, 0.08), transparent 55%),
+          var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 24px 16px;
+        line-height: 1.55;
+      }
+      .card {
+        width: min(420px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 36px 28px;
+        box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08);
+        text-align: center;
+      }
+      img { width: 48px; height: 48px; margin: 0 auto 12px; display: block; }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, var(--blue), var(--green));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      p { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
+      pre {
+        margin: 16px 0 0;
+        padding: 14px 16px;
+        background: #0f172a;
+        color: #86efac;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: left;
+        overflow-x: auto;
+      }
+      .hint { margin-top: 16px; font-size: 0.8rem; color: #94a3b8; }
+      .lang { margin-bottom: 12px; font-size: 0.85rem; }
+      .lang button {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 999px;
+        padding: 4px 12px;
+        margin: 0 4px;
+        cursor: pointer;
+      }
+      .lang button.on { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="lang">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="zh-Hant" class="on">中文</button>
+      </div>
+      <img src="/admin/assets/logo.svg" alt="" width="48" height="48" />
+      <h1 id="t-title">管理面板已關閉</h1>
+      <p id="t-body">OpenAI API（/v1）不受影響。</p>
+      <p id="t-hint">重新開啟請在伺服器執行：</p>
+      <pre>gctoac admin on</pre>
+      <p class="hint" id="t-status">檢查狀態：gctoac admin status</p>
+    </div>
+    <script>
+      const copy = {
+        en: {
+          title: 'Admin panel is off',
+          body: 'OpenAI API (/v1) is unaffected.',
+          hint: 'Re-enable on the server with:',
+          status: 'Check status: gctoac admin status',
+        },
+        'zh-Hant': {
+          title: '管理面板已關閉',
+          body: 'OpenAI API（/v1）不受影響。',
+          hint: '重新開啟請在伺服器執行：',
+          status: '檢查狀態：gctoac admin status',
+        },
+      };
+      function apply(lang) {
+        const c = copy[lang] || copy['zh-Hant'];
+        document.getElementById('t-title').textContent = c.title;
+        document.getElementById('t-body').textContent = c.body;
+        document.getElementById('t-hint').textContent = c.hint;
+        document.getElementById('t-status').textContent = c.status;
+        document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
+        document.querySelectorAll('.lang button').forEach((b) => {
+          b.classList.toggle('on', b.dataset.lang === lang);
+        });
+        try { localStorage.setItem('gog_admin_lang', lang); } catch (e) {}
+      }
+      let lang = 'zh-Hant';
+      try {
+        const s = localStorage.getItem('gog_admin_lang');
+        if (s === 'en' || s === 'zh-Hant') lang = s;
+        else if (!(navigator.language || '').toLowerCase().startsWith('zh')) lang = 'en';
+      } catch (e) {}
+      apply(lang);
+      document.querySelectorAll('.lang button').forEach((b) => {
+        b.onclick = () => apply(b.dataset.lang);
+      });
+    </script>
+  </body>
+</html>

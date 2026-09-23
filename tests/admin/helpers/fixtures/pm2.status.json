@@ -1,0 +1,4 @@
+{
+  "object": "admin.pm2_status",
+  "data": { "available": true, "status": "online" }
+}

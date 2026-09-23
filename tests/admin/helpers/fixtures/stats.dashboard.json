@@ -1,0 +1,54 @@
+{
+  "object": "admin.stats",
+  "data": {
+    "totals": {
+      "chats24h": 20,
+      "success24h": 19,
+      "error24h": 1,
+      "successRate24h": 95,
+      "successRate": 90,
+      "errors": 5,
+      "activeKeys": 1,
+      "totalKeys": 2,
+      "documents": 3,
+      "mediaAssets": 1,
+      "mediaAssets24h": 1,
+      "conversations": 4,
+      "conversations24h": 2,
+      "adminSessions": 1
+    },
+    "recentChats": [
+      {
+        "id": "c1",
+        "requestId": "r1",
+        "model": "grok-4.5",
+        "status": "success",
+        "policyMode": "safe",
+        "durationMs": 500,
+        "createdAt": "2026-07-16T00:00:00.000Z",
+        "apiKey": { "name": "admin" }
+      }
+    ],
+    "models24h": [{ "model": "grok-4.5", "requests": 20 }],
+    "queue": {
+      "enabled": true,
+      "paused": false,
+      "drainMode": false,
+      "depth": 0,
+      "queued": 0,
+      "running": 0,
+      "dead": 0,
+      "succeeded": 10,
+      "globalConcurrency": 4
+    },
+    "safety": {
+      "globalSafeMode": true,
+      "safeToolsMode": "deny",
+      "safeMaxTurns": 20,
+      "defaultModel": "grok-4.5"
+    },
+    "concurrency": { "active": 0, "max": 4 },
+    "runtime": { "adminSessions": 1 },
+    "generatedAt": "2026-07-16T12:00:00.000Z"
+  }
+}

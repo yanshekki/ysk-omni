@@ -1,0 +1,4 @@
+{
+  "object": "admin.queue_stats",
+  "data": { "enabled": true, "depth": 0, "running": 0, "dead": 0 }
+}

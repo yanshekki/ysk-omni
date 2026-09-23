@@ -1,0 +1,7 @@
+{
+  "object": "admin.system",
+  "data": {
+    "version": "1.7.4",
+    "node": "v20"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "object": "admin.ddos_stats",
+  "data": { "activeConn": 0, "rateHits": 0, "blockedHits": 0 }
+}

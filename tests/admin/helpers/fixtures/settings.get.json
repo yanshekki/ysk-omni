@@ -1,0 +1,8 @@
+{
+  "object": "admin.settings",
+  "data": {
+    "globalSafeMode": true,
+    "adminPanelEnabled": true,
+    "defaultModel": "grok-4.5"
+  }
+}

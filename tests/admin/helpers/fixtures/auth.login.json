@@ -1,0 +1,7 @@
+{
+  "object": "admin.session",
+  "data": {
+    "token": "gog_sess_test_token_abc",
+    "expiresAt": "2026-07-16T13:00:00.000Z"
+  }
+}

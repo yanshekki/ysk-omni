@@ -1,0 +1,17 @@
+{
+  "object": "list",
+  "total": 1,
+  "limit": 20,
+  "offset": 0,
+  "data": [
+    {
+      "id": "d1",
+      "originalName": "notes.txt",
+      "mimeType": "text/plain",
+      "sizeBytes": 42,
+      "storageType": "database",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "apiKey": { "name": "admin", "keyPrefix": "gog_" }
+    }
+  ]
+}

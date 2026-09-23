@@ -1,0 +1,11 @@
+{
+  "object": "admin.me",
+  "data": {
+    "id": "admin-session:u1",
+    "name": "Admin",
+    "role": "admin",
+    "mode": "agent",
+    "keyPrefix": "sess",
+    "authVia": "otp"
+  }
+}

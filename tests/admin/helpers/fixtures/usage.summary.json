@@ -1,0 +1,11 @@
+{
+  "object": "admin.usage",
+  "data": {
+    "totals": { "requests": 100 },
+    "byModel": [{ "model": "grok-4.5", "requests": 100 }],
+    "perKey": [
+      { "apiKeyId": "k1", "requests": 80, "utilization": 0.2 },
+      { "apiKeyId": "k2", "requests": 20, "utilization": 0.1 }
+    ]
+  }
+}

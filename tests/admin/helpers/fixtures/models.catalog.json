@@ -1,0 +1,8 @@
+{
+  "object": "admin.models",
+  "data": {
+    "models": ["grok-4.5", "grok-3"],
+    "source": "cli",
+    "defaultModel": "grok-4.5"
+  }
+}

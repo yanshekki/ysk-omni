@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String
+  keyPrefix  String
+  keyHash    String    @unique
+  role       String    @default("client")
+  /// safe | agent
+  mode       String    @default("safe")
+  isActive   Boolean   @default(true)
+  rateLimit  Int       @default(60)
+  maxTurns   Int?
+  timeoutMs  Int?
+  /// JSON string array of IPs/CIDRs; empty/null = allow all
+  ipWhitelist String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  chatRequests  ChatRequest[]
+  documents     Document[]
+  auditLogs     AuditLog[]
+  conversations ChatConversation[]
+  mediaAssets   MediaAsset[]
+
+  @@index([keyPrefix])
+  @@index([isActive])
+  @@index([mode])
+  @@map("api_keys")
+}
+
+model IpBlacklist {
+  id        String    @id @default(uuid())
+  ip        String    @unique
+  reason    String?
+  /// manual | auto-auth | auto-rate
+  source    String    @default("manual")
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  createdBy String?
+
+  @@index([expiresAt])
+  @@map("ip_blacklist")
+}
+
+model ChatRequest {
+  id                 String   @id @default(uuid())
+  requestId          String   @unique
+  apiKeyId           String
+  model              String
+  stream             Boolean  @default(false)
+  status             String
+  durationMs         Int?
+  grokSessionId      String?
+  promptCiphertext   Bytes
+  promptIv           Bytes
+  promptTag          Bytes
+  responseCiphertext Bytes?
+  responseIv         Bytes?
+  responseTag        Bytes?
+  errorMessage       String?
+  ip                 String?
+  userAgent          String?
+  /// resolved policy mode used for this request
+  policyMode         String?
+  createdAt          DateTime @default(now())
+
+  apiKey    ApiKey                @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  documents ChatRequestDocument[]
+
+  @@index([apiKeyId, createdAt])
+  @@index([status])
+  @@map("chat_requests")
+}
+
+model Document {
+  id                String    @id @default(uuid())
+  apiKeyId          String
+  originalName      String
+  mimeType          String
+  sizeBytes         Int
+  storageType       String
+  contentCiphertext Bytes?
+  contentIv         Bytes?
+  contentTag        Bytes?
+  storagePath       String?
+  checksumSha256    String
+  createdAt         DateTime  @default(now())
+  deletedAt         DateTime?
+
+  apiKey       ApiKey                @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  chatRequests ChatRequestDocument[]
+
+  @@index([apiKeyId, createdAt])
+  @@index([deletedAt])
+  @@map("documents")
+}
+
+model ChatRequestDocument {
+  chatRequestId String
+  documentId    String
+
+  chatRequest ChatRequest @relation(fields: [chatRequestId], references: [id], onDelete: Cascade)
+  document    Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([chatRequestId, documentId])
+  @@map("chat_request_documents")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  apiKeyId   String?
+  action     String
+  resource   String?
+  resourceId String?
+  metaJson   String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  apiKey ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([apiKeyId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+/// One-time admin panel login codes (CLI-generated).
+model AdminOtp {
+  id        String    @id @default(uuid())
+  /// scrypt hash of the plaintext code
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  createdIp String?
+
+  @@index([expiresAt])
+  @@map("admin_otps")
+}
+
+/// Admin SPA sessions issued after successful OTP login.
+model AdminSession {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  ip         String?
+  userAgent  String?
+
+  @@index([expiresAt])
+  @@map("admin_sessions")
+}
+
+/// Admin playground multi-turn threads (not ChatRequest audit logs).
+model ChatConversation {
+  id                 String   @id @default(uuid())
+  /// Custom topic/title; empty → UI falls back to preview
+  title              String   @default("")
+  apiKeyId           String?
+  model              String?
+  systemPrompt       String   @default("")
+  /// JSON: { version: 1, messages: [{role,content,reasoning?,docs?}] }
+  messagesCiphertext Bytes
+  messagesIv         Bytes
+  messagesTag        Bytes
+  messageCount       Int      @default(0)
+  /// First user message snippet for list (plain)
+  preview            String   @default("")
+  /// Context policy for next API turns: full | summary | recent
+  contextMode        String   @default("full")
+  contextRecentN     Int      @default(6)
+  /// LLM summary (display + optional API context); not a chat bubble
+  summaryText        String   @default("")
+  summaryAt          DateTime?
+  summarySourceCount Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  apiKey ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([updatedAt])
+  @@index([apiKeyId, updatedAt])
+  @@map("chat_conversations")
+}
+
+/// Durable chat work queue (admission queue + lease / reclaim).
+model ChatJob {
+  id                   String    @id @default(uuid())
+  requestId            String
+  apiKeyId             String
+  /// v1 | playground
+  source               String    @default("v1")
+  /// queued | leased | running | succeeded | failed | cancelled | dead
+  status               String    @default("queued")
+  /// lower = higher priority
+  priority             Int       @default(100)
+  attempt              Int       @default(0)
+  maxAttempts          Int       @default(1)
+  leaseOwner           String?
+  leaseUntil           DateTime?
+  notBefore            DateTime?
+  queuedAt             DateTime  @default(now())
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  cancelRequested      Boolean   @default(false)
+  model                String?
+  stream               Boolean   @default(true)
+  /// encrypted JSON payload (dto + context)
+  payloadCiphertext    Bytes
+  payloadIv            Bytes
+  payloadTag           Bytes
+  resultChatRequestId  String?
+  errorCode            String?
+  errorMessage         String?
+  idempotencyKey       String?
+
+  @@index([status, priority, queuedAt])
+  @@index([apiKeyId, status, queuedAt])
+  @@index([leaseUntil])
+  @@index([requestId])
+  @@unique([idempotencyKey])
+  @@map("chat_jobs")
+}
+
+/// Stored OpenAI Responses API objects (text subset).
+model StoredResponse {
+  id           String    @id
+  apiKeyId     String
+  model        String?
+  status       String    @default("completed")
+  /// encrypted full response JSON
+  bodyCiphertext Bytes
+  bodyIv         Bytes
+  bodyTag        Bytes
+  previousId   String?
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+
+  @@index([apiKeyId, createdAt])
+  @@index([previousId])
+  @@map("stored_responses")
+}
+
+/// Local Assistants-lite (feature-flagged).
+model Assistant {
+  id           String   @id @default(uuid())
+  apiKeyId     String
+  name         String   @default("")
+  model        String?
+  instructions String   @default("")
+  toolsJson    String   @default("[]")
+  metadataJson String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  threads AssistantThread[]
+
+  @@index([apiKeyId, createdAt])
+  @@map("assistants")
+}
+
+model AssistantThread {
+  id          String   @id @default(uuid())
+  apiKeyId    String
+  assistantId String?
+  metadataJson String?
+  /// Grok session id for continuity
+  grokSessionId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assistant Assistant? @relation(fields: [assistantId], references: [id], onDelete: SetNull)
+  messages  AssistantMessage[]
+  runs      AssistantRun[]
+
+  @@index([apiKeyId, updatedAt])
+  @@map("assistant_threads")
+}
+
+model AssistantMessage {
+  id        String   @id @default(uuid())
+  threadId  String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  thread AssistantThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("assistant_messages")
+}
+
+model AssistantRun {
+  id          String   @id @default(uuid())
+  threadId    String
+  assistantId String?
+  status      String   @default("queued")
+  model       String?
+  /// encrypted result JSON or error
+  resultJson  String?
+  errorMessage String?
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  thread AssistantThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("assistant_runs")
+}
+
+/// Generated / stored media artifacts (OpenAI Images/Files media path).
+model MediaAsset {
+  id           String    @id @default(uuid())
+  apiKeyId     String
+  /// image | video | audio | file
+  kind         String    @default("image")
+  mime         String
+  byteSize     Int
+  /// relative path under STORAGE_DIR/media/
+  storagePath  String
+  checksumSha256 String
+  originalName String?
+  /// generation | edit | upload | import
+  source       String    @default("generation")
+  provider     String    @default("grok-tools")
+  metaJson     String?
+  prompt       String?
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  deletedAt    DateTime?
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId, createdAt])
+  @@index([kind, createdAt])
+  @@map("media_assets")
+}
+
+/// Async media jobs (video generation, etc.)
+model MediaJob {
+  id           String    @id @default(uuid())
+  apiKeyId     String
+  /// video | audio
+  kind         String    @default("video")
+  status       String    @default("queued")
+  prompt       String?
+  model        String?
+  /// input asset ids JSON
+  inputJson    String?
+  resultAssetId String?
+  errorMessage String?
+  provider     String    @default("mock")
+  createdAt    DateTime  @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  @@index([apiKeyId, createdAt])
+  @@index([status, createdAt])
+  @@map("media_jobs")
+}
+
+/// Client session_id → Grok CLI UUID (create once, then --resume).
+model GrokSessionAlias {
+  id              String   @id @default(uuid())
+  apiKeyId        String
+  clientSessionId String
+  grokSessionId   String
+  createdAt       DateTime @default(now())
+
+  @@unique([apiKeyId, clientSessionId])
+  @@index([apiKeyId, grokSessionId])
+  @@map("grok_session_aliases")
+}

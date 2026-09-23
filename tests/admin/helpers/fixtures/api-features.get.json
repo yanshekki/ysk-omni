@@ -1,0 +1,32 @@
+{
+  "object": "admin.api_features",
+  "data": {
+    "openaiChat": true,
+    "openaiResponses": true,
+    "anthropicMessages": true,
+    "tools": true,
+    "structuredOutput": true,
+    "vision": true,
+    "reasoningEffort": true,
+    "webSearch": true,
+    "subagents": true,
+    "planMode": true,
+    "memory": true,
+    "sessionResume": true,
+    "bestOfN": false,
+    "checkLoop": false,
+    "systemOverride": true,
+    "rules": true,
+    "permissionMode": true,
+    "sandbox": true,
+    "usageEstimate": true,
+    "assistantsEmulation": true,
+    "strictSampling": false,
+    "forceDisableToolsInSafe": true,
+    "imagesApi": true,
+    "audioApi": false,
+    "videoApi": false,
+    "filesOpenAiAlias": false
+  },
+  "flags": ["openaiChat", "imagesApi", "tools"]
+}
