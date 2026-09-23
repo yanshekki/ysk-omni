@@ -228,6 +228,7 @@ const PAGE_FROM_HASH = {
   keys: 'keys',
   documents: 'documents',
   media: 'media',
+  catalog: 'catalog',
   audit: 'audit',
   settings: 'settings',
   'api-features': 'apiFeatures',
@@ -1004,6 +1005,7 @@ function pageTitle() {
     settings: t('nav.settings'),
     apiFeatures: t('nav.apiFeatures'),
     media: t('nav.media'),
+    catalog: t('nav.catalog'),
     usage: t('nav.usage'),
     ddos: t('nav.ddos'),
     queue: t('nav.queue'),
@@ -1048,6 +1050,7 @@ function shell(content) {
         ${nav('keys', t('nav.keys'))}
         ${nav('documents', t('nav.documents'))}
         ${nav('media', t('nav.media'))}
+        ${nav('catalog', t('nav.catalog'))}
         ${nav('audit', t('nav.audit'))}
         ${nav('settings', t('nav.settings'))}
         ${nav('apiFeatures', t('nav.apiFeatures'))}
@@ -9518,6 +9521,172 @@ async function renderSupport() {
   });
 }
 
+/** Curated packs rendered in production Admin Catalog (fallback if API is empty). */
+const CURATED_PACKS = [
+  {
+    id: 'Qwen/Qwen2.5-0.5B-Instruct-GGUF',
+    modality: 'text',
+    runtime: 'llamacpp',
+    quants: ['Q4_K_M', 'Q5_K_M', 'Q8_0'],
+    vramMb: 512,
+  },
+  {
+    id: 'Qwen/Qwen2.5-7B-Instruct',
+    modality: 'text',
+    runtime: 'vllm',
+    quants: [],
+    vramMb: 16000,
+  },
+  {
+    id: 'Tongyi-MAI/Z-Image-Turbo',
+    label: 'Z-Image-Turbo',
+    modality: 'image',
+    runtime: 'diffusion',
+    quants: [],
+    vramMb: 8000,
+  },
+  {
+    id: 'black-forest-labs/FLUX.2-klein-4B',
+    label: 'FLUX.2 Klein 4B',
+    modality: 'image',
+    runtime: 'diffusion',
+    quants: [],
+    vramMb: 8000,
+  },
+  {
+    id: 'Qwen/Qwen3-TTS',
+    modality: 'tts',
+    runtime: 'diffusion',
+    quants: [],
+    vramMb: 4000,
+  },
+  {
+    id: 'Systran/faster-whisper-small',
+    modality: 'stt',
+    runtime: 'whisper',
+    quants: [],
+    vramMb: 1000,
+  },
+  {
+    id: 'Lightricks/LTX-2.5',
+    label: 'LTX-2.5',
+    modality: 'video',
+    runtime: 'diffusion',
+    quants: [],
+    vramMb: 12000,
+  },
+  {
+    id: 'Wan-AI/Wan2.2',
+    label: 'Wan 2.2',
+    modality: 'video',
+    runtime: 'diffusion',
+    quants: [],
+    vramMb: 20000,
+  },
+];
+
+async function renderCatalog() {
+  let data = {};
+  try {
+    data = await api('/catalog');
+  } catch (e) {
+    onErr(e);
+  }
+  const packs = data.packs && data.packs.length ? data.packs : CURATED_PACKS;
+  const local = data.local || [];
+  const loaded = data.loaded || [];
+  const packRows = packs
+    .map((p) => {
+      return `
+      <tr>
+        <td><code>${escapeHtml(p.id)}</code>${p.label ? `<div class="muted">${escapeHtml(p.label)}</div>` : ''}</td>
+        <td>${escapeHtml(p.modality || '')}</td>
+        <td>${escapeHtml(p.runtime || '')}</td>
+        <td>${escapeHtml((p.quants || []).join(', ') || '—')}</td>
+        <td>${p.vramMb ?? 0}</td>
+        <td><button type="button" class="btn sm" data-pull="${escapeHtml(p.id)}">Pull</button></td>
+      </tr>`;
+    })
+    .join('');
+  const localRows = local
+    .map(
+      (m) => `
+      <tr>
+        <td><code>${escapeHtml(m.id)}</code></td>
+        <td>${escapeHtml(m.path || '—')}</td>
+        <td>${m.vramMb ?? 0}</td>
+        <td>
+          <button type="button" class="btn sm" data-load="${escapeHtml(m.id)}" data-vram="${m.vramMb ?? 0}">Load</button>
+          <button type="button" class="btn secondary sm" data-unload="${escapeHtml(m.id)}">Unload</button>
+        </td>
+      </tr>`,
+    )
+    .join('');
+  document.getElementById('app').innerHTML = shell(`
+    <div class="topbar"><h2>Catalog</h2></div>
+    <p class="muted">VRAM ${data.usedMb ?? 0} / ${data.budgetMb ?? 0} MB · loaded: ${
+      loaded.map((m) => m.id).join(', ') || 'none'
+    }</p>
+    <div class="panel">
+      <div class="panel-h"><strong>Curated packs</strong></div>
+      <div class="panel-pad">
+        <table class="data-table"><thead><tr><th>Id</th><th>Modality</th><th>Runtime</th><th>Quants</th><th>VRAM</th><th></th></tr></thead>
+        <tbody>${packRows || '<tr><td colspan="6">No packs</td></tr>'}</tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><strong>Local models</strong></div>
+      <div class="panel-pad">
+        <table class="data-table"><thead><tr><th>Id</th><th>Path</th><th>VRAM</th><th></th></tr></thead>
+        <tbody>${localRows || '<tr><td colspan="4">Empty registry — Pull a pack first</td></tr>'}</tbody></table>
+      </div>
+    </div>
+  `);
+  bindShell();
+  document.querySelectorAll('[data-pull]').forEach((btn) => {
+    btn.onclick = async () => {
+      try {
+        await api('/catalog/pull', {
+          method: 'POST',
+          body: JSON.stringify({ model: btn.getAttribute('data-pull') }),
+        });
+        await renderCatalog();
+      } catch (e) {
+        onErr(e);
+      }
+    };
+  });
+  document.querySelectorAll('[data-load]').forEach((btn) => {
+    btn.onclick = async () => {
+      try {
+        await api('/models/load', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: btn.getAttribute('data-load'),
+            vramMb: Number(btn.getAttribute('data-vram') || 0),
+          }),
+        });
+        await renderCatalog();
+      } catch (e) {
+        onErr(e);
+      }
+    };
+  });
+  document.querySelectorAll('[data-unload]').forEach((btn) => {
+    btn.onclick = async () => {
+      try {
+        await api('/models/unload', {
+          method: 'POST',
+          body: JSON.stringify({ id: btn.getAttribute('data-unload') }),
+        });
+        await renderCatalog();
+      } catch (e) {
+        onErr(e);
+      }
+    };
+  });
+}
+
 async function render() {
   const app = document.getElementById('app');
   try {
@@ -9532,6 +9701,7 @@ async function render() {
     else if (state.page === 'keys') await renderKeys();
     else if (state.page === 'documents') await renderDocuments();
     else if (state.page === 'media') await renderMedia();
+    else if (state.page === 'catalog') await renderCatalog();
     else if (state.page === 'audit') await renderAudit();
     else if (state.page === 'settings') await renderSettings();
     else if (state.page === 'apiFeatures') await renderApiFeatures();
