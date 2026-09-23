@@ -42,7 +42,7 @@ export async function seedAdmin(options?: {
         where: { id: existingAdmin.id },
         data: { mode: 'agent' },
       });
-      const port = String(options?.port ?? process.env.PORT ?? '3847');
+      const port = String(options?.port ?? process.env.PORT ?? '3850');
       console.log('Admin API key already exists:');
       console.log(`  id:     ${existingAdmin.id}`);
       console.log(`  name:   ${existingAdmin.name}`);
@@ -50,7 +50,7 @@ export async function seedAdmin(options?: {
       console.log('  mode:   agent (ensured)');
       console.log(`Admin panel: http://127.0.0.1:${port}/admin/`);
       console.log('Plaintext key is not recoverable.');
-      console.log('Create a new admin key (printed once): gctoac key create');
+      console.log('Create a new admin key (printed once): ysk-omni key create');
       return {
         created: false,
         id: existingAdmin.id,
@@ -78,7 +78,7 @@ export async function seedAdmin(options?: {
       },
     });
 
-    const port = String(options?.port ?? process.env.PORT ?? '3847');
+    const port = String(options?.port ?? process.env.PORT ?? '3850');
     console.log(
       'Created bootstrap admin API key (store it securely — shown once):',
     );
@@ -86,7 +86,7 @@ export async function seedAdmin(options?: {
     console.log(`  key:  ${rawKey}`);
     console.log('');
     console.log(`Admin panel: http://127.0.0.1:${port}/admin/`);
-    console.log('CLI: gctoac start | gctoac status | gctoac open');
+    console.log('CLI: ysk-omni start | ysk-omni status | ysk-omni open');
     console.log('API example:');
     console.log(
       `  curl -s http://127.0.0.1:${port}/admin/api/me -H "Authorization: Bearer ${rawKey}"`,

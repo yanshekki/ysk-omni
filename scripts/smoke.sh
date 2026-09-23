@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://127.0.0.1:3847}"
+BASE_URL="${BASE_URL:-http://127.0.0.1:3850}"
 API_KEY="${API_KEY:-}"
 
 if [[ -z "$API_KEY" ]]; then
-  echo "Usage: API_KEY=gk_live_... ./scripts/smoke.sh"
+  echo "Usage: API_KEY=omni_live_... ./scripts/smoke.sh"
   exit 1
 fi
 

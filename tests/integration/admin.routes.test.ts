@@ -41,7 +41,7 @@ describe('admin routes', () => {
       return;
     }
 
-    adminKey = `gk_live_${randomBytes(24).toString('base64url')}`;
+    adminKey = `omni_live_${randomBytes(24).toString('base64url')}`;
     const adminHash = hashApiKey(adminKey);
     await prisma.apiKey.create({
       data: {
@@ -56,7 +56,7 @@ describe('admin routes', () => {
     });
 
     clientKeyId = randomUUID();
-    const clientRaw = `gk_live_${randomBytes(16).toString('hex')}`;
+    const clientRaw = `omni_live_${randomBytes(16).toString('hex')}`;
     await prisma.apiKey.create({
       data: {
         id: clientKeyId,
@@ -159,7 +159,7 @@ describe('admin routes', () => {
     const ui = await fetch(`${baseUrl}/admin/`);
     expect(ui.status).toBe(200);
     const html = await ui.text();
-    expect(html).toContain('Grok Gateway Admin');
+    expect(html).toContain('YSK Omni Admin');
     const css = await fetch(`${baseUrl}/admin/styles.css`);
     expect(css.status).toBe(200);
   });

@@ -116,7 +116,7 @@ export class SystemHealthService {
     const distOk = fs.existsSync(path.join(root, 'dist', 'server.js'));
     const gateway: SoftwareCheck = {
       id: 'gateway',
-      name: 'Grok Gateway',
+      name: 'YSK Omni',
       level: 'bundled',
       installed: true,
       version: pkgVersion,

@@ -1,22 +1,22 @@
-# Grok CLI → OpenAI 相容 Gateway
+# YSK Omni
 
-[![CI](https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible/actions/workflows/ci.yml/badge.svg)](https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/grok-cli-to-openai-compatible.svg)](https://www.npmjs.com/package/grok-cli-to-openai-compatible)
+[![CI](https://github.com/yanshekki/ysk-omni/actions/workflows/ci.yml/badge.svg)](https://github.com/yanshekki/ysk-omni/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/ysk-omni.svg)](https://www.npmjs.com/package/ysk-omni)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
-[![Port](https://img.shields.io/badge/port-3847-informational)](#預設-port)
+[![Port](https://img.shields.io/badge/port-3850-informational)](#預設-port)
 
 **語言：** [English](./README.md) · 中文
 
-**產品頁：** [ysk.hk/products/gctoac](https://ysk.hk/products/gctoac) · EN：[ysk.hk/en/products/gctoac](https://ysk.hk/en/products/gctoac)
+**產品頁：** [ysk.hk/products/ysk-omni](https://ysk.hk/products/ysk-omni) · EN：[ysk.hk/en/products/ysk-omni](https://ysk.hk/en/products/ysk-omni)
 
 將本機 **[Grok CLI](https://x.ai)**（`grok -p` headless）包裝成可上線的 **OpenAI 相容 HTTP API**。
 
 | | |
 |--|--|
-| **npm** | [`grok-cli-to-openai-compatible`](https://www.npmjs.com/package/grok-cli-to-openai-compatible) |
-| **CLI** | `gctoac` · 短名 `gcoa` |
-| **預設 port** | **`3847`** |
+| **npm** | [`ysk-omni`](https://www.npmjs.com/package/ysk-omni) |
+| **CLI** | `ysk-omni` · 短名 `ysko` |
+| **預設 port** | **`3850`** |
 | **NODE_ENV 預設** | **`production`**（本機開發才設 `development`） |
 
 **主要能力**
@@ -25,12 +25,12 @@
 - Thinking / `reasoning_content`（DeepSeek 風格 + Grok `thought`）
 - 每把 key 的 **safe** / **agent** 政策 + 全域安全覆寫
 - AES-256-GCM 加密 + 完整 chat 稽核
-- **Admin Panel** — OTP 登入（`gctoac admin otp`）、儀表板、對話、金鑰、文件、稽核、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2、系統更新；各頁統一 **KPI + 分 tab** 版面
+- **Admin Panel** — OTP 登入（`ysk-omni admin otp`）、儀表板、對話、金鑰、文件、稽核、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2、系統更新；各頁統一 **KPI + 分 tab** 版面
 - **媒體庫** — 工作室（生成／編輯／**圖生影片 1–15 秒**／**reference-to-video + 預設配音**）、資產與工作列表、瀏覽器預覽 lightbox（圖／片／聲／PDF／文字）
 - **持久化對話佇列** — 每個對話先入隊（租約認領）再由進程內 worker 消費；Admin 可暫停／排空／取消／死信；可選 `Idempotency-Key`；無 live Response 時離線收集串流結果
 - **DDoS／防濫用** — 可配置限流、多規則自動封鎖、反向代理真實客戶端 IP（nginx / Cloudflare）
 - 控制 CLI：生命週期 + **settings / api features / queue / ddos / keys / docs / chats / stats / models / admin sessions / grok inspect / grok sessions**（與 Admin 對齊，見下方 CLI 表）
-- **API features**（Admin 分 tab + `gctoac api features`）：協議與 Grok 能力閘（tools / vision / schema / effort…）
+- **API features**（Admin 分 tab + `ysk-omni api features`）：協議與 Grok 能力閘（tools / vision / schema / effort…）
 
 ### Grok CLI 能力對齊（產品「100%」定義）
 
@@ -56,14 +56,14 @@
 
 ```text
 Client (OpenAI SDK / curl / Open WebUI)
-        │  Authorization: Bearer gk_live_...
+        │  Authorization: Bearer omni_live_...
         ▼
-   Express Gateway :3847
+   Express Gateway :3850
    · 認證 · 限流 · safe/agent
    · 入隊 ChatJob（AES-GCM payload）· SSE 以 gog.queue 佔位
    · 代理感知 Client IP · 自動封鎖
    · 加密稽核 · Admin /admin（佇列控制）
-   · gctoac start | stop | status | update
+   · ysk-omni start | stop | status | update
         │
         ▼
    進程內 worker（租約 / 公平輪詢 / 併發）
@@ -90,42 +90,42 @@ grok --version
 ### 2. 安裝並啟動
 
 ```bash
-npm install -g grok-cli-to-openai-compatible
+npm install -g ysk-omni
 
-gctoac doctor   # 檢查 Node / Grok / 環境 / runner / 代理
-gctoac setup    # 資料目錄、.env（NODE_ENV=production）、資料庫、admin API key
-gctoac start    # http://127.0.0.1:3847
-gctoac status   # runner、port、proxy、health
+ysk-omni doctor   # 檢查 Node / Grok / 環境 / runner / 代理
+ysk-omni setup    # 資料目錄、.env（NODE_ENV=production）、資料庫、admin API key
+ysk-omni start    # http://127.0.0.1:3850
+ysk-omni status   # runner、port、proxy、health
 ```
 
 開啟 Admin（OTP 登入 — **不會**在瀏覽器長期保存 API key）：
 
 ```bash
-gctoac admin otp     # 產生一次性登入碼（5 分鐘、單次使用）
+ysk-omni admin otp     # 產生一次性登入碼（5 分鐘、單次使用）
 ```
 
 ```text
-http://127.0.0.1:3847/admin/
+http://127.0.0.1:3850/admin/
 ```
 
 在登入頁貼上 OTP。**每次登入都要新碼**（session 約 12 小時）。
 
-**API** 存取（OpenAI client／腳本）請用 `gk_live_…` key：
+**API** 存取（OpenAI client／腳本）請用 `omni_live_…` key：
 
 ```bash
-gctoac key create    # 明文只顯示一次（預設 role: admin）
-gctoac key list      # 只顯示 prefix（明文不會存庫）
+ysk-omni key create    # 明文只顯示一次（預設 role: admin）
+ysk-omni key list      # 只顯示 prefix（明文不會存庫）
 ```
 
-**資料目錄：** `~/.gctoac/`  
-可用 `GCTOAC_HOME` 或 `gctoac --home /path` 覆蓋。
+**資料目錄：** `~/.ysk-omni/`  
+可用 `OMNI_HOME` 或 `ysk-omni --home /path` 覆蓋。
 
 ### 3. 呼叫 API
 
 ```bash
-export API_KEY=gk_live_...   # setup 或 Admin 取得
+export API_KEY=omni_live_...   # setup 或 Admin 取得
 
-curl -s http://127.0.0.1:3847/v1/chat/completions \
+curl -s http://127.0.0.1:3850/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -141,21 +141,21 @@ curl -s http://127.0.0.1:3847/v1/chat/completions \
 **支援方式：** 只從 **npm registry** 安裝。
 
 ```bash
-npm install -g grok-cli-to-openai-compatible
+npm install -g ysk-omni
 ```
 
 可選輔助腳本（等同上面指令）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yanshekki/Grok-Cli-to-OpenAI-compatible/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yanshekki/ysk-omni/main/scripts/install.sh | bash
 ```
 
 ### 專案依賴
 
 ```bash
-npm install grok-cli-to-openai-compatible
-npx gctoac setup
-npx gctoac start --foreground
+npm install ysk-omni
+npx ysk-omni setup
+npx ysk-omni start --foreground
 ```
 
 ### 由原始碼開發（貢獻者）
@@ -163,11 +163,11 @@ npx gctoac start --foreground
 `dist/` **不會** commit 到 git。clone 後請自行 build：
 
 ```bash
-git clone https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible.git
-cd Grok-Cli-to-OpenAI-compatible
+git clone https://github.com/yanshekki/ysk-omni.git
+cd ysk-omni
 npm install
 npm run build
-npm link          # 可選：把 gctoac 掛到 PATH
+npm link          # 可選：把 ysk-omni 掛到 PATH
 ```
 
 > **不要** 使用 `npm install -g github:…`（不支援）。
@@ -175,14 +175,14 @@ npm link          # 可選：把 gctoac 掛到 PATH
 ### 更新
 
 ```bash
-npm install -g grok-cli-to-openai-compatible@latest
+npm install -g ysk-omni@latest
 # 或
-gctoac update              # 自我更新 + migrate + 排程重啟
-gctoac update --check      # 只檢查
-gctoac update --no-restart
+ysk-omni update              # 自我更新 + migrate + 排程重啟
+ysk-omni update --check      # 只檢查
+ysk-omni update --no-restart
 ```
 
-Git 工作目錄：update 會跑 `npm install --include=dev` 再 `npm run build`（避免 `.env` 的 `NODE_ENV=production` 令 tsc 缺 `@types`）。compile 失敗仍會執行 `gctoac migrate`。
+Git 工作目錄：update 會跑 `npm install --include=dev` 再 `npm run build`（避免 `.env` 的 `NODE_ENV=production` 令 tsc 缺 `@types`）。compile 失敗仍會執行 `ysk-omni migrate`。
 
 亦可在 Admin → **系統狀態** → 一鍵更新。
 
@@ -192,28 +192,28 @@ Git 工作目錄：update 會跑 `npm install --include=dev` 再 `npm run build`
 
 | URL | 用途 |
 |-----|------|
-| `http://127.0.0.1:3847/v1` | OpenAI 相容 API base |
-| `http://127.0.0.1:3847/admin/` | Admin 控制台 |
-| `http://127.0.0.1:3847/health` | 健康檢查 |
+| `http://127.0.0.1:3850/v1` | OpenAI 相容 API base |
+| `http://127.0.0.1:3850/admin/` | Admin 控制台 |
+| `http://127.0.0.1:3850/health` | 健康檢查 |
 
 更改監聽連接埠（會寫入 `.env`；Admin 儲存時會重啟 runner）：
 
 ```bash
 # CLI — 寫入 PORT 到 .env 並啟動
-gctoac --port 4000 start
-gctoac --port 4000 start --pm2
+ysk-omni --port 4000 start
+ysk-omni --port 4000 start --pm2
 
 # 或編輯 .env
 PORT=4000
 ```
 
-**Admin → PM2 → 監聽連接埠** — 預設 **3847**，儲存並重啟。改完請用**新 port** 開啟 Admin（例如 `http://127.0.0.1:4000/admin/`）。
+**Admin → PM2 → 監聽連接埠** — 預設 **3850**，儲存並重啟。改完請用**新 port** 開啟 Admin（例如 `http://127.0.0.1:4000/admin/`）。
 
 ---
 
-## CLI（`gctoac` / `gcoa`）
+## CLI（`ysk-omni` / `ysko`）
 
-全域選項：`--home <path>`、`--port <n>`（預設 **3847**）、`--json`（支援的指令輸出 JSON）。
+全域選項：`--home <path>`、`--port <n>`（預設 **3850**）、`--json`（支援的指令輸出 JSON）。
 
 多數控制指令**直連本機 DB**（與 gateway 同一 `DATABASE_URL`），政策類變更約 **2–5 秒**內被執行中進程重載，**無需重啟**。
 
@@ -221,85 +221,85 @@ PORT=4000
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac setup` | 建目錄、`.env`、migrate、seed admin key，盡量安裝 pm2 |
-| `gctoac start` / `start -f` / `start --pm2` | 啟動 gateway |
-| `gctoac stop` / `restart` | 停止／重啟 |
-| `gctoac status` | Runner、port、proxy、health |
-| `gctoac doctor` | 環境全面檢查 |
-| `gctoac logs` / `logs clear` | 日誌 |
-| `gctoac migrate` / `seed` | DB migrate／seed |
-| `gctoac update` / `update --check` | 自我更新（含錯誤時仍會執行 `gctoac migrate`） |
-| `gctoac open` / `version` | URL／版本 |
+| `ysk-omni setup` | 建目錄、`.env`、migrate、seed admin key，盡量安裝 pm2 |
+| `ysk-omni start` / `start -f` / `start --pm2` | 啟動 gateway |
+| `ysk-omni stop` / `restart` | 停止／重啟 |
+| `ysk-omni status` | Runner、port、proxy、health |
+| `ysk-omni doctor` | 環境全面檢查 |
+| `ysk-omni logs` / `logs clear` | 日誌 |
+| `ysk-omni migrate` / `seed` | DB migrate／seed |
+| `ysk-omni update` / `update --check` | 自我更新（含錯誤時仍會執行 `ysk-omni migrate`） |
+| `ysk-omni open` / `version` | URL／版本 |
 
 ### Admin 登入與面板
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac admin status` / `on` / `off` | 面板開關（**只能用 CLI `on` 重開**） |
-| `gctoac admin otp` | 一次性 SPA 登入碼（5 分鐘、單次） |
-| `gctoac admin sessions` | 列出有效 OTP session |
-| `gctoac admin sessions revoke <id\|all\|all-expired>` | 撤銷 session |
+| `ysk-omni admin status` / `on` / `off` | 面板開關（**只能用 CLI `on` 重開**） |
+| `ysk-omni admin otp` | 一次性 SPA 登入碼（5 分鐘、單次） |
+| `ysk-omni admin sessions` | 列出有效 OTP session |
+| `ysk-omni admin sessions revoke <id\|all\|all-expired>` | 撤銷 session |
 
 ### 金鑰
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac key create` / `list` / `show <id>` | 建立／列表／詳情 |
-| `gctoac key update <id> --name … --mode safe\|agent --rate-limit n --active on\|off` | 更新 |
-| `gctoac key revoke <id>` / `activate <id>` | 撤銷／重新啟用 |
+| `ysk-omni key create` / `list` / `show <id>` | 建立／列表／詳情 |
+| `ysk-omni key update <id> --name … --mode safe\|agent --rate-limit n --active on\|off` | 更新 |
+| `ysk-omni key revoke <id>` / `activate <id>` | 撤銷／重新啟用 |
 
 ### 安全設定（Safety）
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac settings` / `settings get` | 顯示全域 safe、tools、turns、timeout、model |
-| `gctoac settings set --global-safe on\|off --tools none\|readonly --max-turns n --timeout-ms n --default-model …` | 寫入 |
-| `gctoac settings preset local\|prod\|code\|read\|chat\|long` | 套用建議預設並儲存 |
+| `ysk-omni settings` / `settings get` | 顯示全域 safe、tools、turns、timeout、model |
+| `ysk-omni settings set --global-safe on\|off --tools none\|readonly --max-turns n --timeout-ms n --default-model …` | 寫入 |
+| `ysk-omni settings preset local\|prod\|code\|read\|chat\|long` | 套用建議預設並儲存 |
 
 ### 對話佇列
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac queue` / `queue stats` | 深度與各狀態計數 |
-| `gctoac queue policy get\|set\|preset relaxed\|balanced\|strict` | 政策 |
-| `gctoac queue pause` / `resume` / `drain` / `undrain` | 暫停／恢復／排空 |
-| `gctoac queue jobs` / `queue job <id>` | 列表／詳情 |
-| `gctoac queue cancel\|requeue\|priority <id> …` | 作業操作 |
-| `gctoac queue purge-dead --yes` | 清死信／失敗／取消 |
+| `ysk-omni queue` / `queue stats` | 深度與各狀態計數 |
+| `ysk-omni queue policy get\|set\|preset relaxed\|balanced\|strict` | 政策 |
+| `ysk-omni queue pause` / `resume` / `drain` / `undrain` | 暫停／恢復／排空 |
+| `ysk-omni queue jobs` / `queue job <id>` | 列表／詳情 |
+| `ysk-omni queue cancel\|requeue\|priority <id> …` | 作業操作 |
+| `ysk-omni queue purge-dead --yes` | 清死信／失敗／取消 |
 
 ### DDoS／黑名單
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac ddos` | 政策摘要 + 黑名單 |
-| `gctoac ddos policy get\|set\|preset\|reset` | 政策 |
-| `gctoac ddos ban <ip> [--ttl 3600] [--reason …]` | 封鎖 |
-| `gctoac ddos unban <ip>` / `blacklist` | 解封／列表 |
+| `ysk-omni ddos` | 政策摘要 + 黑名單 |
+| `ysk-omni ddos policy get\|set\|preset\|reset` | 政策 |
+| `ysk-omni ddos ban <ip> [--ttl 3600] [--reason …]` | 封鎖 |
+| `ysk-omni ddos unban <ip>` / `blacklist` | 解封／列表 |
 
 ### 觀測與資料
 
 | 指令 | 說明 |
 |------|------|
-| `gctoac stats` | 儀表板式摘要 |
-| `gctoac grok inspect` | 本機 Grok Build 快照（version、models、skills、MCP） |
-| `gctoac grok sessions` | 列出本機 Grok CLI sessions |
-| `gctoac grok sessions delete <id> --yes` | 永久刪除一個 Grok session |
-| `gctoac models [--refresh]` | 本機 Grok 模型列表 |
-| `gctoac docs list\|show\|delete` | 文件（delete 需 `--yes`） |
-| `gctoac chats list\|show` | API 對話請求（meta） |
-| `gctoac conversations list\|delete` | Playground 線程 |
-| `gctoac audit list [--action …]` | 稽核日誌 |
+| `ysk-omni stats` | 儀表板式摘要 |
+| `ysk-omni grok inspect` | 本機 Grok Build 快照（version、models、skills、MCP） |
+| `ysk-omni grok sessions` | 列出本機 Grok CLI sessions |
+| `ysk-omni grok sessions delete <id> --yes` | 永久刪除一個 Grok session |
+| `ysk-omni models [--refresh]` | 本機 Grok 模型列表 |
+| `ysk-omni docs list\|show\|delete` | 文件（delete 需 `--yes`） |
+| `ysk-omni chats list\|show` | API 對話請求（meta） |
+| `ysk-omni conversations list\|delete` | Playground 線程 |
+| `ysk-omni audit list [--action …]` | 稽核日誌 |
 
 ```bash
-gctoac --home ~/.gctoac-alt setup
-gctoac --port 3847 start
-gctoac status
-gctoac admin otp
-gctoac settings preset prod
-gctoac queue pause
-gctoac ddos ban 203.0.113.10 --ttl 3600 --reason abuse
-gctoac stats --json
-gctoac logs clear
+ysk-omni --home ~/.ysk-omni-alt setup
+ysk-omni --port 3850 start
+ysk-omni status
+ysk-omni admin otp
+ysk-omni settings preset prod
+ysk-omni queue pause
+ysk-omni ddos ban 203.0.113.10 --ttl 3600 --reason abuse
+ysk-omni stats --json
+ysk-omni logs clear
 ```
 
 ---
@@ -331,7 +331,7 @@ gctoac logs clear
 受保護路由需要：
 
 ```http
-Authorization: Bearer gk_live_...
+Authorization: Bearer omni_live_...
 ```
 
 ### Chat（stream）
@@ -339,7 +339,7 @@ Authorization: Bearer gk_live_...
 佇列啟用時（預設），stream 可能先出現 `gog.queue` 排隊事件，再是一般 OpenAI chunk。
 
 ```bash
-curl -sN http://127.0.0.1:3847/v1/chat/completions \
+curl -sN http://127.0.0.1:3850/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: my-client-req-001" \
@@ -360,7 +360,7 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: process.env.API_KEY,
-  baseURL: 'http://127.0.0.1:3847/v1',
+  baseURL: 'http://127.0.0.1:3850/v1',
 });
 
 const res = await client.chat.completions.create({
@@ -375,7 +375,7 @@ console.log(res.choices[0].message.content);
 `POST /v1/images/generations` 與 `POST /v1/images/edits` 回傳官方 Images 物件。需要 **`imagesApi` + `tools`**，以及 **agent**（或管理員）金鑰；safe 金鑰會得 **403**。
 
 ```bash
-curl -s http://127.0.0.1:3847/v1/images/generations \
+curl -s http://127.0.0.1:3850/v1/images/generations \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -542,7 +542,7 @@ POST /admin/api/queue/purge-dead
 ## Admin Panel
 
 ```text
-http://127.0.0.1:3847/admin/
+http://127.0.0.1:3850/admin/
 ```
 
 ### 登入（OTP）
@@ -550,7 +550,7 @@ http://127.0.0.1:3847/admin/
 Admin **SPA 不會接受長期 API key**。請產生一次性登入碼：
 
 ```bash
-gctoac admin otp          # 別名：gctoac admin login-code
+ysk-omni admin otp          # 別名：ysk-omni admin login-code
 ```
 
 - 有效 **5 分鐘**、**單次使用**
@@ -560,7 +560,7 @@ gctoac admin otp          # 別名：gctoac admin login-code
 Admin **JSON API**（`/admin/api/*`）可用：
 
 - `Authorization: Bearer gog_sess_…`（OTP session），或  
-- `Authorization: Bearer gk_live_…`（`role=admin`）
+- `Authorization: Bearer omni_live_…`（`role=admin`）
 
 | 頁面 | 功能 |
 |------|------|
@@ -576,7 +576,7 @@ Admin **JSON API**（`/admin/api/*`）可用：
 | **DDoS 中心** | **分 tab：** 政策 · 流量 · 黑名單 · 事件。KPI 條。即時連線、最近請求、自動封鎖事件、熱門 IP、**運行時防護策略**（寬鬆／均衡／嚴格／自訂）、反向代理 IP |
 | **安全設定** | 全域 safe、工具／turns／timeout、預設模型、精簡預設方案、關閉 Admin 面板（只能用 CLI 重開） |
 | **API 能力** | **分 tab：** 協議 · 媒體 · 能力 · 模擬。KPI 啟用計數。預設：開放／鎖定／開發 |
-| **PM2** | **分 tab：** 運行方式 · 連接埠 · 設定 · 日誌。KPI 進程條。Runner 切換（gctoac ↔ PM2）、監聽 port（預設 3847）、設定、清除日誌 + 自動裁剪 |
+| **PM2** | **分 tab：** 運行方式 · 連接埠 · 設定 · 日誌。KPI 進程條。Runner 切換（ysk-omni ↔ PM2）、監聽 port（預設 3850）、設定、清除日誌 + 自動裁剪 |
 | **系統狀態** | **分 tab：** 軟件 · 套件 · 環境 · **Grok sessions**。Software tab 有 **Grok inspect** 卡（version／channel／models／skills／MCP）。Sessions tab 列出 `~/.grok/sessions`（搜尋 + 刪除）。一鍵更新並重啟 |
 | **支持** | 捐助／GitHub Sponsors／Linktree／加密地址、YSK Limited 服務、**email@ysk.hk** |
 
@@ -623,12 +623,12 @@ proxy_set_header X-Forwarded-Proto $scheme;
 
 ## 環境變數
 
-詳見 [`.env.example`](./.env.example)。`gctoac setup` 新建時預設 **`NODE_ENV=production`**。
+詳見 [`.env.example`](./.env.example)。`ysk-omni setup` 新建時預設 **`NODE_ENV=production`**。
 
 | 變數 | 說明 |
 |------|------|
 | `NODE_ENV` | 預設 **`production`**。本機開發才設 `development`（美化日誌） |
-| `PORT` | 預設 **`3847`**（亦可在 Admin → PM2 修改） |
+| `PORT` | 預設 **`3850`**（亦可在 Admin → PM2 修改） |
 | `HOST` | 監聽位址（預設 `0.0.0.0`） |
 | `DATABASE_URL` | SQLite，例如 `file:../data/gateway.db`（相對 `prisma/`） |
 | `ENCRYPTION_KEY` | 32-byte key：`openssl rand -base64 32` |
@@ -642,13 +642,13 @@ proxy_set_header X-Forwarded-Proto $scheme;
 | `GROK_SAFE_MAX_TURNS` / `GROK_SAFE_TIMEOUT_MS` | Safe 模式預設（亦可在 Admin → 安全設定改） |
 | `GROK_MAX_CONCURRENT` | 最多並行 Grok 進程（亦作佇列全域併發預設種子） |
 | `QUEUE_BACKEND` | 對話佇列後端：**`sqlite`**（預設）。`redis`／`kafka` 預留（尚未實作） |
-| `ADMIN_PANEL_ENABLED` | 硬關 `/admin`（env，需重啟）。運行時：`gctoac admin on\|off` |
+| `ADMIN_PANEL_ENABLED` | 硬關 `/admin`（env，需重啟）。運行時：`ysk-omni admin on\|off` |
 | `PM2_ADMIN_ENABLED` | 允許 Admin 控制 PM2 |
 | `CORS_ORIGINS` | 逗號分隔 origins（改 `PORT` 時請一併更新） |
 | `RATE_LIMIT_*` / `CHAT_BURST_MAX` / `BLOCK_*` | 限流／自動認證初始值（DDoS 策略儲存後會覆寫） |
 | `TRUST_PROXY` | 代理層數：`0`／`1`／`2`…（`true`→1，`false`→0） |
 | `PROXY_IP_SOURCE` | `auto` \| `cloudflare` \| `nginx` \| `x-forwarded-for` \| `socket` |
-| `GCTOAC_HOME` | CLI 資料目錄（預設 `~/.gctoac`） |
+| `OMNI_HOME` | CLI 資料目錄（預設 `~/.ysk-omni`） |
 | `STORAGE_DIR` | 加密大檔 + sandbox |
 | `UPLOAD_MAX_BYTES` / `DOCUMENT_DB_MAX_BYTES` | 上傳上限／DB 與檔案系統分界 |
 | `BODY_LIMIT` | JSON body 大小上限（預設 `1mb`） |
@@ -665,37 +665,37 @@ proxy_set_header X-Forwarded-Proto $scheme;
 ### 建議：CLI
 
 ```bash
-gctoac setup
-gctoac start              # detached gctoac
+ysk-omni setup
+ysk-omni start              # detached ysk-omni
 # 或
-gctoac start --pm2        # 使用 PM2
-gctoac status
+ysk-omni start --pm2        # 使用 PM2
+ysk-omni status
 ```
 
-`gctoac restart` 會跟從上次的 **preferred runner**（gctoac 或 PM2）。
+`ysk-omni restart` 會跟從上次的 **preferred runner**（ysk-omni 或 PM2）。
 
 ### PM2 ecosystem
 
 ```bash
 npm run build
 pm2 start ecosystem.config.cjs
-pm2 logs grok-openai-gateway
+pm2 logs ysk-omni
 ```
 
 ### 日誌
 
-- 檔案位於 `logs/`（或資料目錄）：`pm2-error.log`、`pm2-out.log`、`gctoac.*.log`
-- **Admin → PM2 → 清除日誌**，或 `gctoac logs clear`
+- 檔案位於 `logs/`（或資料目錄）：`pm2-error.log`、`pm2-out.log`、`ysk-omni.*.log`
+- **Admin → PM2 → 清除日誌**，或 `ysk-omni logs clear`
 - **自動裁剪：** 每次讀取日誌時，單檔 **> 5 MB** 只保留最後約 512 KB
 
 ### 避免 EADDRINUSE
 
-同一 port 只應有一個 runner。若 gctoac 與 PM2 搶 port：
+同一 port 只應有一個 runner。若 ysk-omni 與 PM2 搶 port：
 
 ```bash
-gctoac stop
-gctoac start          # 或：gctoac start --pm2
-gctoac doctor         # 會標示 mixed runners
+ysk-omni stop
+ysk-omni start          # 或：ysk-omni start --pm2
+ysk-omni doctor         # 會標示 mixed runners
 ```
 
 ---
@@ -722,7 +722,7 @@ npm run build        # prisma generate + tsc
 npm start            # node dist/server.js
 npm test             # 單元 + 整合測試
 npm run db:setup     # migrate + seed
-gctoac setup|start|status|stop|doctor|logs|update
+ysk-omni setup|start|status|stop|doctor|logs|update
 ```
 
 ### 發佈到 npm（維護者）
@@ -741,11 +741,11 @@ npm publish --access public --otp=<2FA六位碼>
 - API key 存 **scrypt** hash（`scrypt$salt$hash`）；舊 **SHA-256** 列在驗證時會自動升級  
 - Chat prompt/response、文件與 **佇列 job payload** 以 **AES-256-GCM** 靜態加密  
 - 對外 client 請用 **`safe`** mode  
-- **Admin SPA：** 只用 OTP（`gctoac admin otp`）→ 短時 session 存 `sessionStorage`（XSS = 在 session 有效期內完全接管）  
+- **Admin SPA：** 只用 OTP（`ysk-omni admin otp`）→ 短時 session 存 `sessionStorage`（XSS = 在 session 有效期內完全接管）  
 - **客戶端 IP：** 只有 **可信代理列表** 內的 TCP peer（預設 `127.0.0.1`）才會採信 `CF-Connecting-IP`／`X-Real-IP`／`XFF`。直連客戶**無法偽造 header** 繞過限流或封鎖他人。遠端 nginx 請把其 IP 加入 Admin → DDoS → 可信代理。  
 - Admin 只應在本機／VPN 開啟  
 - 不要 commit `.env`，不要外洩 admin key／OTP  
-- 可完全關閉 Admin：`gctoac admin off`（只能用 `gctoac admin on` 重開）  
+- 可完全關閉 Admin：`ysk-omni admin off`（只能用 `ysk-omni admin on` 重開）  
 - 一鍵更新／PM2／改 port 需 admin（視 admin key／OTP session 為 root）
 
 ---
@@ -754,7 +754,7 @@ npm publish --access public --otp=<2FA六位碼>
 
 **Ki (yanshekki)** — 全端工程師、量化交易者，[YSK Limited](https://ysk.hk/) 創辦人。
 
-🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 📄 [產品頁](https://ysk.hk/products/gctoac) · 🏢 [ysk.hk](https://ysk.hk/)
+🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 📄 [產品頁](https://ysk.hk/products/ysk-omni) · 🏢 [ysk.hk](https://ysk.hk/)
 
 ### ☕ 支持 / 打賞
 

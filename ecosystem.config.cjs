@@ -29,7 +29,7 @@ function loadEnvFile(filePath) {
 
 function loadRuntimeConfig(root) {
   const defaults = {
-    name: 'grok-openai-gateway',
+    name: 'ysk-omni',
     script: 'dist/server.js',
     instances: 1,
     exec_mode: 'fork',
@@ -61,7 +61,7 @@ function loadRuntimeConfig(root) {
 const root = __dirname;
 const fileEnv = {
   ...loadEnvFile(path.join(root, '.env')),
-  ...loadEnvFile(path.join(process.env.HOME || '', '.gctoac', '.env')),
+  ...loadEnvFile(path.join(process.env.HOME || '', '.ysk-omni', '.env')),
 };
 const rt = loadRuntimeConfig(root);
 
@@ -69,7 +69,7 @@ const rt = loadRuntimeConfig(root);
 module.exports = {
   apps: [
     {
-      name: rt.name || 'grok-openai-gateway',
+      name: rt.name || 'ysk-omni',
       script: rt.script || 'dist/server.js',
       cwd: rt.cwd || root,
       instances: rt.instances != null ? rt.instances : 1,

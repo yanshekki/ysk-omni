@@ -61,7 +61,7 @@ export async function cmdSetup(opts: {
     });
   } catch (err) {
     warn(`Seed failed: ${err instanceof Error ? err.message : String(err)}`);
-    warn('Retry with: gctoac seed');
+    warn('Retry with: ysk-omni seed');
   }
 
   const urls = baseUrls(Number(env.PORT || port));
@@ -72,5 +72,5 @@ export async function cmdSetup(opts: {
   info(`  Env:   ${paths.envFile}`);
   info(`  DB:    ${path.join(paths.dataDir, 'gateway.db')}`);
   info('');
-  info('Next: gctoac start');
+  info('Next: ysk-omni start');
 }

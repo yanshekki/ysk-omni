@@ -8,7 +8,7 @@ import {
 
 describe('api-key hashing', () => {
   it('scrypt hash verifies and is not deterministic without salt reuse', () => {
-    const key = 'gk_live_test_key_abc123_long_enough';
+    const key = 'omni_live_test_key_abc123_long_enough';
     const hash = scryptHash(key);
     expect(hash.startsWith('scrypt$')).toBe(true);
     expect(verifyApiKey(key, hash)).toBe(true);
@@ -18,7 +18,7 @@ describe('api-key hashing', () => {
   });
 
   it('still verifies legacy SHA-256 hashes', () => {
-    const key = 'gk_live_legacy_key_abc12345';
+    const key = 'omni_live_legacy_key_abc12345';
     const legacy = hashApiKeySha256(key);
     expect(legacy).toHaveLength(64);
     expect(verifyApiKey(key, legacy)).toBe(true);

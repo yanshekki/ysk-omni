@@ -79,7 +79,7 @@ export async function cmdAdminStatus(opts: {
   if (!envHard) {
     warn('Env hard-off: set ADMIN_PANEL_ENABLED=true in .env and restart gateway.');
   } else if (!dbEnabled) {
-    info('Tip: gctoac admin on');
+    info('Tip: ysk-omni admin on');
   } else {
     ok('Admin panel is open');
   }
@@ -92,7 +92,7 @@ export async function cmdAdminOn(opts: {
   const { databaseUrl, envHard, port } = resolveOpts(opts);
   if (!envHard) {
     fail('Cannot enable: ADMIN_PANEL_ENABLED=false in .env (hard off).');
-    info('Fix: set ADMIN_PANEL_ENABLED=true in .env, then: gctoac restart');
+    info('Fix: set ADMIN_PANEL_ENABLED=true in .env, then: ysk-omni restart');
     process.exitCode = 1;
     return;
   }
@@ -110,6 +110,6 @@ export async function cmdAdminOff(opts: {
   await writeDbEnabled(databaseUrl, false);
   ok('Admin panel disabled (settings)');
   info('API /v1 is unaffected.');
-  info('Re-enable: gctoac admin on');
+  info('Re-enable: ysk-omni admin on');
   info(`Was: http://127.0.0.1:${port}/admin/`);
 }

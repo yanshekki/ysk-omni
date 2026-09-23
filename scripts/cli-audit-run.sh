@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Strict gctoac CLI audit: run every leaf command once in an isolated --home.
+# Strict ysk-omni CLI audit: run every leaf command once in an isolated --home.
 # Usage: bash scripts/cli-audit-run.sh
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-HOME_CLI="${HOME_CLI:-/tmp/gctoac-cli-audit-$$}"
+HOME_CLI="${HOME_CLI:-/tmp/ysk-omni-cli-audit-$$}"
 PORT="${PORT:-13947}"
 BIN=(node dist/cli/index.js --home "$HOME_CLI" --port "$PORT")
 REPORT="${REPORT:-$HOME_CLI/audit-report.tsv}"
@@ -55,7 +55,7 @@ run() {
   fi
 }
 
-echo "=== gctoac CLI audit ==="
+echo "=== ysk-omni CLI audit ==="
 echo "HOME=$HOME_CLI PORT=$PORT"
 echo "BIN=${BIN[*]}"
 echo

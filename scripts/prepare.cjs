@@ -13,10 +13,10 @@ const root = path.resolve(__dirname, '..');
 const cliJs = path.join(root, 'dist', 'cli', 'index.js');
 
 function log(msg) {
-  console.log(`[gctoac] ${msg}`);
+  console.log(`[ysk-omni] ${msg}`);
 }
 function warn(msg) {
-  console.warn(`[gctoac] ${msg}`);
+  console.warn(`[ysk-omni] ${msg}`);
 }
 
 function which(cmd) {
@@ -65,7 +65,7 @@ if (fs.existsSync(cliJs)) {
     }
   } else {
     warn(
-      'dist/ missing — install from npm (`npm install -g grok-cli-to-openai-compatible`) or run `npm run build` in a full checkout',
+      'dist/ missing — install from npm (`npm install -g ysk-omni`) or run `npm run build` in a full checkout',
     );
   }
 }

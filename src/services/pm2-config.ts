@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { Pm2RuntimeConfig } from '../interfaces/pm2-runtime-config.interface';
 
 
-export const PM2_APP_NAME_DEFAULT = 'grok-openai-gateway';
+export const PM2_APP_NAME_DEFAULT = 'ysk-omni';
 
 export function packageRoot(): string {
   return path.resolve(__dirname, '../..');
@@ -31,7 +31,7 @@ export function defaultPm2Config(): Pm2RuntimeConfig {
     error_file: 'logs/pm2-error.log',
     out_file: 'logs/pm2-out.log',
     env_extra: {},
-    preferred_runner: 'gctoac',
+    preferred_runner: 'ysk-omni',
   };
 }
 
@@ -103,7 +103,7 @@ export function normalizePm2Config(
     out_file: asString(raw.out_file, d.out_file),
     env_extra: asEnvExtra(raw.env_extra ?? d.env_extra),
     preferred_runner:
-      raw.preferred_runner === 'pm2' ? 'pm2' : 'gctoac',
+      raw.preferred_runner === 'pm2' ? 'pm2' : 'ysk-omni',
   };
 }
 

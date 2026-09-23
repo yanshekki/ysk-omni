@@ -1,6 +1,6 @@
 /**
  * CLI command registry for unit tests.
- * Parses `gctoac --help` / `gctoac help <cmd>` output (requires dist/cli).
+ * Parses `ysk-omni --help` / `ysk-omni help <cmd>` output (requires dist/cli).
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';

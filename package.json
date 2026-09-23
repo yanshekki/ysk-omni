@@ -1,31 +1,30 @@
 {
-  "name": "grok-cli-to-openai-compatible",
+  "name": "ysk-omni",
   "version": "1.7.4",
-  "description": "OpenAI-compatible API gateway for Grok CLI — with Admin panel, safe mode, and gctoac CLI",
+  "description": "YSK Omni — local models behind an OpenAI-compatible gateway, with Admin panel and CLI",
   "keywords": [
-    "grok",
-    "xai",
     "openai",
     "openai-compatible",
     "cli",
     "gateway",
-    "gctoac",
-    "gcoa"
+    "huggingface",
+    "ysk-omni",
+    "ysko"
   ],
-  "homepage": "https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible",
+  "homepage": "https://github.com/yanshekki/ysk-omni",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible.git"
+    "url": "git+https://github.com/yanshekki/ysk-omni.git"
   },
   "bugs": {
-    "url": "https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible/issues"
+    "url": "https://github.com/yanshekki/ysk-omni/issues"
   },
   "license": "MIT",
   "author": "yanshekki",
   "main": "dist/server.js",
   "bin": {
-    "gctoac": "dist/cli/index.js",
-    "gcoa": "dist/cli/index.js"
+    "ysk-omni": "dist/cli/index.js",
+    "ysko": "dist/cli/index.js"
   },
   "files": [
     "dist",

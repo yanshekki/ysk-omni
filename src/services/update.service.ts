@@ -16,8 +16,8 @@ import type { VersionStatus } from '../interfaces/version-status.type';
 
 const PRISMA_VERSION = '6.5.0';
 
-export const GITHUB_REPO = 'yanshekki/Grok-Cli-to-OpenAI-compatible';
-export const NPM_PACKAGE = 'grok-cli-to-openai-compatible';
+export const GITHUB_REPO = 'yanshekki/ysk-omni';
+export const NPM_PACKAGE = 'ysk-omni';
 
 function getPackageRoot(): string {
   // dist/services -> dist -> package root
@@ -110,7 +110,7 @@ async function fetchLatestGithub(): Promise<string | null> {
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'gctoac-update',
+          'User-Agent': 'ysk-omni-update',
         },
         signal: AbortSignal.timeout(8000),
       },
@@ -125,7 +125,7 @@ async function fetchLatestGithub(): Promise<string | null> {
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'gctoac-update',
+          'User-Agent': 'ysk-omni-update',
         },
         signal: AbortSignal.timeout(8000),
       },
@@ -583,8 +583,8 @@ export class UpdateService {
 
     const packageRoot = getPackageRoot();
     const cli = path.join(packageRoot, 'dist', 'cli', 'index.js');
-    const home = options?.home || process.env.GCTOAC_HOME || '';
-    const port = options?.port || Number(process.env.PORT || 3847);
+    const home = options?.home || process.env.OMNI_HOME || '';
+    const port = options?.port || Number(process.env.PORT || 3850);
 
     const homeFlag = home ? ` --home ${JSON.stringify(home)}` : '';
     const portFlag = port ? ` --port ${port}` : '';

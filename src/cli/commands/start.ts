@@ -61,7 +61,7 @@ export async function cmdStart(opts: {
     ok('Database migrations applied');
   } else {
     warn(
-      `Auto-migrate skipped/failed: ${migrated.error || 'unknown'}. Run: gctoac migrate`,
+      `Auto-migrate skipped/failed: ${migrated.error || 'unknown'}. Run: ysk-omni migrate`,
     );
   }
 
@@ -81,7 +81,7 @@ export async function cmdStart(opts: {
 
   const existing = readPid(paths.pidFile);
   if (existing && isProcessRunning(existing)) {
-    fail(`Already running (pid ${existing}). Use: gctoac stop`);
+    fail(`Already running (pid ${existing}). Use: ysk-omni stop`);
     process.exitCode = 1;
     return;
   }
@@ -89,7 +89,7 @@ export async function cmdStart(opts: {
     clearPid(paths.pidFile);
   }
 
-  // If PM2 holds the port, stop it first (switch to gctoac)
+  // If PM2 holds the port, stop it first (switch to ysk-omni)
   const orphans = findPidsOnPort(port);
   if (orphans.length) {
     warn(
@@ -115,7 +115,7 @@ export async function cmdStart(opts: {
     PORT: String(port),
     DATABASE_URL: envFile.DATABASE_URL || paths.databaseUrl,
     STORAGE_DIR: envFile.STORAGE_DIR || paths.storageDir,
-    GCTOAC_HOME: paths.home,
+    OMNI_HOME: paths.home,
   };
 
   if (opts.foreground) {
@@ -135,7 +135,7 @@ export async function cmdStart(opts: {
     if (fs.existsSync(p)) {
       cur = JSON.parse(fs.readFileSync(p, 'utf8')) as Record<string, unknown>;
     }
-    cur.preferred_runner = 'gctoac';
+    cur.preferred_runner = 'ysk-omni';
     fs.writeFileSync(p, `${JSON.stringify(cur, null, 2)}\n`, 'utf8');
   } catch {
     /* ignore */
@@ -145,7 +145,7 @@ export async function cmdStart(opts: {
   await new Promise((r) => setTimeout(r, 800));
   if (!isProcessRunning(pid)) {
     clearPid(paths.pidFile);
-    const errLog = path.join(paths.logsDir, 'gctoac.err.log');
+    const errLog = path.join(paths.logsDir, 'ysk-omni.err.log');
     fail(`Server exited immediately (pid ${pid}).`);
     info(`  Logs: ${errLog}`);
     const tail = tailLog(errLog);
@@ -155,16 +155,16 @@ export async function cmdStart(opts: {
       info('----------------------');
     }
     if (tail.includes('EADDRINUSE')) {
-      warn(`Port still busy. Try: gctoac stop && gctoac start`);
+      warn(`Port still busy. Try: ysk-omni stop && ysk-omni start`);
     }
     process.exitCode = 1;
     return;
   }
 
-  ok(`Started pid ${pid} (gctoac detached)`);
+  ok(`Started pid ${pid} (ysk-omni detached)`);
   const urls = baseUrls(port);
   info(`  API:   ${urls.api}`);
   info(`  Admin: ${urls.admin}`);
-  info(`  Logs:  ${path.join(paths.logsDir, 'gctoac.out.log')}`);
-  info(`  Tip:   gctoac start --pm2  to run under PM2 instead`);
+  info(`  Logs:  ${path.join(paths.logsDir, 'ysk-omni.out.log')}`);
+  info(`  Tip:   ysk-omni start --pm2  to run under PM2 instead`);
 }

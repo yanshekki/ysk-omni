@@ -28,7 +28,7 @@ describe('grok-sessions.service', () => {
   });
 
   it('lists sessions from GROK_HOME/sessions', async () => {
-    const home = mkdtempSync(path.join(os.tmpdir(), 'gctoac-gsess-'));
+    const home = mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-gsess-'));
     const id = '019f8954-28dc-7bf1-a6ff-6e7aa23374af';
     const dir = path.join(home, 'sessions', encodeURIComponent('/tmp/app'), id);
     mkdirSync(dir, { recursive: true });

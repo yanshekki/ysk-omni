@@ -29,12 +29,12 @@ import { ExceptionFactory } from '../exceptions/exception.factory';
 const execFileAsync = promisify(execFile);
 
 
-function gctoacPidFile(): string {
-  const home = process.env.GCTOAC_HOME?.trim() || getDefaultHome();
+function ysk-omniPidFile(): string {
+  const home = process.env.OMNI_HOME?.trim() || getDefaultHome();
   const candidates = [
-    path.join(process.cwd(), 'gctoac.pid'),
-    path.join(packageRoot(), 'gctoac.pid'),
-    path.join(home, 'gctoac.pid'),
+    path.join(process.cwd(), 'ysk-omni.pid'),
+    path.join(packageRoot(), 'ysk-omni.pid'),
+    path.join(home, 'ysk-omni.pid'),
   ];
   for (const f of candidates) {
     if (fs.existsSync(f)) return f;
@@ -97,8 +97,8 @@ function managedLogPaths(): { label: string; path: string }[] {
       label: path.basename(cfg.out_file || 'pm2-out.log'),
       path: resolveLogPath(cfg.out_file || 'logs/pm2-out.log'),
     },
-    { label: 'gctoac.err.log', path: path.join(root, 'logs', 'gctoac.err.log') },
-    { label: 'gctoac.out.log', path: path.join(root, 'logs', 'gctoac.out.log') },
+    { label: 'ysk-omni.err.log', path: path.join(root, 'logs', 'ysk-omni.err.log') },
+    { label: 'ysk-omni.out.log', path: path.join(root, 'logs', 'ysk-omni.out.log') },
   ];
   // de-dupe by absolute path
   const seen = new Set<string>();
@@ -168,28 +168,28 @@ function tailErrorLog(lines = 40): string {
 
 function detectPortHolders(port: number): {
   pids: number[];
-  gctoacPid: number | null;
-  gctoacRunning: boolean;
+  ysk-omniPid: number | null;
+  ysk-omniRunning: boolean;
 } {
   const pids = findPidsOnPort(port);
-  const gctoacPid = readPid(gctoacPidFile());
-  const gctoacRunning = gctoacPid != null && isProcessRunning(gctoacPid);
+  const ysk-omniPid = readPid(ysk-omniPidFile());
+  const ysk-omniRunning = ysk-omniPid != null && isProcessRunning(ysk-omniPid);
   return {
     pids,
-    gctoacPid: gctoacRunning ? gctoacPid : null,
-    gctoacRunning,
+    ysk-omniPid: ysk-omniRunning ? ysk-omniPid : null,
+    ysk-omniRunning,
   };
 }
 
-/** Free port by stopping known gctoac/pm2 gateway processes only (never kill strangers). */
+/** Free port by stopping known ysk-omni/pm2 gateway processes only (never kill strangers). */
 async function freePortForPm2(port: number): Promise<string[]> {
   const notes: string[] = [];
-  const pidFile = gctoacPidFile();
-  const gctoacPid = readPid(pidFile);
-  if (gctoacPid && isProcessRunning(gctoacPid)) {
-    await killPid(gctoacPid);
+  const pidFile = ysk-omniPidFile();
+  const ysk-omniPid = readPid(pidFile);
+  if (ysk-omniPid && isProcessRunning(ysk-omniPid)) {
+    await killPid(ysk-omniPid);
     clearPid(pidFile);
-    notes.push(`stopped gctoac pid ${gctoacPid}`);
+    notes.push(`stopped ysk-omni pid ${ysk-omniPid}`);
   }
   // Try stop/delete our PM2 app if it holds the port
   try {
@@ -240,7 +240,7 @@ export class Pm2Service {
     return writePm2Config(normalizePm2Config(input, current));
   }
 
-  /** Env files that may hold PORT for this install (project + gctoac home). */
+  /** Env files that may hold PORT for this install (project + ysk-omni home). */
   private envFilesForPort(): string[] {
     const files = new Set<string>();
     const root = packageRoot();
@@ -248,7 +248,7 @@ export class Pm2Service {
     files.add(path.join(process.cwd(), '.env'));
     try {
       const paths = resolveRuntimePaths({
-        home: process.env.GCTOAC_HOME,
+        home: process.env.OMNI_HOME,
       });
       files.add(paths.envFile);
     } catch {
@@ -348,10 +348,10 @@ export class Pm2Service {
     const cfg = readPm2Config();
     const appName = cfg.name;
 
-    const gctoacInfo = {
-      running: holders.gctoacRunning,
-      pid: holders.gctoacPid,
-      pidFile: gctoacPidFile(),
+    const ysk-omniInfo = {
+      running: holders.ysk-omniRunning,
+      pid: holders.ysk-omniPid,
+      pidFile: ysk-omniPidFile(),
     };
 
     if (!this.isEnabled()) {
@@ -365,7 +365,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        gctoac: gctoacInfo,
+        ysk-omni: ysk-omniInfo,
         config: cfg,
         portHolders: holders,
       };
@@ -383,7 +383,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        gctoac: gctoacInfo,
+        ysk-omni: ysk-omniInfo,
         config: cfg,
         portHolders: holders,
       };
@@ -401,13 +401,13 @@ export class Pm2Service {
         let messageParams: Record<string, string | number> = { app: appName };
         let message = `App "${appName}" not in PM2 list — Start with PM2 or Switch to PM2.`;
         if (holders.pids.length) {
-          if (holders.gctoacRunning) {
+          if (holders.ysk-omniRunning) {
             messageKey = 'pm2.msgPortGctoac';
             messageParams = {
               port,
-              pid: holders.gctoacPid ?? 0,
+              pid: holders.ysk-omniPid ?? 0,
             };
-            message = `Port ${port} is served by gctoac (pid ${holders.gctoacPid}). Use “Switch to PM2” to hand over.`;
+            message = `Port ${port} is served by ysk-omni (pid ${holders.ysk-omniPid}). Use “Switch to PM2” to hand over.`;
           } else {
             messageKey = 'pm2.msgPortBusy';
             messageParams = {
@@ -427,7 +427,7 @@ export class Pm2Service {
           appName,
           port,
           runner: this.inferRunner(null, holders) as RunnerMode,
-          gctoac: gctoacInfo,
+          ysk-omni: ysk-omniInfo,
           config: cfg,
           portHolders: holders,
           lastError: '',
@@ -450,13 +450,13 @@ export class Pm2Service {
           'PM2 process errored — check logs / config, then Restart or fix port conflicts.';
       } else if (
         status === 'online' &&
-        holders.gctoacRunning &&
-        holders.gctoacPid &&
-        holders.gctoacPid !== pmPid
+        holders.ysk-omniRunning &&
+        holders.ysk-omniPid &&
+        holders.ysk-omniPid !== pmPid
       ) {
         messageKey = 'pm2.msgBothRunners';
-        messageParams = { pid: holders.gctoacPid };
-        message = `Both runners detected; gctoac pid ${holders.gctoacPid} also holds resources. Prefer one runner via Switch.`;
+        messageParams = { pid: holders.ysk-omniPid };
+        message = `Both runners detected; ysk-omni pid ${holders.ysk-omniPid} also holds resources. Prefer one runner via Switch.`;
       }
 
       return {
@@ -486,7 +486,7 @@ export class Pm2Service {
           { status, pid: pmPid },
           holders,
         ) as RunnerMode,
-        gctoac: gctoacInfo,
+        ysk-omni: ysk-omniInfo,
         config: cfg,
         portHolders: holders,
         lastError: errored || restarts > 5 ? tailErrorLog(25) : '',
@@ -503,7 +503,7 @@ export class Pm2Service {
         appName,
         port,
         runner: this.inferRunner(null, holders) as RunnerMode,
-        gctoac: gctoacInfo,
+        ysk-omni: ysk-omniInfo,
         config: cfg,
         portHolders: holders,
         lastError: tailErrorLog(25),
@@ -513,15 +513,15 @@ export class Pm2Service {
 
   private inferRunner(
     pm2App: { status: string; pid: number } | null,
-    holders: { gctoacRunning: boolean; gctoacPid: number | null; pids: number[] },
+    holders: { ysk-omniRunning: boolean; ysk-omniPid: number | null; pids: number[] },
   ): RunnerMode {
     const pm2Online =
       pm2App &&
       (pm2App.status === 'online' || pm2App.status === 'launching') &&
       pm2App.pid > 0;
-    if (pm2Online && !holders.gctoacRunning) return 'pm2';
-    if (holders.gctoacRunning && !pm2Online) return 'gctoac';
-    if (pm2Online && holders.gctoacRunning) return 'unknown';
+    if (pm2Online && !holders.ysk-omniRunning) return 'pm2';
+    if (holders.ysk-omniRunning && !pm2Online) return 'ysk-omni';
+    if (pm2Online && holders.ysk-omniRunning) return 'unknown';
     if (holders.pids.length > 0) return 'unknown';
     return 'none';
   }
@@ -659,9 +659,9 @@ export class Pm2Service {
 
       if (pm2Online || portChange) {
         const mode =
-          pm2Online || saved.preferred_runner === 'pm2' ? 'pm2' : 'gctoac';
+          pm2Online || saved.preferred_runner === 'pm2' ? 'pm2' : 'ysk-omni';
         scheduled = this.scheduleSwitch(mode, {
-          home: process.env.GCTOAC_HOME,
+          home: process.env.OMNI_HOME,
           port: effectivePort,
         });
       }
@@ -682,14 +682,14 @@ export class Pm2Service {
    * Switch active runner. Schedules work so HTTP can respond first when
    * the current process will be killed.
    */
-  scheduleSwitch(mode: 'pm2' | 'gctoac', options?: { home?: string; port?: number }) {
-    if (mode !== 'pm2' && mode !== 'gctoac') {
-      throw ExceptionFactory.validation('mode must be pm2 or gctoac');
+  scheduleSwitch(mode: 'pm2' | 'ysk-omni', options?: { home?: string; port?: number }) {
+    if (mode !== 'pm2' && mode !== 'ysk-omni') {
+      throw ExceptionFactory.validation('mode must be pm2 or ysk-omni');
     }
 
     const root = packageRoot();
     const cli = path.join(root, 'dist', 'cli', 'index.js');
-    const home = options?.home || process.env.GCTOAC_HOME || '';
+    const home = options?.home || process.env.OMNI_HOME || '';
     const port = options?.port || env.PORT || DEFAULT_PORT;
     const homeFlag = home ? ` --home ${JSON.stringify(home)}` : '';
     const portFlag = ` --port ${port}`;
@@ -703,13 +703,13 @@ export class Pm2Service {
       script = [
         'sleep 1.5',
         `node ${JSON.stringify(cli)} stop${homeFlag}${portFlag} || true`,
-        // stop may free gctoac; also stop pm2 cleanly then start
+        // stop may free ysk-omni; also stop pm2 cleanly then start
         `node ${JSON.stringify(cli)} start --pm2${homeFlag}${portFlag} || true`,
       ].join(' && ');
     } else {
       script = [
         'sleep 1.5',
-        // stop both then start detached gctoac
+        // stop both then start detached ysk-omni
         `node ${JSON.stringify(cli)} stop${homeFlag}${portFlag} || true`,
         `node ${JSON.stringify(cli)} start${homeFlag}${portFlag} || true`,
       ].join(' && ');
@@ -735,12 +735,12 @@ export class Pm2Service {
       message:
         mode === 'pm2'
           ? `Switching to PM2… gateway restarts under PM2 shortly (port ${env.PORT}).`
-          : `Switching to gctoac… gateway restarts as a detached process shortly (port ${env.PORT}).`,
+          : `Switching to ysk-omni… gateway restarts as a detached process shortly (port ${env.PORT}).`,
     };
   }
 
   /**
-   * Stop PM2 app if present (used by gctoac stop).
+   * Stop PM2 app if present (used by ysk-omni stop).
    */
   async stopPm2IfRunning(): Promise<string[]> {
     const cfg = readPm2Config();
@@ -814,7 +814,7 @@ export class Pm2Service {
   }
 
   /**
-   * Truncate managed log files (pm2-error/out + gctoac logs).
+   * Truncate managed log files (pm2-error/out + ysk-omni logs).
    * Safe while process is running (open FD keeps writing from offset 0 after truncate on most Unix).
    */
   async clearLogs(opts?: { which?: 'all' | 'error' | 'out' }): Promise<{
@@ -868,8 +868,8 @@ export class Pm2Service {
   async freeEverything(port?: number): Promise<string[]> {
     const p = port ?? env.PORT;
     const notes = [...(await this.stopPm2IfRunning())];
-    const g = await stopGateway({ pidFile: gctoacPidFile(), port: p });
-    if (g.stoppedPid) notes.push('stopped gctoac');
+    const g = await stopGateway({ pidFile: ysk-omniPidFile(), port: p });
+    if (g.stoppedPid) notes.push('stopped ysk-omni');
     if (g.freedPort.length) notes.push(`freed pids ${g.freedPort.join(',')}`);
     return notes;
   }

@@ -38,7 +38,7 @@ describe('cli runtime-context', () => {
   });
 
   it('initCliRuntime creates home dirs + .env and sets DATABASE_URL', () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-rt-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-rt-'));
     homes.push(home);
     const rt = initCliRuntime({ home, forceHome: true, port: 19999 });
     expect(rt.port).toBe(19999);
@@ -49,7 +49,7 @@ describe('cli runtime-context', () => {
   });
 
   it('withPrisma always disconnects', async () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-rt-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-rt-'));
     homes.push(home);
     const rt = initCliRuntime({ home, forceHome: true });
     // Fresh DB file may not have schema — just verify disconnect path

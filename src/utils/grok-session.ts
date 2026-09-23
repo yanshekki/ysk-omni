@@ -40,7 +40,7 @@ export function namespacedGrokSessionId(
   clientSessionId: string,
 ): string {
   const raw = clientSessionId.trim().slice(0, 128);
-  return uuidV5(`gctoac:${apiKeyId}:${raw}`);
+  return uuidV5(`ysk-omni:${apiKeyId}:${raw}`);
 }
 
 export type GrokSessionCliMode = 'create' | 'resume';

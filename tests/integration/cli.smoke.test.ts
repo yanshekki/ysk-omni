@@ -21,7 +21,7 @@ function run(
   const env: NodeJS.ProcessEnv = { ...process.env, FORCE_COLOR: '0' };
   delete env.ENCRYPTION_KEY;
   delete env.DATABASE_URL;
-  delete env.GCTOAC_HOME;
+  delete env.OMNI_HOME;
   try {
     const out = execFileSync(
       process.execPath,
@@ -56,7 +56,7 @@ describe('cli smoke (isolated home)', () => {
   beforeAll(() => {
     built = fs.existsSync(cli);
     if (!built) return;
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-smoke-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-smoke-'));
   });
 
   afterAll(() => {
@@ -92,7 +92,7 @@ describe('cli smoke (isolated home)', () => {
       '-r',
       'client',
     ]);
-    expect(created.out).toMatch(/gk_live_/);
+    expect(created.out).toMatch(/omni_live_/);
     expect(created.out).toMatch(/id:/);
 
     const list = run(home, ['key', 'list']);

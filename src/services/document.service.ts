@@ -388,7 +388,7 @@ export class DocumentService {
 
   /** Best-effort PDF text via poppler `pdftotext` when installed. */
   private async extractPdfText(buf: Buffer): Promise<string | null> {
-    const tmpIn = path.join(os.tmpdir(), `gctoac-pdf-${randomUUID()}.pdf`);
+    const tmpIn = path.join(os.tmpdir(), `ysk-omni-pdf-${randomUUID()}.pdf`);
     try {
       await fs.writeFile(tmpIn, buf, { mode: 0o600 });
       const { stdout } = await execFileAsync(

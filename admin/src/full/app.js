@@ -1382,7 +1382,7 @@ function openAppModal({ title, subtitle, bodyHtml, footerHtml, size = 'md' }) {
 }
 
 async function renderLogin() {
-  const cmd = 'gctoac admin otp';
+  const cmd = 'ysk-omni admin otp';
   document.getElementById('app').innerHTML = `
     <div class="login-wrap">
       <div class="login-stage">
@@ -1850,7 +1850,7 @@ async function renderDashboard() {
           <div class="panel-pad dash-runtime">
             <div class="dash-prot-row">
               <span>${escapeHtml(t('dash.port'))}</span>
-              <strong>${rt.port ?? '—'}<span class="muted" style="font-weight:500"> (${escapeHtml(t('dash.defaultPort'))} ${rt.defaultPort ?? 3847})</span></strong>
+              <strong>${rt.port ?? '—'}<span class="muted" style="font-weight:500"> (${escapeHtml(t('dash.defaultPort'))} ${rt.defaultPort ?? 3850})</span></strong>
             </div>
             <div class="dash-prot-row">
               <span>${escapeHtml(t('dash.env'))}</span>
@@ -6399,7 +6399,7 @@ function bindDdosActions(full = false, whitelist = []) {
 
 function runnerLabel(runner) {
   if (runner === 'pm2') return t('pm2.runnerPm2');
-  if (runner === 'gctoac') return t('pm2.runnerGctoac');
+  if (runner === 'ysk-omni') return t('pm2.runnerGctoac');
   if (runner === 'none') return t('pm2.runnerNone');
   return t('pm2.runnerUnknown');
 }
@@ -6436,7 +6436,7 @@ function scheduleAdminReload(seconds = 10) {
 }
 
 /**
- * @param {'pm2'|'gctoac'} mode
+ * @param {'pm2'|'ysk-omni'} mode
  * @param {any} data API data from /pm2/switch or scheduled payload
  */
 function buildPm2SwitchAlertMessage(mode, data) {
@@ -6457,7 +6457,7 @@ function buildPm2SwitchAlertMessage(mode, data) {
     data?.messageParams?.port ||
     (typeof location !== 'undefined' && location.port
       ? location.port
-      : '3847');
+      : '3850');
   const lines = [
     body,
     tf('pm2.portAfterRestart', { port }),
@@ -6468,7 +6468,7 @@ function buildPm2SwitchAlertMessage(mode, data) {
 
 function runnerBadge(runner) {
   if (runner === 'pm2') return `<span class="badge success">${escapeHtml(runnerLabel(runner))}</span>`;
-  if (runner === 'gctoac') return `<span class="badge agent">${escapeHtml(runnerLabel(runner))}</span>`;
+  if (runner === 'ysk-omni') return `<span class="badge agent">${escapeHtml(runnerLabel(runner))}</span>`;
   if (runner === 'none') return `<span class="badge pending">${escapeHtml(runnerLabel(runner))}</span>`;
   return `<span class="badge warn">${escapeHtml(runnerLabel(runner))}</span>`;
 }
@@ -6504,7 +6504,7 @@ function readPm2ConfigForm() {
   const portNum = Number(portRaw);
   return {
     port: Number.isFinite(portNum) && portNum >= 1 && portNum <= 65535 ? portNum : undefined,
-    name: val('pm2-cfg-name').trim() || 'grok-openai-gateway',
+    name: val('pm2-cfg-name').trim() || 'ysk-omni',
     script: val('pm2-cfg-script').trim() || 'dist/server.js',
     cwd: val('pm2-cfg-cwd').trim() || undefined,
     instances,
@@ -6521,7 +6521,7 @@ function readPm2ConfigForm() {
     error_file: val('pm2-cfg-errfile').trim() || 'logs/pm2-error.log',
     out_file: val('pm2-cfg-outfile').trim() || 'logs/pm2-out.log',
     env_extra: textToEnvExtra(val('pm2-cfg-envextra')),
-    preferred_runner: val('pm2-cfg-preferred') === 'pm2' ? 'pm2' : 'gctoac',
+    preferred_runner: val('pm2-cfg-preferred') === 'pm2' ? 'pm2' : 'ysk-omni',
   };
 }
 
@@ -6601,7 +6601,7 @@ async function renderPm2() {
     <div class="grid pm2-kpi-grid" id="pm2-kpi-grid">
       <div class="card">
         <div class="label">${escapeHtml(t('pm2.app'))}</div>
-        <div class="value value-sm">${escapeHtml(d.appName || cfg.name || 'grok-openai-gateway')}</div>
+        <div class="value value-sm">${escapeHtml(d.appName || cfg.name || 'ysk-omni')}</div>
         <div class="muted card-sub">${runnerBadge(runner)}</div>
       </div>
       <div class="card">
@@ -6637,13 +6637,13 @@ async function renderPm2() {
       <div class="panel-pad">
         <div class="grid">
           <div class="card"><div class="label">${escapeHtml(t('pm2.currentRunner'))}</div><div class="value value-sm">${runnerBadge(runner)}</div></div>
-          <div class="card"><div class="label">${escapeHtml(t('pm2.gctoacPid'))}</div><div class="value value-sm">${d.gctoac?.running && d.gctoac?.pid ? d.gctoac.pid : '—'}</div></div>
+          <div class="card"><div class="label">${escapeHtml(t('pm2.ysk-omniPid'))}</div><div class="value value-sm">${d.ysk-omni?.running && d.ysk-omni?.pid ? d.ysk-omni.pid : '—'}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('pm2.port'))}</div><div class="value value-sm">${d.port ?? '—'}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('pm2.portBusy'))}</div><div class="value value-sm">${portBusy ? t('common.yes') : t('common.no')}</div></div>
         </div>
         <div class="toolbar settings-save-bar">
           <button class="btn sm" id="pm2-switch-pm2" ${!canStart ? 'disabled' : ''}>${escapeHtml(t('pm2.switchToPm2'))}</button>
-          <button class="btn secondary sm" id="pm2-switch-gctoac">${escapeHtml(t('pm2.switchToGctoac'))}</button>
+          <button class="btn secondary sm" id="pm2-switch-ysk-omni">${escapeHtml(t('pm2.switchToGctoac'))}</button>
         </div>
       </div>
     </div>`;
@@ -6659,7 +6659,7 @@ async function renderPm2() {
       <div class="panel-pad">
         <div class="form-grid">
           <label class="full">${escapeHtml(t('pm2.fieldPort'))}
-            <input type="number" id="pm2-cfg-port" min="1" max="65535" step="1" value="${escapeHtml(String(d.port ?? 3847))}" placeholder="3847" />
+            <input type="number" id="pm2-cfg-port" min="1" max="65535" step="1" value="${escapeHtml(String(d.port ?? 3850))}" placeholder="3850" />
             <span class="hint">${escapeHtml(t('pm2.portDefaultNote'))}</span>
           </label>
         </div>
@@ -6699,7 +6699,7 @@ async function renderPm2() {
           <label>${escapeHtml(t('pm2.fieldOutFile'))}<input id="pm2-cfg-outfile" value="${escapeHtml(cfg.out_file || 'logs/pm2-out.log')}" /></label>
           <label>${escapeHtml(t('pm2.fieldPreferred'))}
             <select id="pm2-cfg-preferred">
-              <option value="gctoac" ${cfg.preferred_runner !== 'pm2' ? 'selected' : ''}>gctoac</option>
+              <option value="ysk-omni" ${cfg.preferred_runner !== 'pm2' ? 'selected' : ''}>ysk-omni</option>
               <option value="pm2" ${cfg.preferred_runner === 'pm2' ? 'selected' : ''}>pm2</option>
             </select>
           </label>
@@ -6849,7 +6849,7 @@ async function renderPm2() {
       });
       const payload = res?.data || res || {};
       const alertMsg = buildPm2SwitchAlertMessage(
-        mode === 'pm2' ? 'pm2' : 'gctoac',
+        mode === 'pm2' ? 'pm2' : 'ysk-omni',
         payload,
       );
       // Auto F5 after 10s (server restarts under new runner)
@@ -6872,7 +6872,7 @@ async function renderPm2() {
 
   document.getElementById('pm2-refresh').onclick = () => renderPm2().catch(onErr);
   document.getElementById('pm2-switch-pm2').onclick = () => doSwitch('pm2');
-  document.getElementById('pm2-switch-gctoac').onclick = () => doSwitch('gctoac');
+  document.getElementById('pm2-switch-ysk-omni').onclick = () => doSwitch('ysk-omni');
   document.getElementById('pm2-start').onclick = () => doSwitch('pm2');
   document.getElementById('pm2-stop').onclick = async () => {
     if (
@@ -6964,7 +6964,7 @@ async function renderPm2() {
 
   document.getElementById('pm2-port-default')?.addEventListener('click', () => {
     const el = document.getElementById('pm2-cfg-port');
-    if (el) el.value = '3847';
+    if (el) el.value = '3850';
   });
   document.getElementById('pm2-port-save')?.addEventListener('click', async () => {
     const port = Number(document.getElementById('pm2-cfg-port')?.value);
@@ -9417,7 +9417,7 @@ const SUPPORT_SPONSORS = 'https://github.com/sponsors/yanshekki';
 const SUPPORT_LINKTREE = 'https://linktr.ee/yanshekki';
 const SUPPORT_SITE = 'https://ysk.hk/';
 const SUPPORT_DOCS =
-  'https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible#readme';
+  'https://github.com/yanshekki/ysk-omni#readme';
 
 async function renderSupport() {
   const wallets = [

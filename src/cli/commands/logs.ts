@@ -8,14 +8,14 @@ import { fail, info, ok } from '../lib/print';
 /**
  * Resolve log files to show/clear.
  *
- * - **home mode** (`--home` / `~/.gctoac`): only touch files under that home's
+ * - **home mode** (`--home` / `~/.ysk-omni`): only touch files under that home's
  *   `logs/` — never wipe package-root PM2 logs (would affect other installs).
  * - **project mode**: include package-root PM2 log paths from pm2.runtime.json.
  */
 export function resolveLogFiles(paths: RuntimePaths): string[] {
   const homeLogs = [
-    path.join(paths.logsDir, 'gctoac.err.log'),
-    path.join(paths.logsDir, 'gctoac.out.log'),
+    path.join(paths.logsDir, 'ysk-omni.err.log'),
+    path.join(paths.logsDir, 'ysk-omni.out.log'),
     path.join(paths.logsDir, 'pm2-error.log'),
     path.join(paths.logsDir, 'pm2-out.log'),
   ];
@@ -45,8 +45,8 @@ export function resolveLogFiles(paths: RuntimePaths): string[] {
   return [
     abs(errorFile),
     abs(outFile),
-    path.join(paths.logsDir, 'gctoac.err.log'),
-    path.join(paths.logsDir, 'gctoac.out.log'),
+    path.join(paths.logsDir, 'ysk-omni.err.log'),
+    path.join(paths.logsDir, 'ysk-omni.out.log'),
   ];
 }
 
@@ -66,7 +66,7 @@ export async function cmdLogsClear(opts: {
       const prev = fs.existsSync(f) ? fs.statSync(f).size : 0;
       fs.writeFileSync(
         f,
-        `[log cleared ${new Date().toISOString()} via gctoac logs clear]\n`,
+        `[log cleared ${new Date().toISOString()} via ysk-omni logs clear]\n`,
       );
       ok(`${path.basename(f)}  (was ${Math.round(prev / 1024)} KB)`);
       n += 1;

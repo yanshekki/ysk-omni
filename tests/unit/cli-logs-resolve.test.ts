@@ -5,7 +5,7 @@ import type { RuntimePaths } from '../../src/cli/lib/paths';
 
 describe('cli resolveLogFiles', () => {
   it('home mode only uses home logsDir (never packageRoot pm2 paths)', () => {
-    const home = '/tmp/fake-gctoac-home';
+    const home = '/tmp/fake-ysk-omni-home';
     const paths: RuntimePaths = {
       mode: 'home',
       home,
@@ -14,7 +14,7 @@ describe('cli resolveLogFiles', () => {
       dataDir: path.join(home, 'data'),
       storageDir: path.join(home, 'storage'),
       logsDir: path.join(home, 'logs'),
-      pidFile: path.join(home, 'gctoac.pid'),
+      pidFile: path.join(home, 'ysk-omni.pid'),
       databaseUrl: 'file:/tmp/x.db',
     };
     const files = resolveLogFiles(paths);
@@ -34,11 +34,11 @@ describe('cli resolveLogFiles', () => {
       dataDir: path.join(root, 'data'),
       storageDir: path.join(root, 'storage'),
       logsDir: path.join(root, 'logs'),
-      pidFile: path.join(root, 'gctoac.pid'),
+      pidFile: path.join(root, 'ysk-omni.pid'),
       databaseUrl: 'file:x',
     };
     const files = resolveLogFiles(paths);
     expect(files.some((f) => f.includes('pm2'))).toBe(true);
-    expect(files.some((f) => f.includes('gctoac.out.log'))).toBe(true);
+    expect(files.some((f) => f.includes('ysk-omni.out.log'))).toBe(true);
   });
 });

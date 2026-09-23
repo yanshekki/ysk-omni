@@ -19,7 +19,7 @@ function makePaths(home: string): RuntimePaths {
     dataDir: path.join(home, 'data'),
     storageDir: path.join(home, 'storage'),
     logsDir: path.join(home, 'logs'),
-    pidFile: path.join(home, 'gctoac.pid'),
+    pidFile: path.join(home, 'ysk-omni.pid'),
     databaseUrl: `file:${path.join(home, 'data', 'gateway.db')}`,
   };
 }
@@ -38,7 +38,7 @@ describe('cli env-file', () => {
   });
 
   it('ensureEnvFile creates ENCRYPTION_KEY and DATABASE_URL', () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-env-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-env-'));
     homes.push(home);
     fs.mkdirSync(path.join(home, 'data'), { recursive: true });
     const paths = makePaths(home);
@@ -52,17 +52,17 @@ describe('cli env-file', () => {
   });
 
   it('setEnvPort updates PORT and CORS localhost entries', () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-env-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-env-'));
     homes.push(home);
     const file = path.join(home, '.env');
     writeEnvFile(file, {
-      PORT: '3847',
-      CORS_ORIGINS: 'http://localhost:3847,http://127.0.0.1:3847',
+      PORT: '3850',
+      CORS_ORIGINS: 'http://localhost:3850,http://127.0.0.1:3850',
     });
     const next = setEnvPort(file, 9999);
     expect(next.PORT).toBe('9999');
     expect(next.CORS_ORIGINS).toContain(':9999');
-    expect(next.CORS_ORIGINS).not.toContain(':3847');
+    expect(next.CORS_ORIGINS).not.toContain(':3850');
     expect(readEnvFile(file).PORT).toBe('9999');
   });
 });

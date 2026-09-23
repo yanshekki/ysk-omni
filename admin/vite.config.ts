@@ -35,13 +35,13 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/admin/api': { target: 'http://127.0.0.1:3847', changeOrigin: true },
-      '/admin/assets': { target: 'http://127.0.0.1:3847', changeOrigin: true },
+      '/admin/api': { target: 'http://127.0.0.1:3850', changeOrigin: true },
+      '/admin/assets': { target: 'http://127.0.0.1:3850', changeOrigin: true },
       '/admin/styles.css': {
-        target: 'http://127.0.0.1:3847',
+        target: 'http://127.0.0.1:3850',
         changeOrigin: true,
       },
-      '/admin/vendor': { target: 'http://127.0.0.1:3847', changeOrigin: true },
+      '/admin/vendor': { target: 'http://127.0.0.1:3850', changeOrigin: true },
     },
   },
 });

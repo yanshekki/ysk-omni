@@ -45,7 +45,7 @@ async function bootstrap(): Promise<void> {
       logger.fatal(
         {
           port: env.PORT,
-          hint: 'Port busy — another gctoac/pm2 instance may be running. Try: gctoac stop && pm2 delete grok-openai-gateway',
+          hint: 'Port busy — another ysk-omni/pm2 instance may be running. Try: ysk-omni stop && pm2 delete ysk-omni',
         },
         `listen EADDRINUSE on port ${env.PORT}`,
       );

@@ -99,7 +99,7 @@ export function runPrisma(
   }
 
   throw new Error(
-    `Prisma CLI not found. Reinstall: npm install -g grok-cli-to-openai-compatible\n` +
+    `Prisma CLI not found. Reinstall: npm install -g ysk-omni\n` +
       `Or in this project: npm install && npx prisma@${PRISMA_VERSION} ${args.join(' ')}`,
   );
 }

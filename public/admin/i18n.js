@@ -3,7 +3,7 @@ const LANG_KEY = 'gog_admin_lang';
 
 const dict = {
   en: {
-    brand: 'Grok Gateway',
+    brand: 'YSK Omni',
     brandSub: 'Admin Panel',
     loginTitle: 'Admin',
     loginLabel: 'API Key',
@@ -591,9 +591,9 @@ const dict = {
       dangerTitle: 'Danger zone',
       disablePanel: 'Disable Admin Panel',
       disablePanelConfirm:
-        'Disable panel and sign out? Re-enable: gctoac admin on',
-      disablePanelDone: 'Panel disabled. Re-enable: gctoac admin on',
-      panelOffHint: 'Turn off here. Re-enable on server: gctoac admin on',
+        'Disable panel and sign out? Re-enable: ysk-omni admin on',
+      disablePanelDone: 'Panel disabled. Re-enable: ysk-omni admin on',
+      panelOffHint: 'Turn off here. Re-enable on server: ysk-omni admin on',
       panelStatus: 'Status',
       panelOn: 'On',
       panelOff: 'Off',
@@ -939,7 +939,7 @@ const dict = {
       logsHint: 'Error log first',
       clearLogs: 'Clear logs',
       confirmClearLogs:
-        'Clear PM2 and gctoac log files? This cannot be undone (files are truncated).',
+        'Clear PM2 and ysk-omni log files? This cannot be undone (files are truncated).',
       logsCleared: 'Cleared {n} log file(s).',
       logsAutoTrim:
         'Auto-trim over {maxMb} MB → keep last ~{keepKb} KB (on each log read).',
@@ -960,9 +960,9 @@ const dict = {
       portHint:
         'HTTP port for the gateway Admin UI and API. Changing the port updates .env and restarts the runner so the new port takes effect.',
       fieldPort: 'Port',
-      portDefaultNote: 'Default is 3847. Valid range: 1–65535.',
+      portDefaultNote: 'Default is 3850. Valid range: 1–65535.',
       savePort: 'Save port & restart',
-      useDefaultPort: 'Use default (3847)',
+      useDefaultPort: 'Use default (3850)',
       portInvalid: 'Enter a valid port number (1–65535).',
       confirmPortChange:
         'Change listen port to {port} and restart the gateway? You will need to open Admin on the new port (e.g. http://localhost:{port}/admin).',
@@ -971,22 +971,22 @@ const dict = {
         'Port {port} saved to .env. Restart the gateway for it to take effect.',
       portAfterRestart:
         'After restart, open Admin at http://localhost:{port}/admin',
-      hint: 'Run with PM2 or detached gctoac. Switch anytime here or via CLI.',
+      hint: 'Run with PM2 or detached ysk-omni. Switch anytime here or via CLI.',
       switchTitle: 'Runner',
       switchHint: 'Only one runner should bind the port.',
       currentRunner: 'Current runner',
       runnerPm2: 'PM2',
-      runnerGctoac: 'gctoac (detached)',
+      runnerGctoac: 'ysk-omni (detached)',
       runnerNone: 'Not running',
       runnerUnknown: 'Unknown / mixed',
       switchToPm2: 'Switch to PM2',
-      switchToGctoac: 'Switch to gctoac',
+      switchToGctoac: 'Switch to ysk-omni',
       confirmSwitchPm2: 'Switch to PM2? Gateway restarts under PM2 in a few seconds.',
-      confirmSwitchGctoac: 'Switch to gctoac? Gateway restarts as a detached process in a few seconds.',
+      confirmSwitchGctoac: 'Switch to ysk-omni? Gateway restarts as a detached process in a few seconds.',
       switchScheduled: 'Switch scheduled. Admin will refresh automatically in about 10 seconds.',
       autoRefreshIn: 'This page will reload automatically in {n} seconds…',
       autoRefreshNow: 'Reloading…',
-      gctoacPid: 'gctoac PID',
+      ysk-omniPid: 'ysk-omni PID',
       configTitle: 'PM2 config',
       configHint: 'Saved to pm2.runtime.json and applied via ecosystem.config.cjs. Save & apply restarts PM2 if it is the active runner.',
       saveConfig: 'Save & apply',
@@ -1028,17 +1028,17 @@ const dict = {
       msgNotInList:
         'App "{app}" is not in the PM2 list — use Start with PM2 or Switch to PM2.',
       msgPortGctoac:
-        'Port {port} is held by gctoac (pid {pid}). Use “Switch to PM2” to hand over.',
+        'Port {port} is held by ysk-omni (pid {pid}). Use “Switch to PM2” to hand over.',
       msgPortBusy: 'Port {port} is in use (pid {pids}).',
       msgErrored:
         'PM2 process errored — check logs / config, then Restart or fix port conflicts.',
       msgBothRunners:
-        'Both runners detected; gctoac pid {pid} also holds resources. Prefer one via Switch.',
+        'Both runners detected; ysk-omni pid {pid} also holds resources. Prefer one via Switch.',
       msgError: 'PM2 error: {error}',
       msgSwitchPm2:
         'Switching to PM2… The gateway will restart under PM2 in a few seconds.',
       msgSwitchGctoac:
-        'Switching to gctoac… The gateway will restart as a detached process in a few seconds.',
+        'Switching to ysk-omni… The gateway will restart as a detached process in a few seconds.',
     },
     system: {
       title: 'System',
@@ -1193,7 +1193,7 @@ const dict = {
     },
   },
   'zh-Hant': {
-    brand: 'Grok Gateway',
+    brand: 'YSK Omni',
     brandSub: '管理面板',
     loginTitle: '管理員登入',
     loginLabel: 'API 金鑰',
@@ -1777,9 +1777,9 @@ const dict = {
       scLongDetail: '安全開 · none/readonly · turns 20–40 · 300–600s。',
       dangerTitle: '危險操作',
       disablePanel: '關閉管理面板',
-      disablePanelConfirm: '關閉面板並登出？重開：gctoac admin on',
-      disablePanelDone: '面板已關。重開：gctoac admin on',
-      panelOffHint: '此處可關閉。重開請在伺服器執行 gctoac admin on。',
+      disablePanelConfirm: '關閉面板並登出？重開：ysk-omni admin on',
+      disablePanelDone: '面板已關。重開：ysk-omni admin on',
+      panelOffHint: '此處可關閉。重開請在伺服器執行 ysk-omni admin on。',
       panelStatus: '狀態',
       panelOn: '開',
       panelOff: '關',
@@ -2116,7 +2116,7 @@ const dict = {
       logs: '日誌',
       logsHint: '優先顯示錯誤日誌',
       clearLogs: '清除日誌',
-      confirmClearLogs: '確定清除 PM2 與 gctoac 日誌檔？此操作無法復原（檔案會被清空）。',
+      confirmClearLogs: '確定清除 PM2 與 ysk-omni 日誌檔？此操作無法復原（檔案會被清空）。',
       logsCleared: '已清除 {n} 個日誌檔。',
       logsAutoTrim: '超過 {maxMb} MB 會自動裁剪，只保留最後約 {keepKb} KB（每次讀取日誌時檢查）。',
       refresh: '重新整理',
@@ -2136,31 +2136,31 @@ const dict = {
       portHint:
         'Gateway Admin 與 API 的 HTTP 連接埠。更改後會寫入 .env 並重啟進程，新連接埠才會生效。',
       fieldPort: '連接埠',
-      portDefaultNote: '預設為 3847。有效範圍：1–65535。',
+      portDefaultNote: '預設為 3850。有效範圍：1–65535。',
       savePort: '儲存連接埠並重啟',
-      useDefaultPort: '使用預設（3847）',
+      useDefaultPort: '使用預設（3850）',
       portInvalid: '請輸入有效連接埠（1–65535）。',
       confirmPortChange:
         '將監聽連接埠改為 {port} 並重啟 Gateway？之後請用新連接埠開啟 Admin（例如 http://localhost:{port}/admin）。',
       portChangedMsg: '連接埠已更新：{from} → {to}。',
       portSavedNeedRestart: '連接埠 {port} 已寫入 .env。請重啟後才會生效。',
       portAfterRestart: '重啟後請開啟 http://localhost:{port}/admin',
-      hint: '可用 PM2 或 gctoac 運行，可在此或 CLI 切換。',
+      hint: '可用 PM2 或 ysk-omni 運行，可在此或 CLI 切換。',
       switchTitle: '運行方式',
       switchHint: '同一時間只應有一個進程綁定連接埠。',
       currentRunner: '目前 runner',
       runnerPm2: 'PM2',
-      runnerGctoac: 'gctoac（獨立進程）',
+      runnerGctoac: 'ysk-omni（獨立進程）',
       runnerNone: '未運行',
       runnerUnknown: '未知／混合',
       switchToPm2: '切換到 PM2',
-      switchToGctoac: '切換到 gctoac',
+      switchToGctoac: '切換到 ysk-omni',
       confirmSwitchPm2: '確定切換到 PM2？gateway 會在數秒內以 PM2 重啟。',
-      confirmSwitchGctoac: '確定切換到 gctoac？gateway 會在數秒內以獨立進程重啟。',
+      confirmSwitchGctoac: '確定切換到 ysk-omni？gateway 會在數秒內以獨立進程重啟。',
       switchScheduled: '已排程切換。管理面板將在約 10 秒後自動重新整理。',
       autoRefreshIn: '本頁將於 {n} 秒後自動重新載入…',
       autoRefreshNow: '正在重新載入…',
-      gctoacPid: 'gctoac 進程 ID',
+      ysk-omniPid: 'ysk-omni 進程 ID',
       configTitle: 'PM2 設定',
       configHint: '儲存至 pm2.runtime.json，經 ecosystem.config.cjs 套用。若目前用 PM2 運行，「儲存並套用」會重啟 PM2。',
       saveConfig: '儲存並套用',
@@ -2201,16 +2201,16 @@ const dict = {
       msgNotInList:
         '應用「{app}」不在 PM2 列表中 — 請用「用 PM2 啟動」或「切換到 PM2」。',
       msgPortGctoac:
-        '連接埠 {port} 正由 gctoac 佔用（pid {pid}）。請按「切換到 PM2」移交。',
+        '連接埠 {port} 正由 ysk-omni 佔用（pid {pid}）。請按「切換到 PM2」移交。',
       msgPortBusy: '連接埠 {port} 被佔用（pid {pids}）。',
       msgErrored:
         'PM2 進程出錯 — 請查日誌／設定，然後重啟或處理連接埠衝突。',
       msgBothRunners:
-        '偵測到兩個 runner；gctoac pid {pid} 仍佔用資源。請用「切換」只保留一個。',
+        '偵測到兩個 runner；ysk-omni pid {pid} 仍佔用資源。請用「切換」只保留一個。',
       msgError: 'PM2 錯誤：{error}',
       msgSwitchPm2: '正在切換至 PM2… Gateway 將於數秒內以 PM2 重新啟動。',
       msgSwitchGctoac:
-        '正在切換至 gctoac… Gateway 將於數秒內以獨立進程重新啟動。',
+        '正在切換至 ysk-omni… Gateway 將於數秒內以獨立進程重新啟動。',
     },
     system: {
       title: '系統狀態',

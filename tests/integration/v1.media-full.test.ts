@@ -39,7 +39,7 @@ describe('v1 media full (images edits, files, video, audio)', () => {
       filesOpenAiAlias: true,
     });
 
-    agentKey = `gk_live_${randomBytes(20).toString('base64url')}`;
+    agentKey = `omni_live_${randomBytes(20).toString('base64url')}`;
     await prisma.apiKey.create({
       data: {
         id: randomUUID(),

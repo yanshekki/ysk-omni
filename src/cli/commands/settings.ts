@@ -132,7 +132,7 @@ function printSettings(s: SettingsRow): void {
   info(`  defaultModel:       ${s.defaultModel}`);
   info(`  adminPanelEnabled:  ${s.adminPanelEnabled ? 'ON' : 'OFF'}`);
   info('');
-  info('Tip: panel on/off → gctoac admin on|off');
+  info('Tip: panel on/off → ysk-omni admin on|off');
 }
 
 export async function cmdSettingsGet(opts: CliOpts): Promise<void> {

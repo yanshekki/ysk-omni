@@ -89,7 +89,7 @@ export async function cmdKeyList(opts: {
 
   const keys = await listKeys(databaseUrl);
   if (keys.length === 0) {
-    warn('No API keys. Create one: gctoac key create');
+    warn('No API keys. Create one: ysk-omni key create');
     return;
   }
 
@@ -102,7 +102,7 @@ export async function cmdKeyList(opts: {
     );
   }
   info('');
-  info('Plaintext keys are not stored. Create a new one: gctoac key create');
+  info('Plaintext keys are not stored. Create a new one: ysk-omni key create');
 }
 
 export async function cmdKeyRevoke(opts: {

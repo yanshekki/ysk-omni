@@ -43,7 +43,7 @@ describe('v1 routes (auth, models, documents, api-keys)', () => {
   it('rejects bad API key', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/v1/models', {
-      key: 'gk_live_this_is_not_a_real_key_xx',
+      key: 'omni_live_this_is_not_a_real_key_xx',
     });
     expect(res.status).toBe(401);
   });

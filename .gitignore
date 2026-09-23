@@ -15,7 +15,7 @@ data/*
 *.db-wal
 *.db-shm
 *.log
-gctoac.pid
+ysk-omni.pid
 pm2.runtime.json
 .DS_Store
 coverage/

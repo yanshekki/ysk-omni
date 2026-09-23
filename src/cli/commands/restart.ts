@@ -30,7 +30,7 @@ export async function cmdRestart(opts: {
         pm2 = true;
         info('Preferred runner is PM2 — restarting under PM2');
       } else {
-        warn('Preferred runner is PM2 but pm2 is not on PATH — starting with gctoac');
+        warn('Preferred runner is PM2 but pm2 is not on PATH — starting with ysk-omni');
         pm2 = false;
       }
     }

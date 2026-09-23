@@ -1,1 +1,1 @@
-export type RunnerMode = 'pm2' | 'gctoac' | 'none' | 'unknown';
+export type RunnerMode = 'pm2' | 'ysk-omni' | 'none' | 'unknown';

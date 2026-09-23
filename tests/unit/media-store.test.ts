@@ -18,7 +18,7 @@ describe('mediaStoreService', () => {
         cwd: process.cwd(),
         timeout: 60_000,
       });
-      const raw = `gk_live_${randomBytes(16).toString('hex')}`;
+      const raw = `omni_live_${randomBytes(16).toString('hex')}`;
       keyId = randomUUID();
       await prisma.apiKey.create({
         data: {

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # API audit against a running gateway (optional; unit/integration tests are primary).
-# Usage: API_KEY=gk_live_... ADMIN_KEY=gk_live_... BASE_URL=http://127.0.0.1:3847 bash scripts/api-audit-run.sh
+# Usage: API_KEY=omni_live_... ADMIN_KEY=omni_live_... BASE_URL=http://127.0.0.1:3850 bash scripts/api-audit-run.sh
 set -u
-BASE_URL="${BASE_URL:-http://127.0.0.1:3847}"
+BASE_URL="${BASE_URL:-http://127.0.0.1:3850}"
 API_KEY="${API_KEY:-}"
 ADMIN_KEY="${ADMIN_KEY:-$API_KEY}"
 

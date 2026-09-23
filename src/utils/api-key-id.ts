@@ -45,6 +45,6 @@ export async function toPersistentApiKeyId(
   if (admin) return admin.id;
 
   throw ExceptionFactory.internal(
-    'No admin API key available for resource ownership — create an admin API key (gctoac key create)',
+    'No admin API key available for resource ownership — create an admin API key (ysk-omni key create)',
   );
 }

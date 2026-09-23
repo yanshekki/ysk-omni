@@ -1,4 +1,4 @@
-export const API_KEY_PREFIX = 'gk_live_';
+export const API_KEY_PREFIX = 'omni_live_';
 
 export const MAX_MESSAGES = 100;
 export const MAX_MESSAGE_CHARS = 100_000;

@@ -21,7 +21,7 @@ describe('id utils', () => {
 
   it('creates api keys with prefix', () => {
     const key = createApiKeySecret();
-    expect(key.startsWith('gk_live_')).toBe(true);
+    expect(key.startsWith('omni_live_')).toBe(true);
     expect(apiKeyPrefix(key)).toBe(key.slice(0, 16));
   });
 });

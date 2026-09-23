@@ -53,7 +53,7 @@ export async function cmdDoctor(opts: {
   if (!fs.existsSync(paths.envFile)) {
     // Missing setup is a real issue for production, but report as warn-level
     // diagnostic (still increments issues so doctor exits non-zero).
-    fail(`.env missing — run: gctoac setup`);
+    fail(`.env missing — run: ysk-omni setup`);
     issues += 1;
   } else {
     ok(`.env found: ${paths.envFile}`);
@@ -122,10 +122,10 @@ export async function cmdDoctor(opts: {
     const det = detectRunner(paths, port);
     info(`Runner: ${det.runner}  preferred: ${det.preferred ?? '—'}`);
     if (det.runner === 'mixed') {
-      fail('Both gctoac and PM2 appear online — fix with: gctoac stop && gctoac start [--pm2]');
+      fail('Both ysk-omni and PM2 appear online — fix with: ysk-omni stop && ysk-omni start [--pm2]');
       issues += 1;
-    } else if (det.gctoacRunning) {
-      ok(`gctoac running (pid ${det.gctoacPid})`);
+    } else if (det.ysk-omniRunning) {
+      ok(`ysk-omni running (pid ${det.ysk-omniPid})`);
     } else if (det.pm2.online) {
       ok(`PM2 online (${det.pm2.name}, ${det.pm2.status})`);
     } else {
@@ -144,8 +144,8 @@ export async function cmdDoctor(opts: {
     const logFiles = [
       path.join(paths.logsDir, 'pm2-error.log'),
       path.join(paths.logsDir, 'pm2-out.log'),
-      path.join(paths.logsDir, 'gctoac.err.log'),
-      path.join(paths.logsDir, 'gctoac.out.log'),
+      path.join(paths.logsDir, 'ysk-omni.err.log'),
+      path.join(paths.logsDir, 'ysk-omni.out.log'),
     ];
     for (const f of logFiles) {
       try {
@@ -174,7 +174,7 @@ export async function cmdDoctor(opts: {
     ok(`pm2: ${which}`);
   } catch {
     warn('pm2 not found — Admin PM2 page needs it. Install: npm install -g pm2');
-    warn('Or run: gctoac update (may install pm2)');
+    warn('Or run: ysk-omni update (may install pm2)');
   }
 
   if (issues === 0) {

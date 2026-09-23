@@ -7,12 +7,12 @@ loadDotenv();
 const envSchema = z.object({
   // Default production for installable gateway; set development only for local coding
   NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
-  PORT: z.coerce.number().int().positive().default(3847),
+  PORT: z.coerce.number().int().positive().default(3850),
   HOST: z.string().default('0.0.0.0'),
   DATABASE_URL: z.string().min(1),
   ENCRYPTION_KEY: z.string().min(1),
   ADMIN_BOOTSTRAP_KEY: z.string().optional(),
-  GCTOAC_HOME: z.string().optional(),
+  OMNI_HOME: z.string().optional(),
 
   GROK_BIN: z.string().default('grok'),
   GROK_DEFAULT_MODEL: z.string().default('grok-4.6'),
@@ -40,7 +40,7 @@ const envSchema = z.object({
     .default('true')
     .transform((v) => v === 'true' || v === '1'),
 
-  CORS_ORIGINS: z.string().default('http://localhost:3847,http://127.0.0.1:3847'),
+  CORS_ORIGINS: z.string().default('http://localhost:3850,http://127.0.0.1:3850'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
   /** Stricter cap for unauthenticated / IP-only traffic */

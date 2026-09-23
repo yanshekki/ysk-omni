@@ -36,7 +36,7 @@ export async function cmdStop(opts: {
   });
 
   if (stoppedPid) {
-    ok('Stopped (gctoac pid file)');
+    ok('Stopped (ysk-omni pid file)');
   }
   if (freedPort.length) {
     ok(`Freed port ${port} (killed orphan pid: ${freedPort.join(', ')})`);

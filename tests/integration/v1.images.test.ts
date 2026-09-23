@@ -25,7 +25,7 @@ describe('v1 images API (OpenAI-compatible)', () => {
     });
 
     // Agent-mode client key for generation
-    agentKey = `gk_live_${randomBytes(20).toString('base64url')}`;
+    agentKey = `omni_live_${randomBytes(20).toString('base64url')}`;
     await prisma.apiKey.create({
       data: {
         id: randomUUID(),

@@ -20,7 +20,7 @@ describe('cli db-keys', () => {
   let ready = false;
 
   beforeAll(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'gctoac-keys-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-keys-'));
     const dataDir = path.join(home, 'data');
     fs.mkdirSync(dataDir, { recursive: true });
     const dbFile = path.join(dataDir, 'gateway.db');
@@ -57,7 +57,7 @@ describe('cli db-keys', () => {
     });
     expect(created.role).toBe('client');
     expect(created.mode).toBe('safe');
-    expect(created.rawKey.startsWith('gk_live_')).toBe(true);
+    expect(created.rawKey.startsWith('omni_live_')).toBe(true);
 
     const prisma = new PrismaClient({
       datasources: { db: { url: databaseUrl } },

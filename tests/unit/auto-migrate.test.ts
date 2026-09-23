@@ -9,7 +9,7 @@ describe('auto-migrate on update / start / error', () => {
       'utf8',
     );
     expect(src).toContain('tryAutoMigrate');
-    expect(src).toContain('Update errored; still running gctoac migrate');
+    expect(src).toContain('Update errored; still running ysk-omni migrate');
     expect(src).toContain('Final DB migrate');
   });
 
@@ -19,6 +19,6 @@ describe('auto-migrate on update / start / error', () => {
       'utf8',
     );
     expect(src).toContain('tryAutoMigrate');
-    expect(src).toContain('gctoac migrate');
+    expect(src).toContain('ysk-omni migrate');
   });
 });

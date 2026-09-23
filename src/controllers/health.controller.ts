@@ -7,7 +7,7 @@ export class HealthController {
   health = asyncHandler(async (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'ok',
-      service: 'grok-openai-gateway',
+      service: 'ysk-omni',
       timestamp: new Date().toISOString(),
     });
   });

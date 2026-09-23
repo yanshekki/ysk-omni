@@ -32,7 +32,7 @@ admin/src/
 ## Dev
 
 ```bash
-npm run dev:admin      # Vite :5174, proxies API → :3847
+npm run dev:admin      # Vite :5174, proxies API → :3850
 npm run typecheck:admin
 npm run test:admin
 ```

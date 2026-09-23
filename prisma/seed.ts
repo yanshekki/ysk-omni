@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     console.log(`  name:   ${existingAdmin.name}`);
     console.log(`  prefix: ${existingAdmin.keyPrefix}`);
     console.log('  mode:   agent (ensured)');
-    const port = process.env.PORT || '3847';
+    const port = process.env.PORT || '3850';
     console.log(`Admin panel: http://127.0.0.1:${port}/admin/`);
     console.log('Plaintext key is not recoverable. Create a new admin key via API if needed.');
     return;
@@ -48,13 +48,13 @@ async function main(): Promise<void> {
     },
   });
 
-  const port = process.env.PORT || '3847';
+  const port = process.env.PORT || '3850';
   console.log('Created bootstrap admin API key (store it securely — shown once):');
   console.log(`  id:   ${created.id}`);
   console.log(`  key:  ${rawKey}`);
   console.log('');
   console.log(`Admin panel: http://127.0.0.1:${port}/admin/`);
-  console.log('CLI: gctoac start | gctoac status | gctoac open');
+  console.log('CLI: ysk-omni start | ysk-omni status | ysk-omni open');
   console.log('API example:');
   console.log(
     `  curl -s http://127.0.0.1:${port}/admin/api/me -H "Authorization: Bearer ${rawKey}"`,

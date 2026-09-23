@@ -9,8 +9,8 @@ import {
 
 describe('grok-session', () => {
   it('uuidV5 is stable and RFC version 5', () => {
-    const a = uuidV5('gctoac:key:chat-1');
-    const b = uuidV5('gctoac:key:chat-1');
+    const a = uuidV5('ysk-omni:key:chat-1');
+    const b = uuidV5('ysk-omni:key:chat-1');
     expect(a).toBe(b);
     expect(isUuid(a)).toBe(true);
     expect(a.charAt(14)).toBe('5');

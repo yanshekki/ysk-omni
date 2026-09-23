@@ -112,7 +112,7 @@ export async function cmdApiFeaturesSet(
     return;
   }
   if (!Object.keys(partial).length) {
-    fail('No flags. Example: gctoac api features set --tools on --vision off');
+    fail('No flags. Example: ysk-omni api features set --tools on --vision off');
     process.exitCode = 1;
     return;
   }

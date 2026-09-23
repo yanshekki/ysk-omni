@@ -97,11 +97,11 @@ function readPkgVersion(): string {
 const program = new Command();
 
 program
-  .name('gctoac')
+  .name('ysk-omni')
   .description(
-    'Grok CLI → OpenAI-compatible gateway controller (alias: gcoa)',
+    'YSK Omni gateway controller (alias: ysko)',
   )
-  .option('--home <path>', 'Data home directory (default: ~/.gctoac or project root)')
+  .option('--home <path>', 'Data home directory (default: ~/.ysk-omni or project root)')
   .option('--port <n>', `HTTP port (default ${DEFAULT_PORT})`, (v) => Number(v))
   .option('--json', 'Machine-readable JSON output where supported')
   .version(readPkgVersion(), '-V, --version');
@@ -183,10 +183,10 @@ const keyCmd = program
   .command('key')
   .description('Manage API keys (create prints plaintext once)')
   .action(async () => {
-    // Bare `gctoac key` still creates admin (compat) — prefer `key create`
+    // Bare `ysk-omni key` still creates admin (compat) — prefer `key create`
     const { warn } = await import('./lib/print');
     warn(
-      'Bare `gctoac key` creates a new admin key. Prefer: gctoac key create [-r admin|client]',
+      'Bare `ysk-omni key` creates a new admin key. Prefer: ysk-omni key create [-r admin|client]',
     );
     await cmdKeyCreate({ ...globalOpts(), role: 'admin' });
   });
@@ -288,7 +288,7 @@ keyCmd
 
 keyCmd
   .command('admin')
-  .description('Create a new admin API key (same as: gctoac key create)')
+  .description('Create a new admin API key (same as: ysk-omni key create)')
   .option('-n, --name <name>', 'Key name')
   .action(async (opts: { name?: string }) => {
     await cmdKeyCreate({ ...globalOpts(), role: 'admin', name: opts.name });
@@ -317,7 +317,7 @@ adminCmd
 
 adminCmd
   .command('off')
-  .description('Disable Admin panel (settings DB); re-enable with: gctoac admin on')
+  .description('Disable Admin panel (settings DB); re-enable with: ysk-omni admin on')
   .action(async () => {
     await cmdAdminOff(globalOpts());
   });
@@ -862,7 +862,7 @@ apiFeaturesCmd
 program
   .command('doctor')
   .description(
-    'Check Node, Grok CLI, env (proxy/port), build, runner (gctoac/PM2), conflicts',
+    'Check Node, Grok CLI, env (proxy/port), build, runner (ysk-omni/PM2), conflicts',
   )
   .action(async () => {
     await cmdDoctor(globalOpts());
@@ -878,7 +878,7 @@ program
 
 const logsCmd = program
   .command('logs')
-  .description('Show or clear gateway log files (pm2 + gctoac)')
+  .description('Show or clear gateway log files (pm2 + ysk-omni)')
   .option('-n, --lines <n>', 'Tail lines (default 40)', (v) => Number(v))
   .action(async (opts: { lines?: number }) => {
     await cmdLogsShow({ ...globalOpts(), lines: opts.lines });
@@ -886,7 +886,7 @@ const logsCmd = program
 
 logsCmd
   .command('clear')
-  .description('Truncate pm2-error/out and gctoac log files')
+  .description('Truncate pm2-error/out and ysk-omni log files')
   .action(async () => {
     await cmdLogsClear(globalOpts());
   });

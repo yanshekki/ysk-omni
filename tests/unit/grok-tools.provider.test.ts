@@ -128,7 +128,7 @@ describe('listMediaFiles / selectCollectedMedia', () => {
   let sandbox = '';
 
   beforeEach(async () => {
-    sandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-media-'));
+    sandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-media-'));
   });
 
   afterEach(async () => {
@@ -204,7 +204,7 @@ describe('listMediaFiles / selectCollectedMedia', () => {
   });
 
   it('does not follow a symlink out of the sandbox', async () => {
-    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-out-'));
+    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-out-'));
     try {
       await fs.writeFile(path.join(outside, 'secret.jpg'), Buffer.from('s'));
       await fs.symlink(outside, path.join(sandbox, 'leak'), 'dir');
@@ -241,8 +241,8 @@ describe('session image harvest (image_gen writes ~/.grok/sessions/…/images/)'
   let grokHome = '';
 
   beforeEach(async () => {
-    sandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-media-'));
-    grokHome = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-grokhome-'));
+    sandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-media-'));
+    grokHome = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-grokhome-'));
     isAvailableMock.mockReset();
     isAvailableMock.mockResolvedValue(true);
     streamMock.mockReset();
@@ -278,7 +278,7 @@ describe('session image harvest (image_gen writes ~/.grok/sessions/…/images/)'
   });
 
   it('finds only this cwd session, not a sibling sandbox session', async () => {
-    const other = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-other-'));
+    const other = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-other-'));
     try {
       await writeSessionImage(
         grokHome,
@@ -531,7 +531,7 @@ describe('session image harvest (image_gen writes ~/.grok/sessions/…/images/)'
   it('does not harvest a different media-run session under ~/.grok/sessions', async () => {
     const prevHome = process.env.GROK_HOME;
     process.env.GROK_HOME = grokHome;
-    const otherSandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'gctoac-other-'));
+    const otherSandbox = await fs.mkdtemp(path.join(os.tmpdir(), 'ysk-omni-other-'));
     try {
       await writeSessionImage(
         grokHome,

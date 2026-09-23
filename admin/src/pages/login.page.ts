@@ -13,7 +13,7 @@ import { poweredByFooter } from '../components/shell';
 
 export async function renderLoginPage(): Promise<void> {
   const st = getState();
-  const cmd = 'gctoac admin otp';
+  const cmd = 'ysk-omni admin otp';
   appRoot().innerHTML = `
     <div class="login-wrap">
       <div class="login-stage">

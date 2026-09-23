@@ -20,7 +20,7 @@ import { settingsService } from '../../src/services/settings.service';
 const baseKey = {
   id: '11111111-1111-1111-1111-111111111111',
   name: 't',
-  keyPrefix: 'gk_live_xxxx',
+  keyPrefix: 'omni_live_xxxx',
   role: 'client' as const,
   rateLimit: 60,
   isActive: true,

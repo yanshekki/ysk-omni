@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const PACKAGE_NAME = 'grok-cli-to-openai-compatible';
-export const DEFAULT_PORT = 3847;
+export const PACKAGE_NAME = 'ysk-omni';
+export const DEFAULT_PORT = 3850;
 
 /** Installed package root (contains package.json, prisma/, dist/) */
 export function getPackageRoot(): string {
@@ -12,10 +12,10 @@ export function getPackageRoot(): string {
 }
 
 export function getDefaultHome(): string {
-  if (process.env.GCTOAC_HOME?.trim()) {
-    return path.resolve(process.env.GCTOAC_HOME.trim());
+  if (process.env.OMNI_HOME?.trim()) {
+    return path.resolve(process.env.OMNI_HOME.trim());
   }
-  return path.join(os.homedir(), '.gctoac');
+  return path.join(os.homedir(), '.ysk-omni');
 }
 
 export interface RuntimePaths {
@@ -32,7 +32,7 @@ export interface RuntimePaths {
 
 /**
  * Prefer project-local data when running inside this repo checkout.
- * Otherwise use ~/.gctoac (or GCTOAC_HOME / --home).
+ * Otherwise use ~/.ysk-omni (or OMNI_HOME / --home).
  */
 export function resolveRuntimePaths(options?: {
   home?: string;
@@ -49,7 +49,7 @@ export function resolveRuntimePaths(options?: {
   if (!options?.forceHome && !options?.home && isProjectCheckout(cwd)) {
     mode = 'project';
     home = cwd;
-  } else if (options?.forceHome || options?.home || process.env.GCTOAC_HOME) {
+  } else if (options?.forceHome || options?.home || process.env.OMNI_HOME) {
     mode = 'home';
   } else if (isProjectCheckout(cwd)) {
     mode = 'project';
@@ -60,7 +60,7 @@ export function resolveRuntimePaths(options?: {
   const storageDir = path.join(home, 'storage');
   const logsDir = path.join(home, 'logs');
   const envFile = path.join(home, '.env');
-  const pidFile = path.join(home, 'gctoac.pid');
+  const pidFile = path.join(home, 'ysk-omni.pid');
   // Absolute file URL is reliable for global install (not relative to prisma/)
   const dbFile = path.resolve(dataDir, 'gateway.db');
   const databaseUrl = `file:${dbFile}`;

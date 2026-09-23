@@ -18,6 +18,6 @@ export interface Pm2RuntimeConfig {
   out_file: string;
   /** Extra env vars merged on top of .env (do not put secrets you wouldn't commit) */
   env_extra: Record<string, string>;
-  /** Preferred runner after switch / start: pm2 | gctoac */
-  preferred_runner: 'pm2' | 'gctoac';
+  /** Preferred runner after switch / start: pm2 | ysk-omni */
+  preferred_runner: 'pm2' | 'ysk-omni';
 }

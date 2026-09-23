@@ -14,7 +14,7 @@ export const logger = pino({
           },
         }
       : undefined,
-  base: { service: 'grok-openai-gateway' },
+  base: { service: 'ysk-omni' },
   redact: {
     paths: [
       'req.headers.authorization',

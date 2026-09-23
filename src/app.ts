@@ -184,7 +184,7 @@ export function createApp() {
           .status(503)
           .type('html')
           .send(
-            '<!doctype html><meta charset="utf-8"><title>Admin off</title><body style="font-family:system-ui;padding:2rem"><h1>Admin panel disabled</h1><p>Run: <code>gctoac admin on</code></p></body>',
+            '<!doctype html><meta charset="utf-8"><title>Admin off</title><body style="font-family:system-ui;padding:2rem"><h1>Admin panel disabled</h1><p>Run: <code>ysk-omni admin on</code></p></body>',
           );
       }
     });

@@ -96,10 +96,10 @@ export const adminCoreHandlers = {
   updateSettings: asyncHandler(async (req: Request, res: Response) => {
     if (!req.apiKey) throw ExceptionFactory.unauthorized();
     const body = req.body as UpdateSettingsBody;
-    // Admin UI may only turn the panel OFF. Re-enable requires: gctoac admin on
+    // Admin UI may only turn the panel OFF. Re-enable requires: ysk-omni admin on
     if (body.adminPanelEnabled === true) {
       throw ExceptionFactory.validation(
-        'Cannot enable Admin panel from UI. Use CLI: gctoac admin on',
+        'Cannot enable Admin panel from UI. Use CLI: ysk-omni admin on',
       );
     }
     const data = await settingsService.update(body);
@@ -252,7 +252,7 @@ export const adminCoreHandlers = {
 
     if (restart) {
       const scheduled = updateService.scheduleUpdateAndRestart({
-        home: process.env.GCTOAC_HOME,
+        home: process.env.OMNI_HOME,
         port: env.PORT,
       });
       res.json({

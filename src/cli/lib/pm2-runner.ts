@@ -11,7 +11,7 @@ import {
 } from './process-mgr';
 import { fail, info, ok, warn } from './print';
 
-const DEFAULT_APP = 'grok-openai-gateway';
+const DEFAULT_APP = 'ysk-omni';
 
 function whichPm2(): string | null {
   try {
@@ -34,7 +34,7 @@ function readAppName(packageRoot: string): string {
   return DEFAULT_APP;
 }
 
-function writePreferredRunner(packageRoot: string, runner: 'pm2' | 'gctoac'): void {
+function writePreferredRunner(packageRoot: string, runner: 'pm2' | 'ysk-omni'): void {
   const p = path.join(packageRoot, 'pm2.runtime.json');
   let cur: Record<string, unknown> = {};
   try {
@@ -50,11 +50,11 @@ function writePreferredRunner(packageRoot: string, runner: 'pm2' | 'gctoac'): vo
 }
 
 async function freePort(paths: RuntimePaths, port: number): Promise<void> {
-  const gctoacPid = readPid(paths.pidFile);
-  if (gctoacPid && isProcessRunning(gctoacPid)) {
-    await killPid(gctoacPid);
+  const ysk-omniPid = readPid(paths.pidFile);
+  if (ysk-omniPid && isProcessRunning(ysk-omniPid)) {
+    await killPid(ysk-omniPid);
     clearPid(paths.pidFile);
-    info(`Stopped gctoac pid ${gctoacPid}`);
+    info(`Stopped ysk-omni pid ${ysk-omniPid}`);
   }
   for (const p of findPidsOnPort(port)) {
     await killPid(p);
@@ -110,7 +110,7 @@ export async function startGatewayWithPm2(opts: {
 
   // Ensure PORT in process env for ecosystem / app
   process.env.PORT = String(port);
-  process.env.GCTOAC_HOME = paths.home;
+  process.env.OMNI_HOME = paths.home;
   for (const [k, v] of Object.entries(opts.env)) {
     if (v !== undefined) process.env[k] = v;
   }
@@ -127,7 +127,7 @@ export async function startGatewayWithPm2(opts: {
   }
 
   writePreferredRunner(paths.packageRoot, 'pm2');
-  // Clear gctoac pid — process is under PM2 now
+  // Clear ysk-omni pid — process is under PM2 now
   clearPid(paths.pidFile);
 
   await new Promise((r) => setTimeout(r, 600));
@@ -156,7 +156,7 @@ export async function startGatewayWithPm2(opts: {
   info(`  API:   http://127.0.0.1:${port}/v1`);
   info(`  Admin: http://127.0.0.1:${port}/admin/`);
   info(`  Logs:  pm2 logs ${appName}`);
-  info(`  Stop:  gctoac stop   (or pm2 stop ${appName})`);
+  info(`  Stop:  ysk-omni stop   (or pm2 stop ${appName})`);
 }
 
 /**

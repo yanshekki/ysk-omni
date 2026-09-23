@@ -8,18 +8,18 @@ import {
   readPid,
 } from './process-mgr';
 
-export type RunnerKind = 'gctoac' | 'pm2' | 'none' | 'mixed' | 'unknown';
+export type RunnerKind = 'ysk-omni' | 'pm2' | 'none' | 'mixed' | 'unknown';
 
 export function readPreferredRunner(
   packageRoot: string,
-): 'pm2' | 'gctoac' | null {
+): 'pm2' | 'ysk-omni' | null {
   try {
     const p = path.join(packageRoot, 'pm2.runtime.json');
     if (!fs.existsSync(p)) return null;
     const j = JSON.parse(fs.readFileSync(p, 'utf8')) as {
       preferred_runner?: string;
     };
-    if (j.preferred_runner === 'pm2' || j.preferred_runner === 'gctoac') {
+    if (j.preferred_runner === 'pm2' || j.preferred_runner === 'ysk-omni') {
       return j.preferred_runner;
     }
   } catch {
@@ -38,7 +38,7 @@ export function readPm2AppName(packageRoot: string): string {
   } catch {
     /* ignore */
   }
-  return 'grok-openai-gateway';
+  return 'ysk-omni';
 }
 
 function whichPm2(): string | null {
@@ -110,29 +110,29 @@ export function detectRunner(
   port: number,
 ): {
   runner: RunnerKind;
-  preferred: 'pm2' | 'gctoac' | null;
-  gctoacPid: number | null;
-  gctoacRunning: boolean;
+  preferred: 'pm2' | 'ysk-omni' | null;
+  ysk-omniPid: number | null;
+  ysk-omniRunning: boolean;
   pm2: ReturnType<typeof pm2AppStatus>;
   portPids: number[];
 } {
-  const gctoacPid = readPid(paths.pidFile);
-  const gctoacRunning = Boolean(gctoacPid && isProcessRunning(gctoacPid));
+  const ysk-omniPid = readPid(paths.pidFile);
+  const ysk-omniRunning = Boolean(ysk-omniPid && isProcessRunning(ysk-omniPid));
   const pm2 = pm2AppStatus(paths.packageRoot);
   const preferred = readPreferredRunner(paths.packageRoot);
   const portPids = findPidsOnPort(port);
 
   let runner: RunnerKind = 'none';
-  if (pm2.online && gctoacRunning) runner = 'mixed';
+  if (pm2.online && ysk-omniRunning) runner = 'mixed';
   else if (pm2.online) runner = 'pm2';
-  else if (gctoacRunning) runner = 'gctoac';
+  else if (ysk-omniRunning) runner = 'ysk-omni';
   else if (portPids.length) runner = 'unknown';
 
   return {
     runner,
     preferred,
-    gctoacPid: gctoacRunning ? gctoacPid : null,
-    gctoacRunning,
+    ysk-omniPid: ysk-omniRunning ? ysk-omniPid : null,
+    ysk-omniRunning,
     pm2,
     portPids,
   };

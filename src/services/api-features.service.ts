@@ -90,7 +90,7 @@ export class ApiFeaturesService {
     if (!f[key]) {
       throw ExceptionFactory.forbidden(
         message ||
-          `API feature "${key}" is disabled by admin (Admin → API features or gctoac api features)`,
+          `API feature "${key}" is disabled by admin (Admin → API features or ysk-omni api features)`,
       );
     }
     return f;

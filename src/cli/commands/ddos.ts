@@ -164,7 +164,7 @@ export async function cmdDdosPolicySet(
   }
   if (!Object.keys(partial).length) {
     fail(
-      'No fields. Example: gctoac ddos policy set --auto-ban on --rate-limit-max 120',
+      'No fields. Example: ysk-omni ddos policy set --auto-ban on --rate-limit-max 120',
     );
     process.exitCode = 1;
     return;

@@ -121,8 +121,8 @@ export function startDetached(paths: RuntimePaths, env: NodeJS.ProcessEnv): numb
     throw new Error(`Server not built: ${serverJs}. Run npm run build first.`);
   }
 
-  const outLog = path.join(paths.logsDir, 'gctoac.out.log');
-  const errLog = path.join(paths.logsDir, 'gctoac.err.log');
+  const outLog = path.join(paths.logsDir, 'ysk-omni.out.log');
+  const errLog = path.join(paths.logsDir, 'ysk-omni.err.log');
   const outFd = fs.openSync(outLog, 'a');
   const errFd = fs.openSync(errLog, 'a');
 
@@ -132,7 +132,7 @@ export function startDetached(paths: RuntimePaths, env: NodeJS.ProcessEnv): numb
     env: {
       ...process.env,
       ...env,
-      GCTOAC_HOME: paths.home,
+      OMNI_HOME: paths.home,
     },
     cwd: paths.packageRoot,
   });

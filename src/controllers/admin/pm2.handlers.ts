@@ -18,7 +18,7 @@ export const adminPm2Handlers = {
     if (!req.apiKey) throw ExceptionFactory.unauthorized();
     // Prefer scheduled switch so this process can hand off cleanly
     const scheduled = pm2Service.scheduleSwitch('pm2', {
-      home: process.env.GCTOAC_HOME,
+      home: process.env.OMNI_HOME,
       port: env.PORT,
     });
     await auditService.log({
@@ -143,12 +143,12 @@ export const adminPm2Handlers = {
   pm2Switch: asyncHandler(async (req: Request, res: Response) => {
     if (!req.apiKey) throw ExceptionFactory.unauthorized();
     const body = (req.body || {}) as { mode?: string };
-    const mode = body.mode === 'pm2' ? 'pm2' : body.mode === 'gctoac' ? 'gctoac' : null;
+    const mode = body.mode === 'pm2' ? 'pm2' : body.mode === 'ysk-omni' ? 'ysk-omni' : null;
     if (!mode) {
-      throw ExceptionFactory.validation('mode must be "pm2" or "gctoac"');
+      throw ExceptionFactory.validation('mode must be "pm2" or "ysk-omni"');
     }
     const scheduled = pm2Service.scheduleSwitch(mode, {
-      home: process.env.GCTOAC_HOME,
+      home: process.env.OMNI_HOME,
       port: env.PORT,
     });
     await auditService.log({

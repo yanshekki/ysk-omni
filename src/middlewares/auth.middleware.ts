@@ -24,7 +24,7 @@ function extractBearer(req: Request): string | null {
   return token.trim();
 }
 
-/** OpenAI Bearer or Anthropic x-api-key (same gk_live_ keys). */
+/** OpenAI Bearer or Anthropic x-api-key (same omni_live_ keys). */
 function extractApiKeyToken(req: Request): string | null {
   const bearer = extractBearer(req);
   if (bearer) return bearer;
@@ -77,7 +77,7 @@ export const requireAdmin = asyncHandler(async (req, _res, next) => {
   }
   if (normalizeApiKeyRole(req.apiKey.role) !== ROLES.ADMIN) {
     throw ExceptionFactory.forbidden(
-      `Admin role required (this key has role "${req.apiKey.role}"). Create an admin key: gctoac key create`,
+      `Admin role required (this key has role "${req.apiKey.role}"). Create an admin key: ysk-omni key create`,
     );
   }
   next();
@@ -86,14 +86,14 @@ export const requireAdmin = asyncHandler(async (req, _res, next) => {
 /**
  * Admin panel / admin API auth:
  * - Bearer gog_sess_* → OTP session (preferred for SPA)
- * - Bearer gk_live_* → admin API key (automation / CLI)
+ * - Bearer omni_live_* → admin API key (automation / CLI)
  */
 export const requireAdminAuth = asyncHandler(async (req, _res, next) => {
   const token = extractBearer(req);
   if (!token) {
     recordFailedAuth(req);
     throw ExceptionFactory.unauthorized(
-      'Missing Authorization. Log in with a one-time code (gctoac admin otp) or use an admin API key.',
+      'Missing Authorization. Log in with a one-time code (ysk-omni admin otp) or use an admin API key.',
     );
   }
 
@@ -102,7 +102,7 @@ export const requireAdminAuth = asyncHandler(async (req, _res, next) => {
       const actor = await adminAuthService.resolveSessionToken(token);
       if (!actor) {
         recordFailedAuth(req);
-        throw ExceptionFactory.unauthorized('Session expired or invalid. Run: gctoac admin otp');
+        throw ExceptionFactory.unauthorized('Session expired or invalid. Run: ysk-omni admin otp');
       }
       req.apiKey = actor;
       clearFailedAuth(req);

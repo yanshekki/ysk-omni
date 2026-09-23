@@ -27,14 +27,14 @@ function applyMigrations(
   databaseUrl: string,
   spinner: Spinner,
 ): boolean {
-  spinner.start('gctoac migrate (prisma deploy)…');
+  spinner.start('ysk-omni migrate (prisma deploy)…');
   const result = tryAutoMigrate({ packageRoot, databaseUrl });
   if (result.ok) {
-    spinner.succeed('gctoac migrate');
+    spinner.succeed('ysk-omni migrate');
     ok('Database migrations applied');
     return true;
   }
-  spinner.fail(`gctoac migrate: ${result.error || 'failed'}`);
+  spinner.fail(`ysk-omni migrate: ${result.error || 'failed'}`);
   return false;
 }
 
@@ -82,7 +82,7 @@ export async function cmdUpdate(opts: {
 
     console.log('');
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     gctoac update — Grok Gateway CLI     ║');
+    console.log('║     ysk-omni update — YSK Omni CLI     ║');
     console.log('╚══════════════════════════════════════════╝');
     console.log('');
 
@@ -102,7 +102,7 @@ export async function cmdUpdate(opts: {
 
     if (opts.check) {
       if (infoVer.updateAvailable) {
-        info('⚠ Update available — run: gctoac update');
+        info('⚠ Update available — run: ysk-omni update');
       } else {
         ok('Already up to date (or no newer npm/GitHub release found)');
       }
@@ -148,7 +148,7 @@ export async function cmdUpdate(opts: {
     info('');
     info('── Final DB migrate (data home) ──');
     if (!applyMigrations(paths.packageRoot, databaseUrl, spinner)) {
-      warn('Retry: gctoac migrate');
+      warn('Retry: ysk-omni migrate');
       code = 1;
     }
 
@@ -160,16 +160,16 @@ export async function cmdUpdate(opts: {
           home: paths.home,
           port: opts.port,
         });
-        spinner.succeed('Restart scheduled (gctoac restart)');
+        spinner.succeed('Restart scheduled (ysk-omni restart)');
       } catch (e) {
         spinner.fail(
           `Restart spawn failed: ${e instanceof Error ? e.message : String(e)}`,
         );
-        warn('Run: gctoac restart');
+        warn('Run: ysk-omni restart');
         code = code || 1;
       }
     } else if (result.restartRequired) {
-      warn('Restart required: gctoac restart');
+      warn('Restart required: ysk-omni restart');
     }
 
     console.log('');
@@ -189,9 +189,9 @@ export async function cmdUpdate(opts: {
       loadEnvIntoProcess(paths.envFile);
       const databaseUrl = envFile.DATABASE_URL || paths.databaseUrl;
       info('');
-      info('── Update errored; still running gctoac migrate ──');
+      info('── Update errored; still running ysk-omni migrate ──');
       if (!applyMigrations(paths.packageRoot, databaseUrl, spinner)) {
-        warn('Retry: gctoac migrate');
+        warn('Retry: ysk-omni migrate');
       }
     } catch (migrateErr) {
       warn(

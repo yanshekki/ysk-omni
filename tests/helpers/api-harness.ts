@@ -49,7 +49,7 @@ export async function seedApiKey(input: {
   rawKey?: string;
 }): Promise<{ id: string; rawKey: string }> {
   const rawKey =
-    input.rawKey || `gk_live_${randomBytes(24).toString('base64url')}`;
+    input.rawKey || `omni_live_${randomBytes(24).toString('base64url')}`;
   const id = randomUUID();
   await prisma.apiKey.create({
     data: {

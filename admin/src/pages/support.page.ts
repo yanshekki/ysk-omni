@@ -8,7 +8,7 @@ const SUPPORT_SPONSORS = 'https://github.com/sponsors/yanshekki';
 const SUPPORT_LINKTREE = 'https://linktr.ee/yanshekki';
 const SUPPORT_SITE = 'https://ysk.hk/';
 const SUPPORT_DOCS =
-  'https://github.com/yanshekki/Grok-Cli-to-OpenAI-compatible#readme';
+  'https://github.com/yanshekki/ysk-omni#readme';
 
 const WALLETS = [
   { labelKey: 'support.netEvm', addr: 'yanshekki.eth' },
