@@ -7,7 +7,7 @@ git clone https://github.com/yanshekki/ysk-omni.git
 cd ysk-omni
 ```
 
-Use official Grok Build (`grok`). One phase per run.
+Use official Grok Build (`grok`). One phase per run. After every modification, merge it to `main` of `yanshekki/ysk-omni` as required by `GROK.md`.
 
 ## Phase 0
 
@@ -23,7 +23,9 @@ Execute Phase 0 only:
 6. Do not delete Admin, queue, AES, keys, DDoS, files.
 7. Stop when: ysk-omni --help works, no gctoac bin, rg for spawn grok is clean.
 
-Commit in small logical commits. Do not publish npm.
+Commit in small logical commits. After every commit, merge and push it to `main` of `yanshekki/ysk-omni` (steps in GROK.md). `git merge gctoac/main` imports upstream; it is not the landing branch. Push that import commit to `yanshekki/ysk-omni` `main` before renaming.
+
+Stop when the Phase 0 checklist is green and every commit is on that `main`. Do not start Phase 1. Do not publish npm.
 ```
 
 ## Phase 1
@@ -35,7 +37,8 @@ Add registry, Hub client, ysk-omni catalog/show/pull/models/rm,
 llama-server + vLLM + echo engines, GET /v1/models, POST /v1/chat/completions,
 POST /v1/models/pull.
 Echo must work without GPU. Tests for spec/quant/registry/echo.
-Stop at Phase 1 checklist. Do not start image/video.
+After every modification, merge and push it to `main` of `yanshekki/ysk-omni` (steps in GROK.md) before the next change.
+Stop when the Phase 1 checklist is green and every commit is on that `main`. Do not start image/video. Do not publish npm.
 ```
 
 ## Phase 2
@@ -44,7 +47,8 @@ Stop at Phase 1 checklist. Do not start image/video.
 Read GROK.md and docs/GROK-BUILD-PLAN.md Phase 2.
 Wire /v1/images/generations + /edits and /v1/audio/speech + /transcriptions
 to env-configured workers. No grok spawn. Unconfigured = 501 JSON.
-Stop at Phase 2 checklist.
+After every modification, merge and push it to `main` of `yanshekki/ysk-omni` (steps in GROK.md) before the next change.
+Stop when the Phase 2 checklist is green and every commit is on that `main`. Do not start Phase 3. Do not publish npm.
 ```
 
 ## Phase 3
@@ -52,7 +56,8 @@ Stop at Phase 2 checklist.
 ```text
 Read GROK.md and docs/GROK-BUILD-PLAN.md Phase 3.
 Implement OpenAI Videos job API on the existing durable queue.
-Stop at Phase 3 checklist.
+After every modification, merge and push it to `main` of `yanshekki/ysk-omni` (steps in GROK.md) before the next change.
+Stop when the Phase 3 checklist is green and every commit is on that `main`. Do not start Phase 4. Do not publish npm.
 ```
 
 ## Phase 4
@@ -60,5 +65,6 @@ Stop at Phase 3 checklist.
 ```text
 Read GROK.md and docs/GROK-BUILD-PLAN.md Phase 4.
 Admin Catalog + local models + VRAM scheduler.
-Stop at Phase 4 checklist.
+After every modification, merge and push it to `main` of `yanshekki/ysk-omni` (steps in GROK.md) before the next change.
+Stop when the Phase 4 checklist is green and every commit is on that `main`. Do not publish npm.
 ```

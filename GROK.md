@@ -77,7 +77,7 @@ Safe/agent **policy flags** may stay as names, but they must no longer mean "app
 
 ## What to add (by phase)
 
-Follow `docs/GROK-BUILD-PLAN.md`. Do **one phase per Grok Build run** unless the user says otherwise. Stop and report when the phase checklist is green.
+Follow `docs/GROK-BUILD-PLAN.md`. Do **one phase per Grok Build run** unless the user says otherwise. Stop and report when the phase checklist is green and every commit from this run is on `main` of `yanshekki/ysk-omni`.
 
 Phase 0 = import + rename + delete grok spawn + `ysk-omni --help`.
 Phase 1 = HF pull + text `/v1/chat/completions` via llama-server or vLLM (echo fallback if no binary).
@@ -95,6 +95,17 @@ Phase 4 = Admin Catalog page + VRAM orchestrator.
 - Gated HF models need `HF_TOKEN`. Public GGUF should work without it when Hub allows.
 - Video and heavy image jobs are async. Use the durable queue. Do not block HTTP for minutes.
 
+## Land every change
+
+One modification is one small logical commit. Land it on `main` of [yanshekki/ysk-omni](https://github.com/yanshekki/ysk-omni) before the next modification. Do not batch a subsection or a whole phase locally.
+
+1. Commit only that change. Do not commit `.env`, weights, `node_modules`, or `dist/`.
+2. `origin` must be `https://github.com/yanshekki/ysk-omni.git`.
+3. `git fetch origin`. If behind, `git merge origin/main`. Do not rebase. Do not force-push.
+4. `git push origin HEAD:main`.
+5. Start the next modification only after that commit is on `origin/main`. If the push is rejected or you lack permission, stop and report.
+6. Do not publish npm. Do not push YSK Omni commits to the `gctoac` remote. `git merge gctoac/main` is the Phase 0 import only.
+
 ## First command if the worktree is still empty besides these docs
 
 ```bash
@@ -103,4 +114,4 @@ git fetch gctoac
 git merge gctoac/main --allow-unrelated-histories -m "chore: import GCTOAC gateway as YSK Omni lineage"
 ```
 
-Then rename package/CLI/port and strip Grok spawn. That is Phase 0.
+Push that import merge commit to `main` of `yanshekki/ysk-omni` before renaming. Then rename package/CLI/port and strip Grok spawn. That is Phase 0.
