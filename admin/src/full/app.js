@@ -9660,6 +9660,16 @@ function fmtDownloads(n) {
   return String(v);
 }
 
+function fmtMb(n) {
+  const v = Number(n) || 0;
+  if (v <= 0) return '—';
+  const rounded = Math.round(v);
+  const gb = v / 1024;
+  const mb = rounded.toLocaleString();
+  if (gb >= 1) return `${mb} MB · ${gb.toFixed(1)} GB`;
+  return `${mb} MB`;
+}
+
 async function loadCatalogHub({ append = false } = {}) {
   if (state.catalogHubBusy) return;
   state.catalogHubBusy = true;
@@ -9902,6 +9912,14 @@ async function renderCatalog() {
         </td>
         <td><span class="badge muted">${escapeHtml(catalogModalityLabel(h.modality))}</span></td>
         <td><span class="badge muted">${escapeHtml(h.runtime || '—')}</span></td>
+        <td class="catalog-vram-cell">
+          <div class="cell-primary">${escapeHtml(fmtMb(h.sizeMb))}</div>
+          <div class="cell-sub">${escapeHtml(h.sizeLabel || t('catalog.sizeEst'))}</div>
+        </td>
+        <td class="catalog-vram-cell">
+          <div class="cell-primary">${escapeHtml(fmtMb(h.vramMb))}</div>
+          <div class="cell-sub">${h.paramsB ? escapeHtml(`${h.paramsB}B`) : escapeHtml(t('catalog.sizeEst'))}</div>
+        </td>
         <td>${escapeHtml(fmtDownloads(h.downloads))}</td>
         <td>${
           onDisk.length
@@ -9920,7 +9938,7 @@ async function renderCatalog() {
     })
     .join('');
   const hubEmpty = `
-    <tr class="empty-row"><td colspan="6">
+    <tr class="empty-row"><td colspan="8">
       <div class="data-empty">
         <div class="data-empty-icon">∅</div>
         <strong>${escapeHtml(t('catalog.hubEmpty'))}</strong>
@@ -9973,6 +9991,8 @@ async function renderCatalog() {
             <th>${escapeHtml(t('catalog.colName'))}</th>
             <th>${escapeHtml(t('catalog.colModality'))}</th>
             <th>${escapeHtml(t('catalog.colRuntime'))}</th>
+            <th>${escapeHtml(t('catalog.colSize'))}</th>
+            <th>${escapeHtml(t('catalog.colVram'))}</th>
             <th>${escapeHtml(t('catalog.downloads'))}</th>
             <th>${escapeHtml(t('catalog.colStatus'))}</th>
             <th>${escapeHtml(t('common.actions'))}</th>

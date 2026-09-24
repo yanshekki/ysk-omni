@@ -23,6 +23,10 @@ export type HubSearchHit = {
   runtime: HubRuntime;
   supported: boolean;
   vramMb: number;
+  /** Estimated on-disk size for the default quant (Q4_K_M / fp16). */
+  sizeMb: number;
+  paramsB: number | null;
+  sizeLabel: string;
 };
 
 export type HubSearchResult = {
@@ -49,6 +53,53 @@ export function parseLinkCursor(link: string | null | undefined): string | null 
   }
 }
 
+/** Largest `27B` / `0.6B` token in the repo name (skips architecture like Qwen3). */
+export function parseParamBillions(id: string): number | null {
+  const name = String(id).split('/').pop() || String(id);
+  const nums = [...name.matchAll(/(\d+(?:\.\d+)?)B(?=$|[^a-z])/gi)].map((m) =>
+    Number(m[1]),
+  );
+  const usable = nums.filter((n) => Number.isFinite(n) && n > 0);
+  if (!usable.length) return null;
+  return Math.max(...usable);
+}
+
+export function estimateDiskVram(
+  id: string,
+  runtime: HubRuntime,
+): { sizeMb: number; vramMb: number; paramsB: number | null; sizeLabel: string } {
+  const paramsB = parseParamBillions(id);
+  if (runtime === 'llamacpp') {
+    if (!paramsB) {
+      return { sizeMb: 0, vramMb: 4096, paramsB: null, sizeLabel: '' };
+    }
+    const sizeMb = Math.max(64, Math.round(paramsB * 580));
+    const vramMb = Math.round(sizeMb * 1.12) + Math.max(384, Math.round(paramsB * 64));
+    return { sizeMb, vramMb, paramsB, sizeLabel: 'Q4_K_M est.' };
+  }
+  if (runtime === 'vllm') {
+    if (!paramsB) {
+      return { sizeMb: 0, vramMb: 16000, paramsB: null, sizeLabel: '' };
+    }
+    const sizeMb = Math.max(256, Math.round(paramsB * 2048));
+    const vramMb = Math.round(sizeMb * 1.2);
+    return { sizeMb, vramMb, paramsB, sizeLabel: 'fp16 est.' };
+  }
+  if (runtime === 'whisper') {
+    return { sizeMb: 500, vramMb: 1000, paramsB, sizeLabel: 'weights est.' };
+  }
+  if (runtime === 'diffusion') {
+    const sizeMb = paramsB ? Math.round(paramsB * 2048) : 8000;
+    return {
+      sizeMb,
+      vramMb: Math.max(4000, Math.round(sizeMb * 1.1)),
+      paramsB,
+      sizeLabel: 'weights est.',
+    };
+  }
+  return { sizeMb: 0, vramMb: 0, paramsB, sizeLabel: '' };
+}
+
 export function classifyHubModel(raw: {
   id?: string;
   modelId?: string;
@@ -56,6 +107,7 @@ export function classifyHubModel(raw: {
   tags?: string[];
   downloads?: number;
   likes?: number;
+  gguf?: { total?: number };
 }): HubSearchHit {
   const id = String(raw.id || raw.modelId || '').trim();
   const tags = Array.isArray(raw.tags) ? raw.tags.map(String) : [];
@@ -65,7 +117,6 @@ export function classifyHubModel(raw: {
 
   let modality: HubModality = 'text';
   let runtime: HubRuntime = 'unknown';
-  let vramMb = 4096;
 
   if (
     pipeline === 'text-to-image' ||
@@ -74,7 +125,6 @@ export function classifyHubModel(raw: {
   ) {
     modality = 'image';
     runtime = 'diffusion';
-    vramMb = 8000;
   } else if (
     pipeline === 'text-to-video' ||
     pipeline === 'image-to-video' ||
@@ -82,7 +132,6 @@ export function classifyHubModel(raw: {
   ) {
     modality = 'video';
     runtime = 'diffusion';
-    vramMb = 12000;
   } else if (
     pipeline === 'text-to-speech' ||
     pipeline === 'text-to-audio' ||
@@ -90,18 +139,15 @@ export function classifyHubModel(raw: {
   ) {
     modality = 'tts';
     runtime = 'diffusion';
-    vramMb = 4000;
   } else if (
     pipeline === 'automatic-speech-recognition' ||
     tagSet.has('automatic-speech-recognition')
   ) {
     modality = 'stt';
     runtime = 'whisper';
-    vramMb = 1000;
   } else if (gguf) {
     modality = 'text';
     runtime = 'llamacpp';
-    vramMb = 4096;
   } else if (
     pipeline === 'text-generation' ||
     pipeline === 'text2text-generation' ||
@@ -109,8 +155,18 @@ export function classifyHubModel(raw: {
   ) {
     modality = 'text';
     runtime = 'vllm';
-    vramMb = 16000;
   }
+
+  const est = estimateDiskVram(id, runtime);
+  const ggufTotal = Number(raw.gguf?.total);
+  const sizeMb =
+    runtime === 'llamacpp' && Number.isFinite(ggufTotal) && ggufTotal > 0
+      ? Math.round(ggufTotal / (1024 * 1024))
+      : est.sizeMb;
+  const vramMb =
+    runtime === 'llamacpp' && sizeMb
+      ? Math.round(sizeMb * 1.12) + Math.max(384, Math.round((est.paramsB || 7) * 64))
+      : est.vramMb;
 
   return {
     id,
@@ -122,6 +178,9 @@ export function classifyHubModel(raw: {
     runtime,
     supported: runtime !== 'unknown',
     vramMb,
+    sizeMb,
+    paramsB: est.paramsB,
+    sizeLabel: est.sizeLabel,
   };
 }
 
@@ -199,7 +258,20 @@ export function loadPopularCache(): PopularCache | null {
   try {
     const raw = JSON.parse(fs.readFileSync(popularCachePath(), 'utf8')) as PopularCache;
     if (!raw || !Array.isArray(raw.hits)) return null;
-    return raw;
+    return {
+      ...raw,
+      hits: raw.hits.map((h) => {
+        if (h.sizeMb && h.vramMb) return h;
+        const est = estimateDiskVram(h.id, h.runtime);
+        return {
+          ...h,
+          sizeMb: h.sizeMb || est.sizeMb,
+          vramMb: h.vramMb || est.vramMb,
+          paramsB: h.paramsB ?? est.paramsB,
+          sizeLabel: h.sizeLabel || est.sizeLabel,
+        };
+      }),
+    };
   } catch {
     return null;
   }

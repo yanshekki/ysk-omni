@@ -9,6 +9,8 @@ import {
   keepRunnableHits,
   loadPopularCache,
   parseLinkCursor,
+  parseParamBillions,
+  estimateDiskVram,
   savePopularCache,
 } from '../../src/services/hf/hub-search';
 
@@ -23,6 +25,19 @@ describe('Hugging Face Hub search helpers', () => {
     expect(hit.runtime).toBe('llamacpp');
     expect(hit.modality).toBe('text');
     expect(hit.supported).toBe(true);
+    expect(hit.paramsB).toBe(7);
+    expect(hit.sizeMb).toBeGreaterThan(3000);
+    expect(hit.vramMb).toBeGreaterThan(hit.sizeMb);
+  });
+
+  it('parses parameter counts and estimates Q4 disk/VRAM', () => {
+    expect(parseParamBillions('unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF')).toBe(30);
+    expect(parseParamBillions('unsloth/Qwen3.8-27B-GGUF')).toBe(27);
+    expect(parseParamBillions('Qwen/Qwen3-0.6B')).toBe(0.6);
+    const est = estimateDiskVram('unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF', 'llamacpp');
+    expect(est.sizeLabel).toBe('Q4_K_M est.');
+    expect(est.sizeMb).toBeGreaterThan(10000);
+    expect(est.vramMb).toBeGreaterThan(est.sizeMb);
   });
 
   it('classifies diffusion image models', () => {
@@ -103,6 +118,9 @@ describe('Hugging Face Hub search helpers', () => {
           runtime: 'llamacpp',
           supported: true,
           vramMb: 4096,
+          sizeMb: 400,
+          paramsB: 0.5,
+          sizeLabel: 'Q4_K_M est.',
         },
       ]);
       expect(cache.hits).toHaveLength(1);

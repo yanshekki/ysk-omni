@@ -141,7 +141,9 @@ export async function cmdCatalogSearch(
     }
     ok(`Hub search (${data.hits.length})`);
     for (const h of data.hits) {
-      info(`  ${h.id}  [${h.modality}/${h.runtime}]  dl=${h.downloads}`);
+      info(
+        `  ${h.id}  [${h.modality}/${h.runtime}]  ${h.sizeMb || '—'}MB disk / ${h.vramMb || '—'}MB VRAM  dl=${h.downloads}`,
+      );
     }
   } catch (err) {
     fail(err instanceof Error ? err.message : String(err));

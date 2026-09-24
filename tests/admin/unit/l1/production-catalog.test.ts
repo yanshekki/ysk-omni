@@ -34,5 +34,6 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('cat-spec');
     expect(boot).toContain('catalog-hub-stack');
     expect(boot).toContain('cat-hub-go');
+    expect(boot).toContain('catalog.colSize');
   });
 });
