@@ -81,7 +81,12 @@ export async function renderCatalogPage(ctx: RenderCtx): Promise<void> {
     btn.onclick = async () => {
       const spec = btn.getAttribute('data-pull') || '';
       try {
-        await apiSend(endpoints.catalogPull, { method: 'POST', body: { model: spec } });
+        const res = await fetch('/admin/api/catalog/pull', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: spec }),
+        });
+        await res.text();
         await ctx.rerender();
       } catch (e) {
         onErr(e instanceof Error ? e.message : String(e));

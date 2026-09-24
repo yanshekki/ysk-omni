@@ -2,16 +2,10 @@ import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/async-handler';
 import path from 'node:path';
 import os from 'node:os';
-import { loadCuratedPacks, findCuratedPack } from '../../catalog/curated';
-import {
-  loadRegistry,
-  findEntry,
-  makeEntryId,
-  upsertEntry,
-  type RegistryEntry,
-} from '../../services/hf/registry';
-import { parseHfSpec } from '../../services/hf/spec';
+import { loadCuratedPacks } from '../../catalog/curated';
+import { loadRegistry, findEntry } from '../../services/hf/registry';
 import { pullModel } from '../../services/hf/client';
+import { recordPullIfOk } from '../../services/hf/record-pull';
 import { vramScheduler } from '../../services/vram-scheduler';
 import { engineManager } from '../../services/runtimes/engine-manager';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
@@ -38,24 +32,16 @@ export const adminCatalogHandlers = {
     const home = process.env.OMNI_HOME?.trim()
       ? path.resolve(process.env.OMNI_HOME.trim())
       : path.join(os.homedir(), '.ysk-omni');
-    const result = await pullModel(model, path.join(home, 'models'));
-    const spec = parseHfSpec(model);
-    const curated = findCuratedPack(spec.repoId);
-    const quant = spec.quant || 'Q4_K_M';
-    const entry: RegistryEntry = {
-      id: makeEntryId(spec.repoId, quant),
-      repoId: spec.repoId,
-      filename: result.file || '',
-      path: result.path || '',
-      quant,
-      modality: curated?.modality || 'text',
-      runtime: curated?.runtime || (result.path ? 'llamacpp' : 'vllm'),
-      vramMb: curated?.vramMb || 0,
-      pulledAt: new Date().toISOString(),
-      sha256: '',
+    res.status(200);
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    const destDir = path.join(home, 'models');
+    const write = (obj: unknown) => {
+      res.write(`${JSON.stringify(obj)}\n`);
     };
-    upsertEntry(entry, path.join(home, 'registry.json'));
-    res.status(200).json({ result, entry });
+    const result = await pullModel(model, destDir, (p) => write(p));
+    const entry = recordPullIfOk(model, result, path.join(home, 'registry.json'));
+    write({ status: result.status, entry, reason: result.reason });
+    res.end();
   }),
 
   loadModel: asyncHandler(async (req: Request, res: Response) => {

@@ -1,13 +1,11 @@
 import { loadCuratedPacks, type CuratedPack } from '../../catalog/curated';
 import { parseHfSpec, listQuants } from '../../services/hf/spec';
 import { listHubFiles, pullModel } from '../../services/hf/client';
+import { recordPullIfOk } from '../../services/hf/record-pull';
 import {
   findEntry,
   loadRegistry,
-  makeEntryId,
   removeEntry,
-  upsertEntry,
-  type RegistryEntry,
 } from '../../services/hf/registry';
 import { initCliRuntime, emitJson, type CliOpts } from '../lib/runtime-context';
 import { fail, info, ok } from '../lib/print';
@@ -77,31 +75,19 @@ export async function cmdPull(opts: CliOpts & { spec: string }): Promise<void> {
       info(`  ${p.status}: ${p.reason}`);
     }
   });
-  const spec = parseHfSpec(opts.spec);
-  const packs = loadCuratedPacks();
-  const curated = packs.find((p) => p.repoId === spec.repoId);
-  const quant = spec.quant || 'Q4_K_M';
-  const entry: RegistryEntry = {
-    id: makeEntryId(spec.repoId, quant),
-    repoId: spec.repoId,
-    filename: result.file || '',
-    path: result.path || '',
-    quant,
-    modality: curated?.modality || 'text',
-    runtime: curated?.runtime || (result.path ? 'llamacpp' : 'vllm'),
-    vramMb: curated?.vramMb || 0,
-    pulledAt: new Date().toISOString(),
-    sha256: '',
-  };
-  upsertEntry(entry, path.join(rt.paths.home, 'registry.json'));
+  const registryFile = path.join(rt.paths.home, 'registry.json');
+  const entry = recordPullIfOk(opts.spec, result, registryFile);
   if (opts.json) {
     emitJson({ result, entry });
     return;
   }
-  if (result.status === 'done') {
-    ok(`Pulled ${entry.id} → ${entry.path}`);
-  } else {
+  if (result.status === 'done' && entry) {
+    ok(`Pulled ${entry.id} → ${entry.path} sha256=${entry.sha256.slice(0, 12)}…`);
+  } else if (entry) {
     info(`Recorded ${entry.id} (${result.status}${result.reason ? `: ${result.reason}` : ''})`);
+  } else {
+    fail(`Pull did not record a registry entry (${result.status}${result.reason ? `: ${result.reason}` : ''})`);
+    process.exitCode = 1;
   }
 }
 

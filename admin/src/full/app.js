@@ -9646,10 +9646,18 @@ async function renderCatalog() {
   document.querySelectorAll('[data-pull]').forEach((btn) => {
     btn.onclick = async () => {
       try {
-        await api('/catalog/pull', {
+        const res = await fetch(`${API}/catalog/pull`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
+          },
           body: JSON.stringify({ model: btn.getAttribute('data-pull') }),
         });
+        const text = await res.text();
+        const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+        const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
+        if (!res.ok) throw new Error(last.error?.message || last.reason || res.statusText);
         await renderCatalog();
       } catch (e) {
         onErr(e);
