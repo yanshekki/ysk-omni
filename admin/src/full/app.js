@@ -8809,10 +8809,47 @@ function chatKeySelectOptions() {
   return opts.join('');
 }
 
+function orderPlaygroundModels(apiModels, loaded, local) {
+  const seen = new Set();
+  const out = [];
+  const add = (id) => {
+    const v = String(id || '').trim();
+    if (!v || seen.has(v)) return;
+    seen.add(v);
+    out.push(v);
+  };
+  for (const e of loaded || []) add(e.id || e);
+  for (const m of local || []) add(m.id || m);
+  for (const id of apiModels || []) {
+    if (id !== 'echo') add(id);
+  }
+  add('echo');
+  return out;
+}
+
 async function renderChatPlayground() {
-  await Promise.all([loadModels(false), loadKeys()]);
-  const models = state.models || [];
-  if (!chatUi.model && models.length) chatUi.model = models[0];
+  const [, , cat] = await Promise.all([
+    loadModels(false),
+    loadKeys(),
+    api('/catalog').catch(() => ({ loaded: [], local: [] })),
+  ]);
+  const models = orderPlaygroundModels(
+    state.models || [],
+    cat.loaded || [],
+    cat.local || [],
+  );
+  state.models = models;
+  const preferred =
+    (cat.loaded && cat.loaded[0] && cat.loaded[0].id) ||
+    models.find((m) => m !== 'echo') ||
+    'echo';
+  if (
+    !chatUi.model ||
+    chatUi.model === 'echo' ||
+    !models.includes(chatUi.model)
+  ) {
+    chatUi.model = preferred;
+  }
   const modelOpts = models
     .map(
       (m) =>

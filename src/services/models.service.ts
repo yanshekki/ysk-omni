@@ -4,6 +4,32 @@ import { ExceptionFactory } from '../exceptions/exception.factory';
 import { mapModelsList } from '../utils/openai-mapper';
 import { ECHO_MODEL_ID } from './runtimes/echo';
 import { loadRegistry } from './hf/registry';
+import { engineManager } from './runtimes/engine-manager';
+
+/** Loaded engines first, then registry, echo last. */
+export function orderModelIds(opts: {
+  echoId: string;
+  registryIds: string[];
+  loadedIds: string[];
+}): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const add = (id: string, allowEcho = false) => {
+    const v = (id || '').trim();
+    if (!v || seen.has(v)) return;
+    if (!allowEcho && v === opts.echoId) return;
+    seen.add(v);
+    out.push(v);
+  };
+  for (const id of opts.loadedIds) add(id);
+  for (const id of opts.registryIds) add(id);
+  add(opts.echoId, true);
+  return out;
+}
+
+export function preferredChatModel(ids: string[], echoId: string): string {
+  return ids.find((id) => id !== echoId) || echoId;
+}
 
 export class ModelsService {
   private cache: { models: string[]; fetchedAt: number; source: string } | null =
@@ -47,11 +73,13 @@ export class ModelsService {
       return this.cache.models;
     }
 
-    const ids = new Set<string>([ECHO_MODEL_ID]);
-    for (const m of loadRegistry().models) {
-      ids.add(m.id);
-    }
-    const models = [...ids];
+    const registryIds = loadRegistry().models.map((m) => m.id);
+    const loadedIds = engineManager.list().map((e) => e.id);
+    const models = orderModelIds({
+      echoId: ECHO_MODEL_ID,
+      registryIds,
+      loadedIds,
+    });
     this.cache = { models, fetchedAt: now, source: 'registry' };
     return models;
   }
@@ -63,10 +91,15 @@ export class ModelsService {
     fetchedAt: number;
   }> {
     const models = await this.getModelIds(forceRefresh);
+    const envDefault = env.GROK_DEFAULT_MODEL?.trim();
+    const defaultModel =
+      envDefault && envDefault !== ECHO_MODEL_ID && models.includes(envDefault)
+        ? envDefault
+        : preferredChatModel(models, ECHO_MODEL_ID);
     return {
       models,
       source: this.cache?.source ?? 'registry',
-      defaultModel: env.GROK_DEFAULT_MODEL || ECHO_MODEL_ID,
+      defaultModel,
       fetchedAt: this.cache?.fetchedAt ?? Date.now(),
     };
   }
