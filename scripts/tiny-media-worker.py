@@ -28,15 +28,15 @@ HOME = Path(os.environ.get("OMNI_HOME") or Path.home() / ".ysk-omni")
 CACHE = Path(os.environ.get("TINY_MEDIA_CACHE") or HOME / "models" / "tiny")
 CACHE.mkdir(parents=True, exist_ok=True)
 
-PIPER_ONNX = CACHE / "en_US-lessac-x_low.onnx"
-PIPER_JSON = CACHE / "en_US-lessac-x_low.onnx.json"
+PIPER_ONNX = CACHE / "en_US-lessac-low.onnx"
+PIPER_JSON = CACHE / "en_US-lessac-low.onnx.json"
 PIPER_ONNX_URL = (
     "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
-    "en/en_US/lessac/x_low/en_US-lessac-x_low.onnx"
+    "en/en_US/lessac/low/en_US-lessac-low.onnx"
 )
 PIPER_JSON_URL = (
     "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
-    "en/en_US/lessac/x_low/en_US-lessac-x_low.onnx.json"
+    "en/en_US/lessac/low/en_US-lessac-low.onnx.json"
 )
 
 _lock = threading.Lock()
