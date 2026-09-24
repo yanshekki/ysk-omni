@@ -9663,11 +9663,8 @@ function fmtDownloads(n) {
 function fmtMb(n) {
   const v = Number(n) || 0;
   if (v <= 0) return '—';
-  const rounded = Math.round(v);
-  const gb = v / 1024;
-  const mb = rounded.toLocaleString();
-  if (gb >= 1) return `${mb} MB · ${gb.toFixed(1)} GB`;
-  return `${mb} MB`;
+  if (v >= 1024) return `${(v / 1024).toFixed(1)} GB`;
+  return `${Math.round(v).toLocaleString()} MB`;
 }
 
 async function loadCatalogHub({ append = false } = {}) {
