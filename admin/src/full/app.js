@@ -9667,6 +9667,39 @@ function fmtMb(n) {
   return `${Math.round(v).toLocaleString()} MB`;
 }
 
+function catalogPullProgressHtml(id, active) {
+  return `
+    <div class="catalog-pull-progress" data-pull-status="${escapeHtml(id)}" ${active ? '' : 'hidden'}>
+      <div class="catalog-pull-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span style="width:0%"></span>
+      </div>
+      <div class="catalog-pull-meta muted">${escapeHtml(t('catalog.pulling'))}</div>
+    </div>`;
+}
+
+function updatePullProgress(el, bytes, total) {
+  if (!el) return;
+  el.hidden = false;
+  const bar = el.querySelector('.catalog-pull-bar');
+  const fill = el.querySelector('.catalog-pull-bar > span');
+  const meta = el.querySelector('.catalog-pull-meta');
+  const b = Number(bytes) || 0;
+  const tot = Number(total) || 0;
+  if (tot > 0) {
+    const pct = Math.min(100, Math.max(0, Math.round((b / tot) * 100)));
+    el.classList.remove('is-indeterminate');
+    if (fill) fill.style.width = `${pct}%`;
+    if (bar) bar.setAttribute('aria-valuenow', String(pct));
+    if (meta) {
+      meta.textContent = `${pct}% · ${fmtMb(b / (1024 * 1024))} / ${fmtMb(tot / (1024 * 1024))}`;
+    }
+  } else {
+    el.classList.add('is-indeterminate');
+    if (fill) fill.style.width = '40%';
+    if (meta) meta.textContent = t('catalog.pulling');
+  }
+}
+
 async function loadCatalogHub({ append = false } = {}) {
   if (state.catalogHubBusy) return;
   state.catalogHubBusy = true;
@@ -9763,7 +9796,7 @@ async function renderCatalog() {
         <td>
           <div class="row-actions">
             <button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(p.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(pullLabel)}</button>
-            <span class="muted" data-pull-status="${escapeHtml(p.id)}"></span>
+            ${catalogPullProgressHtml(p.id, isPulling)}
           </div>
         </td>
       </tr>`;
@@ -9926,9 +9959,9 @@ async function renderCatalog() {
               : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
         }</td>
         <td>
-          <div class="row-actions">
+          <div class="row-actions catalog-pull-actions">
             ${pullBtn}
-            <span class="muted" data-pull-status="${escapeHtml(h.id)}"></span>
+            ${catalogPullProgressHtml(h.id, isPulling)}
           </div>
         </td>
       </tr>`;
@@ -10136,6 +10169,7 @@ async function renderCatalog() {
       state.catalogPulling = packId;
       btn.disabled = true;
       btn.textContent = t('catalog.pulling');
+      updatePullProgress(statusEl, 0, 0);
       try {
         const res = await fetch(`${API}/catalog/pull`, {
           method: 'POST',
@@ -10160,11 +10194,11 @@ async function renderCatalog() {
               try {
                 const ev = JSON.parse(last);
                 if (ev.status === 'downloading') {
-                  statusEl.textContent = ev.total
-                    ? `${ev.bytes || 0}/${ev.total}`
-                    : String(ev.bytes || ev.file || t('catalog.pulling'));
+                  updatePullProgress(statusEl, ev.bytes, ev.total);
                 } else if (ev.status) {
-                  statusEl.textContent = String(ev.status);
+                  statusEl.hidden = false;
+                  const meta = statusEl.querySelector('.catalog-pull-meta');
+                  if (meta) meta.textContent = String(ev.status);
                 }
               } catch {
                 /* partial line */
