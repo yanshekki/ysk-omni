@@ -85,6 +85,57 @@ export function pickGgufFile(
   return { path: first.path, quant: quantFromFilename(first.path) };
 }
 
+const SKIP_PULL_NAME =
+  /(^|\/)(README(\.[a-z]+)?|LICENSE.*|\.gitattributes)$/i;
+const SKIP_PULL_EXT = /\.(h5|msgpack|ot|pkl|png|jpg|jpeg|gif|webp|md)$/i;
+const MAX_PULL_FILE_BYTES = 900 * 1024 * 1024;
+
+/** GGUF first; else snapshot weights for whisper / diffusion repos. */
+export function pickPullFiles(
+  files: Array<{ path: string; size?: number }>,
+  requestedQuant?: string,
+): Array<{ path: string; size?: number }> {
+  const gguf = pickGgufFile(files, requestedQuant);
+  if (gguf) {
+    const meta = files.find((f) => f.path === gguf.path);
+    return [{ path: gguf.path, size: meta?.size }];
+  }
+  return files.filter((f) => {
+    if (!f.path || f.path.endsWith('/')) return false;
+    if (SKIP_PULL_NAME.test(f.path) || SKIP_PULL_EXT.test(f.path)) return false;
+    if ((f.size || 0) > MAX_PULL_FILE_BYTES) return false;
+    return (
+      /\.(bin|safetensors|json|txt|model)$/i.test(f.path) ||
+      /model_index\.json$/i.test(f.path)
+    );
+  });
+}
+
+export function inferRuntimeFromFilenames(
+  repoId: string,
+  names: string[],
+): { runtime: 'llamacpp' | 'vllm' | 'diffusion' | 'whisper'; modality: 'text' | 'image' | 'stt' | 'tts' | 'video' } {
+  const n = names.map((x) => x.replace(/\\/g, '/').toLowerCase());
+  if (n.some((x) => x.endsWith('.gguf'))) {
+    return { runtime: 'llamacpp', modality: 'text' };
+  }
+  if (n.some((x) => x.endsWith('model_index.json') || x.includes('/unet/'))) {
+    return { runtime: 'diffusion', modality: 'image' };
+  }
+  if (
+    n.some((x) => /ggml-.*\.bin$/.test(x) || x.endsWith('model.bin')) &&
+    n.some((x) => /vocab|tokenizer|config\.json|ggml/.test(x))
+  ) {
+    return { runtime: 'whisper', modality: 'stt' };
+  }
+  const id = repoId.toLowerCase();
+  if (id.includes('whisper')) return { runtime: 'whisper', modality: 'stt' };
+  if (id.includes('stable-diffusion') || id.includes('tiny-sd') || id.includes('flux')) {
+    return { runtime: 'diffusion', modality: 'image' };
+  }
+  return { runtime: 'vllm', modality: 'text' };
+}
+
 export function listQuants(files: Array<{ path: string }>): string[] {
   const out: string[] = [];
   for (const f of files) {

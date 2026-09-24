@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   parseHfSpec,
   pickGgufFile,
+  pickPullFiles,
+  inferRuntimeFromFilenames,
   listQuants,
 } from '../../src/services/hf/spec';
 import { encodeRepoId } from '../../src/services/hf/client';
@@ -56,5 +58,51 @@ describe('pickGgufFile', () => {
 
   it('lists unique quants', () => {
     expect(listQuants(files)).toEqual(['Q5_K_M', 'Q4_K_M', 'Q8_0']);
+  });
+});
+
+describe('pickPullFiles / inferRuntimeFromFilenames', () => {
+  it('keeps GGUF when present', () => {
+    const picked = pickPullFiles([
+      { path: 'model-Q4_K_M.gguf', size: 100 },
+      { path: 'config.json', size: 10 },
+    ]);
+    expect(picked).toEqual([{ path: 'model-Q4_K_M.gguf', size: 100 }]);
+  });
+
+  it('snapshots faster-whisper weights', () => {
+    const picked = pickPullFiles([
+      { path: 'README.md', size: 10 },
+      { path: 'model.bin', size: 75_000_000 },
+      { path: 'tokenizer.json', size: 2000 },
+      { path: 'vocabulary.txt', size: 500 },
+      { path: 'config.json', size: 80 },
+    ]);
+    expect(picked.map((f) => f.path).sort()).toEqual([
+      'config.json',
+      'model.bin',
+      'tokenizer.json',
+      'vocabulary.txt',
+    ]);
+    expect(
+      inferRuntimeFromFilenames('Systran/faster-whisper-tiny', picked.map((f) => f.path))
+        .runtime,
+    ).toBe('whisper');
+  });
+
+  it('snapshots tiny-sd diffusion files', () => {
+    const names = [
+      'model_index.json',
+      'unet/diffusion_pytorch_model.bin',
+      'text_encoder/pytorch_model.bin',
+      'vae/config.json',
+      'grid_tiny.png',
+    ];
+    const picked = pickPullFiles(names.map((path) => ({ path, size: 100 })));
+    expect(picked.some((f) => f.path === 'model_index.json')).toBe(true);
+    expect(picked.some((f) => f.path.endsWith('.png'))).toBe(false);
+    expect(inferRuntimeFromFilenames('segmind/tiny-sd', names).runtime).toBe(
+      'diffusion',
+    );
   });
 });

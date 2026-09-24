@@ -10052,7 +10052,10 @@ async function pumpCatalogQueue() {
 function catalogHubRowHtml(h, local) {
   const onDisk = catalogLocalsForPack({ id: h.id }, local);
   const isPulling = catalogQueueHas(h.id);
-  const canPull = h.runtime === 'llamacpp';
+  const canPull =
+    h.runtime === 'llamacpp' ||
+    h.runtime === 'whisper' ||
+    h.runtime === 'diffusion';
   const pullBtn = canPull
     ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
     : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;

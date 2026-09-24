@@ -41,8 +41,38 @@ PIPER_JSON_URL = (
 
 _lock = threading.Lock()
 _whisper = None
+_whisper_src = None
 _piper = None
 _sd = None
+_sd_src = None
+
+
+def _models_root() -> Path:
+    return HOME / "models"
+
+
+def local_whisper_src() -> str:
+    env = (os.environ.get("WHISPER_MODEL") or "").strip()
+    if env:
+        return env
+    root = _models_root()
+    if root.is_dir():
+        for p in sorted(root.iterdir()):
+            if p.is_dir() and (p / "model.bin").exists():
+                return str(p)
+    return "tiny"
+
+
+def local_sd_src() -> str:
+    env = (os.environ.get("SD_MODEL") or "").strip()
+    if env:
+        return env
+    root = _models_root()
+    if root.is_dir():
+        for p in sorted(root.iterdir()):
+            if p.is_dir() and (p / "model_index.json").exists():
+                return str(p)
+    return "segmind/tiny-sd"
 
 
 def _png(w: int, h: int, rgb: tuple[int, int, int] = (200, 40, 40)) -> bytes:
@@ -145,43 +175,51 @@ def piper_voice():
 
 
 def whisper_model():
-    global _whisper
-    if _whisper is not None:
+    global _whisper, _whisper_src
+    src = local_whisper_src()
+    if _whisper is not None and _whisper_src == src:
         return _whisper
     with _lock:
-        if _whisper is not None:
+        src = local_whisper_src()
+        if _whisper is not None and _whisper_src == src:
             return _whisper
         from faster_whisper import WhisperModel
 
-        _whisper = WhisperModel(
-            "tiny",
-            device="cpu",
-            compute_type="int8",
-            download_root=str(CACHE / "whisper"),
-        )
+        kwargs = {"device": "cpu", "compute_type": "int8"}
+        if src == "tiny" or not Path(src).exists():
+            kwargs["download_root"] = str(CACHE / "whisper")
+            _whisper = WhisperModel("tiny", **kwargs)
+        else:
+            _whisper = WhisperModel(src, **kwargs)
+        _whisper_src = src
         return _whisper
 
 
 def sd_pipe():
-    global _sd
-    if _sd is not None:
+    global _sd, _sd_src
+    src = local_sd_src()
+    if _sd is not None and _sd_src == src:
         return _sd
     with _lock:
-        if _sd is not None:
+        src = local_sd_src()
+        if _sd is not None and _sd_src == src:
             return _sd
         import torch
         from diffusers import StableDiffusionPipeline
 
         dtype = torch.float16 if torch.backends.mps.is_available() else torch.float32
         device = "mps" if torch.backends.mps.is_available() else "cpu"
+        local = Path(src).is_dir()
         _sd = StableDiffusionPipeline.from_pretrained(
-            "segmind/tiny-sd",
+            src,
             torch_dtype=dtype,
-            cache_dir=str(CACHE / "hf"),
+            cache_dir=None if local else str(CACHE / "hf"),
             safety_checker=None,
+            local_files_only=local,
         )
         _sd = _sd.to(device)
         _sd.set_progress_bar_config(disable=True)
+        _sd_src = src
         return _sd
 
 
@@ -281,6 +319,8 @@ class Handler(BaseHTTPRequestHandler):
                     "status": "ok",
                     "service": "ysk-omni-tiny-media",
                     "fake": FAKE,
+                    "whisper": local_whisper_src(),
+                    "diffusion": local_sd_src(),
                 },
             )
             return

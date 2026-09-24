@@ -49,6 +49,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('Download queue');
     expect(boot).toContain('data-mg-mode="speech"');
     expect(boot).toContain('data-mg-mode="transcribe"');
+    expect(boot).toContain('whisper');
+    expect(boot).toContain('diffusion');
     expect(boot).toContain('media/speech');
     expect(boot).toContain('media/transcribe');
     expect(boot).toContain('catalog.colSize');

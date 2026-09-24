@@ -116,6 +116,15 @@ export const adminCatalogHandlers = {
       );
     }
     const patched = { ...entry, vramMb: vramMb || entry.vramMb };
+    if (entry.runtime === 'whisper' || entry.runtime === 'diffusion') {
+      res.status(200).json({
+        ok: true,
+        engine: { id: entry.id, kind: entry.runtime, path: entry.path },
+        ...vramScheduler.snapshot(),
+        loaded: engineManager.list(),
+      });
+      return;
+    }
     const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));
     const eng =
       isGguf || entry.runtime === 'llamacpp'

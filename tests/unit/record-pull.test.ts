@@ -55,6 +55,29 @@ describe('recordPullIfOk', () => {
     expect(loadRegistry(path.join(dir, 'registry.json')).models).toHaveLength(0);
   });
 
+  it('records a faster-whisper snapshot directory as whisper/stt', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-rec-'));
+    dirs.push(dir);
+    const snap = path.join(dir, 'Systran__faster-whisper-tiny');
+    fs.mkdirSync(snap);
+    fs.writeFileSync(path.join(snap, 'model.bin'), 'ctranslate2');
+    fs.writeFileSync(path.join(snap, 'config.json'), '{}');
+    fs.writeFileSync(path.join(snap, 'tokenizer.json'), '{}');
+    const entry = recordPullIfOk(
+      'Systran/faster-whisper-tiny',
+      {
+        status: 'done',
+        model: 'Systran/faster-whisper-tiny',
+        file: 'model.bin',
+        path: snap,
+      },
+      path.join(dir, 'registry.json'),
+    );
+    expect(entry?.runtime).toBe('whisper');
+    expect(entry?.modality).toBe('stt');
+    expect(entry?.path).toBe(snap);
+  });
+
   it('does not record repos with no GGUF file', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-rec-'));
     dirs.push(dir);

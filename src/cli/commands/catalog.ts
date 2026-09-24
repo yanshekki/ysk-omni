@@ -175,6 +175,14 @@ export async function cmdLoad(opts: CliOpts & { id: string }): Promise<void> {
     return;
   }
   try {
+    if (entry.runtime === 'whisper' || entry.runtime === 'diffusion') {
+      if (opts.json) {
+        emitJson({ id: entry.id, kind: entry.runtime, path: entry.path });
+        return;
+      }
+      ok(`Ready ${entry.id} (${entry.runtime}) at ${entry.path}`);
+      return;
+    }
     const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));
     const eng =
       isGguf || entry.runtime === 'llamacpp'

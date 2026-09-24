@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import https from 'node:https';
 import path from 'node:path';
-import { parseHfSpec, pickGgufFile, listQuants } from './spec';
+import { parseHfSpec, pickPullFiles, listQuants } from './spec';
 
 export type HubFile = { path: string; size?: number };
 
@@ -101,45 +101,63 @@ export async function pullModel(
     emit(skipped);
     return skipped;
   }
-  const picked = pickGgufFile(files, spec.quant);
-  if (!picked) {
+  const picked = pickPullFiles(files, spec.quant);
+  if (!picked.length) {
     const skipped: PullProgress = {
       status: 'skipped',
       model: specRaw,
-      reason: 'no GGUF file in repo',
+      reason: 'no GGUF, whisper, or diffusion weights in repo',
     };
     emit(skipped);
     return skipped;
   }
-  const url = `https://huggingface.co/${encodeRepoId(spec.repoId)}/resolve/main/${picked.path.split('/').map((p) => encodeURIComponent(p)).join('/')}`;
-  fs.mkdirSync(destDir, { recursive: true });
-  const dest = path.join(destDir, path.basename(picked.path));
-  try {
-    await downloadResume(url, dest, (bytes, total) => {
-      emit({
-        status: 'downloading',
-        model: specRaw,
-        file: picked.path,
-        bytes,
-        total,
+  const snapshot = picked.length > 1 || !picked[0].path.toLowerCase().endsWith('.gguf');
+  const destRoot = snapshot
+    ? path.join(destDir, spec.repoId.replace(/\//g, '__'))
+    : destDir;
+  fs.mkdirSync(destRoot, { recursive: true });
+  let lastDest = destRoot;
+  let downloaded = 0;
+  const totalAll = picked.reduce((s, f) => s + (f.size || 0), 0) || undefined;
+  for (const file of picked) {
+    const url = `https://huggingface.co/${encodeRepoId(spec.repoId)}/resolve/main/${file.path
+      .split('/')
+      .map((p) => encodeURIComponent(p))
+      .join('/')}`;
+    const dest = snapshot
+      ? path.join(destRoot, file.path)
+      : path.join(destRoot, path.basename(file.path));
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    try {
+      await downloadResume(url, dest, (bytes, total) => {
+        emit({
+          status: 'downloading',
+          model: specRaw,
+          file: file.path,
+          bytes: downloaded + bytes,
+          total: totalAll || total,
+        });
       });
-    });
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    const skipped: PullProgress = {
-      status: 'skipped',
-      model: specRaw,
-      file: picked.path,
-      reason: `download failed: ${reason}`,
-    };
-    emit(skipped);
-    return skipped;
+      downloaded += fs.existsSync(dest) ? fs.statSync(dest).size : 0;
+      lastDest = dest;
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      const skipped: PullProgress = {
+        status: 'skipped',
+        model: specRaw,
+        file: file.path,
+        reason: `download failed: ${reason}`,
+      };
+      emit(skipped);
+      return skipped;
+    }
   }
+  const donePath = snapshot ? destRoot : lastDest;
   const done: PullProgress = {
     status: 'done',
     model: specRaw,
-    file: picked.path,
-    path: dest,
+    file: picked[0].path,
+    path: donePath,
   };
   emit(done);
   return done;
@@ -157,7 +175,8 @@ function downloadResume(
     const req = https.get(url, { headers }, (res) => {
       if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         res.resume();
-        downloadResume(res.headers.location, dest, onBytes).then(resolve, reject);
+        const next = new URL(res.headers.location, url).toString();
+        downloadResume(next, dest, onBytes).then(resolve, reject);
         return;
       }
       if ((res.statusCode || 0) >= 400) {
