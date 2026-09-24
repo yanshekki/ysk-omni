@@ -82,7 +82,7 @@ import {
   cmdLoad,
   cmdUnload,
 } from './commands/catalog';
-import { cmdRuntimes } from './commands/runtimes';
+import { cmdRuntimes, cmdRuntimesInstall } from './commands/runtimes';
 import {
   cmdGrokInspect,
   cmdGrokSessionsList,
@@ -789,11 +789,19 @@ program
     await cmdRm({ ...globalOpts(), id });
   });
 
-program
+const runtimesCmd = program
   .command('runtimes')
   .description('List inference runtimes, host OS support, and install commands')
   .action(async () => {
     await cmdRuntimes(globalOpts());
+  });
+
+runtimesCmd
+  .command('install')
+  .description('One-click install a runtime via Homebrew, pip, winget, or Docker')
+  .argument('<id>', 'Runtime id (llamacpp, ffmpeg, mlx, …)')
+  .action(async (id: string) => {
+    await cmdRuntimesInstall({ ...globalOpts(), id });
   });
 
 program

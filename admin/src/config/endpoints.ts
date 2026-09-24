@@ -13,6 +13,7 @@ export const endpoints = {
   models: '/models',
   catalog: '/catalog',
   runtimes: '/runtimes',
+  runtimesInstall: '/runtimes/install',
   catalogPull: '/catalog/pull',
   modelsLoad: '/models/load',
   modelsUnload: '/models/unload',

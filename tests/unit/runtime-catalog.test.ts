@@ -22,6 +22,9 @@ describe('runtime catalog', () => {
     const llama = report.items.find((i) => i.id === 'llamacpp');
     expect(llama).toBeTruthy();
     expect(llama?.support.darwin).toBe('full');
+    expect(typeof llama?.installable).toBe('boolean');
+    const comfy = report.items.find((i) => i.id === 'comfy');
+    expect(comfy?.installable).toBe(false);
   });
 
   it('marks MLX unsupported off Apple Silicon', () => {

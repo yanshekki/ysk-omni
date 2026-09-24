@@ -42,6 +42,31 @@ describe('admin catalog + Hub search', () => {
     expect(['darwin', 'linux', 'win32']).toContain(body.host?.os);
     expect((body.items || []).some((i) => i.id === 'llamacpp')).toBe(true);
     expect((body.items || [])[0]?.install?.linux).toBeTruthy();
+    expect(body.items?.some((i) => i.id === 'llamacpp' && 'installable' in i)).toBe(
+      true,
+    );
+  });
+
+  it('POST /admin/api/runtimes/install validates id', async () => {
+    if (!h) return;
+    const missing = await apiFetch(h.baseUrl, '/admin/api/runtimes/install', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(missing.status).toBe(400);
+    const unknown = await apiFetch(h.baseUrl, '/admin/api/runtimes/install', {
+      method: 'POST',
+      key: h.adminKey,
+      body: { id: 'not-a-runtime' },
+    });
+    expect(unknown.status).toBe(400);
+    const manual = await apiFetch(h.baseUrl, '/admin/api/runtimes/install', {
+      method: 'POST',
+      key: h.adminKey,
+      body: { id: 'comfy' },
+    });
+    expect(manual.status).toBe(400);
   });
 
   it('GET /admin/api/catalog returns curated packs', async () => {

@@ -29,6 +29,8 @@ export type RuntimeReportItem = RuntimeSpec &
   RuntimeProbe & {
     applicable: boolean;
     status: 'installed' | 'configured' | 'missing' | 'unsupported';
+    /** Host OS has a package-manager argv the gateway can spawn. */
+    installable: boolean;
   };
 
 export type RuntimesReport = {
@@ -41,9 +43,26 @@ export type RuntimesReport = {
   items: RuntimeReportItem[];
 };
 
-function whichBin(name: string): string | null {
+/** Homebrew / local bins even when the gateway was started with a thin PATH. */
+export function packageManagerPath(): string {
+  const sep = process.platform === 'win32' ? ';' : ':';
+  const extra =
+    process.platform === 'win32'
+      ? []
+      : [
+          '/opt/homebrew/bin',
+          '/usr/local/bin',
+          '/home/linuxbrew/.linuxbrew/bin',
+        ];
+  return [...extra, process.env.PATH || ''].filter(Boolean).join(sep);
+}
+
+export function whichBin(name: string): string | null {
   const cmd = process.platform === 'win32' ? 'where' : 'which';
-  const r = spawnSync(cmd, [name], { encoding: 'utf8' });
+  const r = spawnSync(cmd, [name], {
+    encoding: 'utf8',
+    env: { ...process.env, PATH: packageManagerPath() },
+  });
   const p = (r.stdout || '').trim().split(/\r?\n/)[0] || '';
   return r.status === 0 && p ? p : null;
 }
@@ -226,6 +245,121 @@ export const RUNTIME_SPECS: RuntimeSpec[] = [
   },
 ];
 
+/** argv lists the gateway may spawn (never a shell, never user input). */
+export const INSTALL_STEPS: Record<
+  string,
+  Partial<Record<HostOs, readonly (readonly string[])[]>>
+> = {
+  llamacpp: {
+    darwin: [['brew', 'install', 'llama.cpp']],
+    linux: [['brew', 'install', 'llama.cpp']],
+    win32: [
+      [
+        'winget',
+        'install',
+        '-e',
+        '--id',
+        'ggml.llamacpp',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  vllm: {
+    linux: [['python3', '-m', 'pip', 'install', '--user', 'vllm']],
+  },
+  mlx: {
+    darwin: [['brew', 'install', 'mlx-lm']],
+  },
+  ollama: {
+    darwin: [['brew', 'install', 'ollama']],
+    linux: [['brew', 'install', 'ollama']],
+    win32: [
+      [
+        'winget',
+        'install',
+        '-e',
+        '--id',
+        'Ollama.Ollama',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  ffmpeg: {
+    darwin: [['brew', 'install', 'ffmpeg']],
+    linux: [['brew', 'install', 'ffmpeg']],
+    win32: [
+      [
+        'winget',
+        'install',
+        '-e',
+        '--id',
+        'Gyan.FFmpeg',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  whisper: {
+    darwin: [['python3', '-m', 'pip', 'install', '--user', 'faster-whisper-server']],
+    linux: [['python3', '-m', 'pip', 'install', '--user', 'faster-whisper-server']],
+    win32: [['python3', '-m', 'pip', 'install', '--user', 'faster-whisper-server']],
+  },
+  kokoro: {
+    darwin: [
+      [
+        'docker',
+        'run',
+        '-d',
+        '--name',
+        'ysk-omni-kokoro',
+        '-p',
+        '8880:8880',
+        'ghcr.io/remsky/kokoro-fastapi-cpu:latest',
+      ],
+    ],
+    linux: [
+      [
+        'docker',
+        'run',
+        '-d',
+        '--name',
+        'ysk-omni-kokoro',
+        '-p',
+        '8880:8880',
+        'ghcr.io/remsky/kokoro-fastapi-cpu:latest',
+      ],
+    ],
+    win32: [
+      [
+        'docker',
+        'run',
+        '-d',
+        '--name',
+        'ysk-omni-kokoro',
+        '-p',
+        '8880:8880',
+        'ghcr.io/remsky/kokoro-fastapi-cpu:latest',
+      ],
+    ],
+  },
+};
+
+export function installArgv(id: string, os: HostOs = hostOs()): string[][] {
+  const rows = INSTALL_STEPS[id]?.[os] || [];
+  return rows.map((argv) => {
+    const head = argv[0];
+    if (head === 'python3' && !whichBin('python3') && whichBin('python')) {
+      return ['python', ...argv.slice(1)];
+    }
+    return [...argv];
+  });
+}
+
 function envSet(name: string): boolean {
   return Boolean(process.env[name]?.trim());
 }
@@ -331,7 +465,8 @@ export function buildRuntimesReport(): RuntimesReport {
     if (!applicable) status = 'unsupported';
     else if (probe.installed) status = 'installed';
     else if (probe.configured) status = 'configured';
-    return { ...spec, ...probe, applicable, status };
+    const installable = (INSTALL_STEPS[spec.id]?.[os] || []).length > 0;
+    return { ...spec, ...probe, applicable, status, installable };
   });
   return {
     host: {

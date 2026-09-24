@@ -80,6 +80,7 @@ router.get('/usage', adminController.usage);
 router.get('/models', adminController.models);
 router.get('/catalog', adminController.catalog);
 router.get('/runtimes', adminController.runtimes);
+router.post('/runtimes/install', adminController.runtimesInstall);
 router.get('/catalog/hub', adminController.catalogHub);
 router.post('/catalog/sync', adminController.catalogSync);
 router.post('/catalog/pull', adminController.catalogPull);

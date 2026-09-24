@@ -40,6 +40,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('data-nav="runtimes"');
     expect(boot).toContain('執行環境');
     expect(boot).toContain('Copy install command');
+    expect(boot).toContain('data-rt-install');
+    expect(boot).toContain('runtimes/install');
     expect(boot).toContain('catalog-pull-bar');
     expect(boot).toContain('cat-dl-dock');
     expect(boot).toContain('Download queue');

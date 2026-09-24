@@ -33,6 +33,7 @@ export const adminController = {
   loadModel: adminCatalogHandlers.loadModel,
   unloadModel: adminCatalogHandlers.unloadModel,
   runtimes: adminRuntimesHandlers.list,
+  runtimesInstall: adminRuntimesHandlers.install,
   apiFeaturesGet: adminApiFeaturesHandlers.get,
   apiFeaturesPut: adminApiFeaturesHandlers.put,
   apiFeaturesPreset: adminApiFeaturesHandlers.preset,

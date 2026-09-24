@@ -230,6 +230,7 @@ const state = {
   runtimesOs: 'host',
   runtimesMod: '',
   runtimesReport: null,
+  runtimesInstall: null,
   models: [],
   keys: [],
 };
@@ -10513,6 +10514,96 @@ function runtimeSupportLabel(level) {
   return t('runtimes.supportNone');
 }
 
+function paintRuntimeInstallLog() {
+  const job = state.runtimesInstall;
+  const pre = document.getElementById('rt-install-log');
+  if (pre && job) {
+    pre.textContent = (job.lines || []).join('\n');
+    pre.scrollTop = pre.scrollHeight;
+  }
+  document.querySelectorAll('[data-rt-install]').forEach((btn) => {
+    const id = btn.getAttribute('data-rt-install');
+    const running = job && job.status === 'running';
+    btn.disabled = Boolean(running);
+    if (running && job.id === id) btn.textContent = t('runtimes.installing');
+  });
+}
+
+async function startRuntimeInstall(id) {
+  if (state.runtimesInstall?.status === 'running') return;
+  state.runtimesInstall = { id, status: 'running', lines: [] };
+  await renderRuntimes();
+  try {
+    const res = await fetch(`${API}/runtimes/install`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
+      },
+      body: JSON.stringify({ id }),
+    });
+    const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+    if (!res.ok || !reader) {
+      const text = await res.text();
+      let msg = text;
+      try {
+        msg = JSON.parse(text)?.error?.message || text;
+      } catch {
+        /* keep */
+      }
+      state.runtimesInstall.status = 'error';
+      state.runtimesInstall.lines.push(msg || res.statusText);
+      paintRuntimeInstallLog();
+    } else {
+      const dec = new TextDecoder();
+      let buf = '';
+      const consume = (raw) => {
+        if (!raw) return;
+        try {
+          const ev = JSON.parse(raw);
+          if (ev.type === 'step' && Array.isArray(ev.argv)) {
+            state.runtimesInstall.lines.push(`$ ${ev.argv.join(' ')}`);
+          } else if (ev.type === 'log' && ev.line) {
+            state.runtimesInstall.lines.push(ev.line);
+          } else if (ev.type === 'error' && ev.message) {
+            state.runtimesInstall.lines.push(ev.message);
+            state.runtimesInstall.status = 'error';
+          } else if (ev.type === 'done') {
+            state.runtimesInstall.status = ev.code === 0 ? 'done' : 'error';
+            state.runtimesInstall.lines.push(
+              ev.code === 0 ? t('runtimes.installDone') : t('runtimes.installFail'),
+            );
+          }
+          if (state.runtimesInstall.lines.length > 200) {
+            state.runtimesInstall.lines = state.runtimesInstall.lines.slice(-200);
+          }
+          paintRuntimeInstallLog();
+        } catch {
+          /* skip partial JSON */
+        }
+      };
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) {
+          buf += dec.decode();
+          break;
+        }
+        buf += dec.decode(value, { stream: true });
+        const parts = buf.split('\n');
+        buf = parts.pop() || '';
+        for (const line of parts) consume(line.trim());
+      }
+      consume(buf.trim());
+    }
+  } catch (e) {
+    state.runtimesInstall.status = 'error';
+    state.runtimesInstall.lines.push(e.message || String(e));
+    paintRuntimeInstallLog();
+  }
+  state.runtimesReport = null;
+  await renderRuntimes();
+}
+
 async function renderRuntimes() {
   if (!state.runtimesReport) {
     try {
@@ -10565,6 +10656,7 @@ async function renderRuntimes() {
     )
     .join('');
 
+  const job = state.runtimesInstall;
   const cards = items
     .map((it) => {
       const cmd = (it.install && it.install[viewOs]) || '';
@@ -10581,8 +10673,22 @@ async function renderRuntimes() {
       const mods = (it.modalities || [])
         .map((m) => `<span class="badge muted">${escapeHtml(hasT(`catalog.mod.${m}`) ? t(`catalog.mod.${m}`) : m)}</span>`)
         .join('');
+      const canInstall = Boolean(it.installable) && viewOs === hostOs;
+      const thisJob = job && job.id === it.id;
+      const running = job?.status === 'running';
+      const installLabel = running && thisJob
+        ? t('runtimes.installing')
+        : it.status === 'installed' || it.status === 'configured'
+          ? t('runtimes.reinstall')
+          : t('runtimes.install');
+      const logHtml =
+        thisJob && (job.lines || []).length
+          ? `<pre class="runtime-install-log" id="rt-install-log">${escapeHtml((job.lines || []).join('\n'))}</pre>`
+          : thisJob
+            ? `<pre class="runtime-install-log" id="rt-install-log"></pre>`
+            : '';
       return `
-        <article class="panel runtime-card" data-runtime-id="${escapeHtml(it.id)}">
+        <article class="panel runtime-card ${thisJob && running ? 'is-installing' : ''}" data-runtime-id="${escapeHtml(it.id)}">
           <div class="panel-h">
             <div class="panel-h-text">
               <strong>${escapeHtml(it.name)}</strong>
@@ -10599,8 +10705,14 @@ async function renderRuntimes() {
                 : `<div class="cell-sub muted">${escapeHtml(note)}</div>`
             }
             <pre class="runtime-cmd">${escapeHtml(cmd)}</pre>
+            ${logHtml}
             <div class="runtime-card-actions">
-              <button type="button" class="btn sm" data-copy-cmd="${encodeURIComponent(cmd)}">${escapeHtml(t('runtimes.copyCmd'))}</button>
+              ${
+                canInstall
+                  ? `<button type="button" class="btn sm" data-rt-install="${escapeHtml(it.id)}" ${running ? 'disabled' : ''}>${escapeHtml(installLabel)}</button>`
+                  : ''
+              }
+              <button type="button" class="btn secondary sm" data-copy-cmd="${encodeURIComponent(cmd)}">${escapeHtml(t('runtimes.copyCmd'))}</button>
               <a class="btn secondary sm" href="${escapeHtml(it.docs)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('runtimes.docs'))}</a>
             </div>
           </div>
@@ -10664,6 +10776,12 @@ async function renderRuntimes() {
   document.getElementById('rt-refresh')?.addEventListener('click', () => {
     state.runtimesReport = null;
     renderRuntimes().catch(onErr);
+  });
+  document.querySelectorAll('[data-rt-install]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.getAttribute('data-rt-install');
+      if (id) startRuntimeInstall(id).catch(onErr);
+    };
   });
   document.querySelectorAll('[data-copy-cmd]').forEach((btn) => {
     btn.onclick = async () => {
