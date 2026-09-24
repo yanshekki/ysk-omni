@@ -7470,7 +7470,7 @@ async function compressChatHistory() {
     const model =
       document.getElementById('chat-model')?.value ||
       chatUi.model ||
-      'grok-4.5';
+      'echo';
     const asKeyId = playgroundKeyId();
     const body = {
       model,
@@ -8850,7 +8850,7 @@ async function renderChatPlayground() {
               <select id="chat-key-select">${chatKeySelectOptions()}</select>
             </label>
             <label>${escapeHtml(t('chats.model'))}
-              <select id="chat-model">${modelOpts || `<option value="grok-4.5">grok-4.5</option>`}</select>
+              <select id="chat-model">${modelOpts || `<option value="echo">echo</option>`}</select>
             </label>
             <label class="check-inline" for="chat-reasoning">
               <input type="checkbox" id="chat-reasoning" ${chatUi.reasoning !== false ? 'checked' : ''} />
@@ -9234,7 +9234,7 @@ async function sendChatMessage() {
   }
 
   const model =
-    document.getElementById('chat-model')?.value || chatUi.model || 'grok-4.5';
+    document.getElementById('chat-model')?.value || chatUi.model || 'echo';
   const includeReasoning =
     document.getElementById('chat-reasoning')?.checked !== false;
   const effort =
