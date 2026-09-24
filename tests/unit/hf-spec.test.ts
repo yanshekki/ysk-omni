@@ -105,4 +105,15 @@ describe('pickPullFiles / inferRuntimeFromFilenames', () => {
       'diffusion',
     );
   });
+
+  it('drops SDXL root safetensors dumps when unet/ exists', () => {
+    const picked = pickPullFiles([
+      { path: 'model_index.json', size: 100 },
+      { path: 'sd_xl_turbo_1.0_fp16.safetensors', size: 6_900_000_000 },
+      { path: 'unet/diffusion_pytorch_model.fp16.safetensors', size: 5_000_000_000 },
+      { path: 'text_encoder/model.fp16.safetensors', size: 200_000_000 },
+    ]);
+    expect(picked.some((f) => f.path.startsWith('sd_xl'))).toBe(false);
+    expect(picked.some((f) => f.path.startsWith('unet/'))).toBe(true);
+  });
 });

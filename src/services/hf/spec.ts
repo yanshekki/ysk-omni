@@ -121,9 +121,14 @@ export function pickPullFiles(
     ];
     return !twins.some((t) => t !== f.path && names.has(t));
   });
-  const hasUnet = preferFp16.some((f) => f.path.includes('/unet/'));
+  const hasUnet = preferFp16.some((f) => f.path.includes('unet/'));
+  const hasIndex = preferFp16.some((f) => f.path.endsWith('model_index.json'));
   return preferFp16.filter((f) => {
-    if (hasUnet && !f.path.includes('/')) return false;
+    const base = f.path.replace(/\\/g, '/');
+    const isRoot = !base.includes('/');
+    if ((hasUnet || hasIndex) && isRoot && /\.safetensors$/i.test(base)) {
+      return false;
+    }
     return true;
   });
 }

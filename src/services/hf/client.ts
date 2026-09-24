@@ -179,6 +179,16 @@ function downloadResume(
         downloadResume(next, dest, onBytes).then(resolve, reject);
         return;
       }
+      if (res.statusCode === 416) {
+        res.resume();
+        try {
+          fs.unlinkSync(dest);
+        } catch {
+          /* ignore */
+        }
+        downloadResume(url, dest, onBytes).then(resolve, reject);
+        return;
+      }
       if ((res.statusCode || 0) >= 400) {
         reject(new Error(`HTTP ${res.statusCode}`));
         return;

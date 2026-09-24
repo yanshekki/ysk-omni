@@ -122,20 +122,18 @@ def _wav_sine(seconds: float = 0.4, hz: int = 440, rate: int = 16000) -> bytes:
     return buf.getvalue()
 
 
-def _ffmpeg_mp4_from_pngs(pngs: list[bytes]) -> bytes:
+def _ffmpeg_mp4_from_pngs(pngs: list[bytes], fps: int = 8) -> bytes:
     ff = "ffmpeg"
     with tempfile.TemporaryDirectory() as td:
-        paths = []
         for i, p in enumerate(pngs):
-            fp = os.path.join(td, f"f{i:02d}.png")
-            Path(fp).write_bytes(p)
-            paths.append(fp)
+            Path(os.path.join(td, f"f{i:02d}.png")).write_bytes(p)
         out = os.path.join(td, "out.mp4")
+        dur = max(1.0, len(pngs) / float(fps))
         cmd = [
             ff,
             "-y",
             "-framerate",
-            "2",
+            str(fps),
             "-i",
             os.path.join(td, "f%02d.png"),
             "-c:v",
@@ -143,7 +141,7 @@ def _ffmpeg_mp4_from_pngs(pngs: list[bytes]) -> bytes:
             "-pix_fmt",
             "yuv420p",
             "-t",
-            "1",
+            f"{dur:.2f}",
             "-movflags",
             "+faststart",
             out,
@@ -222,12 +220,20 @@ def sd_pipe():
         dtype = torch.float16 if torch.backends.mps.is_available() else torch.float32
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         local = Path(src).is_dir()
-        _sd = AutoPipelineForText2Image.from_pretrained(
-            src,
-            torch_dtype=dtype,
-            cache_dir=None if local else str(CACHE / "hf"),
-            local_files_only=local,
-        )
+        kwargs = {
+            "torch_dtype": dtype,
+            "local_files_only": local,
+        }
+        if not local:
+            kwargs["cache_dir"] = str(CACHE / "hf")
+        src_path = Path(src)
+        if local and any(src_path.joinpath("unet").glob("*fp16*")):
+            kwargs["variant"] = "fp16"
+        try:
+            _sd = AutoPipelineForText2Image.from_pretrained(src, **kwargs)
+        except Exception:
+            kwargs.pop("variant", None)
+            _sd = AutoPipelineForText2Image.from_pretrained(src, **kwargs)
         _sd = _sd.to(device)
         _sd.set_progress_bar_config(disable=True)
         _sd_src = src
@@ -273,9 +279,12 @@ def image_png(prompt: str) -> bytes:
 
 
 def video_mp4(prompt: str) -> bytes:
-    a = image_png(prompt or "a red square")
-    b = image_png((prompt or "a red square") + " brighter")
-    return _ffmpeg_mp4_from_pngs([a, b])
+    base = prompt or "a red square on a table"
+    frames = 4
+    pngs = []
+    for i in range(frames):
+        pngs.append(image_png(f"{base}, frame {i + 1}, cinematic lighting"))
+    return _ffmpeg_mp4_from_pngs(pngs, fps=8)
 
 
 def _read(handler: BaseHTTPRequestHandler) -> bytes:
