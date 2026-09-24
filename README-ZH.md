@@ -477,7 +477,7 @@ POST /admin/api/queue/purge-dead
 |--------|------|------|
 | GET | `/health` | 存活 |
 | GET | `/ready` | DB + Grok 檢查 |
-| GET | `/v1/models` | 模型列表 |
+| GET | `/v1/models` | 此金鑰可用的模型（文字／圖像／影片／語音／轉錄；受金鑰清單限制） |
 | POST | `/v1/chat/completions` | OpenAI Chat（佇列；可選 `Idempotency-Key`） |
 | POST | `/v1/responses` | OpenAI Responses 文字子集 |
 | POST | `/v1/messages` | Anthropic Messages（Bearer 或 `x-api-key`） |

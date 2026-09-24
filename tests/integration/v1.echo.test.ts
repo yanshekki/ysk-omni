@@ -21,10 +21,20 @@ describe('v1 echo chat and models', () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/v1/models', { key: h.clientKey });
     expect(res.status).toBe(200);
-    const body = res.json as { data: Array<{ id: string }> };
+    const body = res.json as {
+      data: Array<{ id: string; modality?: string; runtime?: string }>;
+    };
     const ids = body.data.map((m) => m.id);
     expect(ids).toContain('echo');
+    expect(ids).toContain('piper/lessac-high');
+    expect(ids).toContain('tts-1');
+    expect(ids).toContain('whisper-1');
     expect(ids.some((id) => /^grok/i.test(id))).toBe(false);
+    const echo = body.data.find((m) => m.id === 'echo');
+    expect(echo?.modality).toBe('text');
+    expect(echo?.runtime).toBe('echo');
+    const piper = body.data.find((m) => m.id === 'piper/lessac-high');
+    expect(piper?.modality).toBe('tts');
   });
 
   it('POST /v1/chat/completions model=echo returns OpenAI JSON', async () => {

@@ -62,5 +62,6 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('data-k-model');
     expect(boot).toContain('Allowed models');
     expect(boot).toContain('可用模型');
+    expect(boot).toContain('GET /v1/models');
   });
 });

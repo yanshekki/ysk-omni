@@ -44,6 +44,7 @@ describe('v1 API key model allowlist', () => {
       (m) => m.id,
     );
     expect(ids).toContain('echo');
+    expect(ids).toContain('piper/lessac-high');
     expect(ids.length).toBeGreaterThan(0);
   });
 
