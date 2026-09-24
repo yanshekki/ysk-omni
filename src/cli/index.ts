@@ -770,18 +770,18 @@ program
 
 const grokEnvCmd = program
   .command('grok')
-  .description('Local Grok Build environment (inspect / sessions)');
+  .description('GCTOAC leftover (inspect / sessions). Does not spawn grok.');
 
 grokEnvCmd
   .command('inspect')
-  .description('Read-only grok inspect snapshot')
+  .description('Leftover inspect snapshot (Grok CLI spawn removed)')
   .action(async () => {
     await cmdGrokInspect(globalOpts());
   });
 
 const grokSessionsCmd = grokEnvCmd
   .command('sessions')
-  .description('List local Grok CLI sessions')
+  .description('Leftover session table (no grok -p resume)')
   .option('-q, --q <text>', 'Search title / summary / id')
   .option('--cwd <path>', 'Filter by working directory')
   .option('--limit <n>', 'Max rows', (v: string) => Number(v))
@@ -791,7 +791,7 @@ const grokSessionsCmd = grokEnvCmd
 
 grokSessionsCmd
   .command('list')
-  .description('List local Grok CLI sessions')
+  .description('Leftover session table (no grok -p resume)')
   .option('-q, --q <text>', 'Search title / summary / id')
   .option('--cwd <path>', 'Filter by working directory')
   .option('--limit <n>', 'Max rows', (v: string) => Number(v))
@@ -801,7 +801,7 @@ grokSessionsCmd
 
 grokSessionsCmd
   .command('delete')
-  .description('Permanently delete a Grok CLI session')
+  .description('Delete a leftover session row')
   .argument('<id>', 'Session UUID')
   .option('--yes', 'Confirm delete')
   .action(async (id: string, opts: { yes?: boolean }) => {
@@ -811,7 +811,7 @@ grokSessionsCmd
 // ——— API features / Grok capability gates ———
 const apiCmd = program
   .command('api')
-  .description('API protocol & Grok capability feature flags');
+  .description('API protocol and capability feature flags');
 
 const apiFeaturesCmd = apiCmd
   .command('features')

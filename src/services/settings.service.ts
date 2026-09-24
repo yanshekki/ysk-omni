@@ -9,7 +9,7 @@ const DEFAULTS: AppSettings = {
   safeTimeoutMs: 120_000,
   /** Strongest default: readonly tools only in safe mode */
   safeToolsMode: SAFE_TOOLS_MODES.READONLY,
-  defaultModel: 'grok-4.6',
+  defaultModel: 'echo',
   adminPanelEnabled: true,
 };
 
