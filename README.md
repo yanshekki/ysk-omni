@@ -30,26 +30,25 @@ Text chat with a pulled GGUF needs `llama-server` on `PATH` (or `OMNI_LLAMA_SERV
 
 Image / speech / transcription / video workers are **OpenAI-shaped HTTP**, not ComfyUI native graphs. Point `OMNI_IMAGE_URL` / `OMNI_VIDEO_URL` at a process that already speaks `/v1/images/generations` and `/v1/videos`. A stock ComfyUI server (`/prompt`, `/history`) needs an OpenAI-compat adapter in front.
 
+Demo worker (fixtures, not Comfy / whisper weights):
+
 ```bash
-# OpenAI-shaped image worker
-export OMNI_IMAGE_URL=http://127.0.0.1:7860
+node scripts/omni-openai-worker.mjs   # http://127.0.0.1:3860
+export OMNI_IMAGE_URL=http://127.0.0.1:3860
+export OMNI_TTS_URL=http://127.0.0.1:3860
+export OMNI_STT_URL=http://127.0.0.1:3860
+export OMNI_VIDEO_URL=http://127.0.0.1:3860
+
 curl -s http://127.0.0.1:3850/v1/images/generations \
   -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"prompt":"a red square"}'
 
-# TTS
-export OMNI_TTS_URL=http://127.0.0.1:9880
 curl -s http://127.0.0.1:3850/v1/audio/speech \
   -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"input":"hello","voice":"alloy"}' --output speech.mp3
+  -d '{"input":"hello","voice":"alloy"}' --output speech.wav
 
-# STT (multipart file is forwarded to the worker)
-export OMNI_STT_URL=http://127.0.0.1:9881
 curl -s http://127.0.0.1:3850/v1/audio/transcriptions \
   -H "Authorization: Bearer $KEY" -F file=@clip.wav
-
-# Video worker (optional). Without it, jobs complete with a playable 32×32 H.264 MP4 fixture.
-export OMNI_VIDEO_URL=http://127.0.0.1:8188
 ```
 
 Unset those URLs → HTTP 501 `{ "error": { "code": "engine_unconfigured" } }` (video still returns the fixture).
