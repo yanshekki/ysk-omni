@@ -85,5 +85,7 @@ describe('v1 video jobs', () => {
     expect(content.text.includes('ftyp') || content.text.includes('isom')).toBe(
       true,
     );
+    expect(content.text.includes('moov')).toBe(true);
+    expect(content.text.length).toBeGreaterThan(1000);
   });
 });

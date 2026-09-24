@@ -8,19 +8,11 @@ import { vramScheduler } from '../vram-scheduler';
 import { engineManager } from '../runtimes/engine-manager';
 import type { AuthenticatedApiKey } from '../../interfaces';
 import { KEY_MODES, ROLES } from '../../config/constants';
+import { VIDEO_FIXTURE_B64 } from './video-fixture';
 
-/** ISO-BMFF ftyp box plus a free box marker. Playable enough for `ftyp` sniffers. */
+/** ffmpeg H.264 MP4 (32x32, 0.4s) with metadata comment ysk-omni-video-fixture. */
 export function videoFixtureBytes(): Buffer {
-  const ftyp = Buffer.from([
-    0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
-    0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x6d, 0x70, 0x34, 0x31,
-  ]);
-  const marker = Buffer.from('ysk-omni-video-fixture\n');
-  const free = Buffer.alloc(8 + marker.length);
-  free.writeUInt32BE(free.length, 0);
-  free.write('free', 4);
-  marker.copy(free, 8);
-  return Buffer.concat([ftyp, free]);
+  return Buffer.from(VIDEO_FIXTURE_B64, 'base64');
 }
 
 export const VIDEO_FIXTURE_BYTES = videoFixtureBytes();
