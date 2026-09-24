@@ -605,14 +605,13 @@ proxy_set_header X-Forwarded-Proto $scheme;
 | `DATABASE_URL` | SQLite，例如 `file:../data/gateway.db`（相對 `prisma/`） |
 | `ENCRYPTION_KEY` | 32-byte key：`openssl rand -base64 32` |
 | `ADMIN_BOOTSTRAP_KEY` | 可選；首次 setup 用此字串作 admin key |
-| `GROK_BIN` | 預設 `grok` |
-| `OMNI_DEFAULT_MODEL` | 預設模型（`grok-4.6`） |
+| `OMNI_DEFAULT_MODEL` | 預設模型（空白則用 echo 或已載入引擎） |
 | `OMNI_DEFAULT_CWD` / `OMNI_CWD_ALLOWLIST` | Agent 工作目錄（空白預設為 `<STORAGE_DIR>/workspaces/default`，不會使用 gateway 原始碼目錄） |
 | `OMNI_TIMEOUT_MS` | Agent 預設 timeout（ms） |
 | `OMNI_ALWAYS_APPROVE` | 只對 agent；safe 一律關閉 |
 | `OMNI_SAFE_MODE` | 強制全部 key 用 safe |
 | `OMNI_SAFE_MAX_TURNS` / `OMNI_SAFE_TIMEOUT_MS` | Safe 模式預設（亦可在 Admin → 安全設定改） |
-| `OMNI_MAX_CONCURRENT` | 最多並行 Grok 進程（亦作佇列全域併發預設種子） |
+| `OMNI_MAX_CONCURRENT` | 最多並行引擎工作（亦作佇列全域併發預設種子） |
 | `QUEUE_BACKEND` | 對話佇列後端：**`sqlite`**（預設）。`redis`／`kafka` 預留（尚未實作） |
 | `ADMIN_PANEL_ENABLED` | 硬關 `/admin`（env，需重啟）。運行時：`ysk-omni admin on\|off` |
 | `PM2_ADMIN_ENABLED` | 允許 Admin 控制 PM2 |
