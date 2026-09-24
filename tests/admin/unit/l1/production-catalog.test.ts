@@ -63,5 +63,10 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('Allowed models');
     expect(boot).toContain('可用模型');
     expect(boot).toContain('GET /v1/models');
+    expect(boot).toContain('審計日誌');
+    expect(boot).toContain('選擇圖像');
+    expect(boot).not.toContain('稽核日誌');
+    expect(boot).not.toContain('揀圖像');
+    expect(boot).not.toContain('准用清單');
   });
 });

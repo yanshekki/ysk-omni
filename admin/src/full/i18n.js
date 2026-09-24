@@ -230,7 +230,7 @@ const dict = {
       uploadProgressMulti: 'Uploading {name} ({i}/{n})',
       emptyTitle: 'Start a conversation',
       emptyHint:
-        'Send a message or attach files. Pick an image, video, or speech model to generate media in the thread.',
+        'Send a message or attach files. Choose an image, video, or speech model to generate media in the conversation.',
       needContent: 'Type a message or attach at least one file',
       needAudioAttach: 'Attach an audio file to transcribe',
       mediaBusy_image: 'Generating image…',
@@ -500,7 +500,7 @@ const dict = {
       ipCount: '{n} IPs',
       ipPlaceholder: '127.0.0.1\n203.0.113.0/24',
       allowedModels: 'Allowed models',
-      allowedModelsHint: 'Select models this key may use. Empty = no restriction. Clients list them with GET /v1/models.',
+      allowedModelsHint: 'Select models this key may use. Empty = no restriction. Users list them with GET /v1/models.',
       allowedModelsCol: 'Models',
       modelsAll: 'All models',
       modelsCount: '{n} models',
@@ -1481,7 +1481,7 @@ const dict = {
       media: '媒體庫',
       catalog: '目錄',
       runtimes: '執行環境',
-      audit: '稽核日誌',
+      audit: '審計日誌',
       settings: '安全設定',
       apiFeatures: 'API 能力',
       usage: '用量與防護',
@@ -1679,7 +1679,7 @@ const dict = {
       uploadProgressMulti: '正在上傳 {name}（{i}/{n}）',
       emptyTitle: '開始對話',
       emptyHint:
-        '輸入訊息或附加檔案。揀圖像、影片或語音模型即可在對話中生成媒體。',
+        '輸入訊息或附加檔案。選擇圖像、影片或語音模型即可在對話中生成媒體。',
       needContent: '請輸入訊息或至少附加一個檔案',
       needAudioAttach: '請附加音訊檔以進行轉錄',
       mediaBusy_image: '正在生成圖像…',
@@ -1949,7 +1949,7 @@ const dict = {
       ipCount: '{n} 個 IP',
       ipPlaceholder: '127.0.0.1\n203.0.113.0/24',
       allowedModels: '可用模型',
-      allowedModelsHint: '勾選此金鑰可使用的模型。留空 = 不限制。用戶端以 GET /v1/models 查詢准用清單。',
+      allowedModelsHint: '勾選此金鑰可使用的模型。留空 = 不限制。用戶可透過 GET /v1/models 查詢可用模型清單。',
       allowedModelsCol: '模型',
       modelsAll: '全部模型',
       modelsCount: '{n} 個模型',
@@ -1983,7 +1983,7 @@ const dict = {
       next: '下一頁',
     },
     audit: {
-      title: '稽核日誌',
+      title: '審計日誌',
       searchPh: '動作、資源、IP、金鑰…',
       time: '時間',
       action: '動作',
@@ -2515,7 +2515,7 @@ const dict = {
       confirmReset: '確定將所有 DDoS 策略欄位重設為 .env 預設？',
       sectionProxy: '反向代理 / CDN',
       proxyHint:
-        '流量經 nginx 或 Cloudflare 時，請設定信任層數，令封鎖、限流、稽核日誌使用真實用戶 IP，而非代理伺服器 IP。',
+        '流量經 nginx 或 Cloudflare 時，請設定信任層數，令封鎖、限流、審計日誌使用真實用戶 IP，而非代理伺服器 IP。',
       proxyTrustHops: '信任代理層數',
       proxyTrustHopsHint:
         '0 = 直連（忽略 header）。1 = nginx 或 Cloudflare→應用。2 = Cloudflare→nginx→應用。',

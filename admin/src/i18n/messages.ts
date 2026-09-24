@@ -227,7 +227,8 @@ const dict = {
       uploadProgress: 'Uploading {name}',
       uploadProgressMulti: 'Uploading {name} ({i}/{n})',
       emptyTitle: 'Start a conversation',
-      emptyHint: 'Send a message or attach files. Open a previous chat from the history panel to continue.',
+      emptyHint:
+        'Send a message or attach files. Choose an image, video, or speech model to generate media in the conversation.',
       needContent: 'Type a message or attach at least one file',
       tooManyFiles: 'Too many files (max 10 per message)',
       fileOnlyPrompt: 'Please review the attached files.',
@@ -481,7 +482,7 @@ const dict = {
       ipCount: '{n} IPs',
       ipPlaceholder: '127.0.0.1\n203.0.113.0/24',
       allowedModels: 'Allowed models',
-      allowedModelsHint: 'Select models this key may use. Empty = no restriction. Clients list them with GET /v1/models.',
+      allowedModelsHint: 'Select models this key may use. Empty = no restriction. Users list them with GET /v1/models.',
       allowedModelsCol: 'Models',
       modelsAll: 'All models',
       modelsCount: '{n} models',
@@ -1073,7 +1074,7 @@ const dict = {
       pillHelp: 'Questions? email@ysk.hk',
       creatorTitle: 'Creator',
       creatorBody:
-        'This Grok → OpenAI gateway is free and open source, for people who want to run Grok CLI themselves. Feedback and bug reports keep the project going.',
+        'This OpenAI-compatible gateway is a free open-source product for running local models as an API. The project is maintained in the open; your feedback and bug reports matter.',
       sponsorTitle: 'Support / sponsor',
       sponsorBody:
         'If this gateway saves you time, consider sponsoring development. Every bit helps keep it free for everyone.',
@@ -1223,7 +1224,7 @@ const dict = {
       media: '媒體庫',
       catalog: '目錄',
       runtimes: '執行環境',
-      audit: '稽核日誌',
+      audit: '審計日誌',
       settings: '安全設定',
       apiFeatures: 'API 能力',
       usage: '用量與防護',
@@ -1231,7 +1232,7 @@ const dict = {
       queue: '佇列',
       pm2: 'PM2',
       system: '系統狀態',
-      support: '支持',
+      support: '支援',
     },
     queue: {
       title: '對話佇列',
@@ -1416,7 +1417,8 @@ const dict = {
       uploadProgress: '正在上傳 {name}',
       uploadProgressMulti: '正在上傳 {name}（{i}/{n}）',
       emptyTitle: '開始對話',
-      emptyHint: '輸入訊息或附加檔案。可從右側歷史開啟舊對話繼續。',
+      emptyHint:
+        '輸入訊息或附加檔案。選擇圖像、影片或語音模型即可在對話中生成媒體。',
       needContent: '請輸入訊息或至少附加一個檔案',
       tooManyFiles: '檔案太多（每則訊息最多 10 個）',
       fileOnlyPrompt: '請查看附加的檔案。',
@@ -1669,7 +1671,7 @@ const dict = {
       ipCount: '{n} 個 IP',
       ipPlaceholder: '127.0.0.1\n203.0.113.0/24',
       allowedModels: '可用模型',
-      allowedModelsHint: '勾選此金鑰可使用的模型。留空 = 不限制。用戶端以 GET /v1/models 查詢准用清單。',
+      allowedModelsHint: '勾選此金鑰可使用的模型。留空 = 不限制。用戶可透過 GET /v1/models 查詢可用模型清單。',
       allowedModelsCol: '模型',
       modelsAll: '全部模型',
       modelsCount: '{n} 個模型',
@@ -1704,7 +1706,7 @@ const dict = {
       next: '下一頁',
     },
     audit: {
-      title: '稽核日誌',
+      title: '審計日誌',
       searchPh: '動作、資源、IP、金鑰…',
       time: '時間',
       action: '動作',
@@ -2018,7 +2020,7 @@ const dict = {
       confirmReset: '確定將所有 DDoS 策略欄位重設為 .env 預設？',
       sectionProxy: '反向代理 / CDN',
       proxyHint:
-        '流量經 nginx 或 Cloudflare 時，請設定信任層數，令封鎖、限流、稽核日誌使用真實用戶 IP，而非代理伺服器 IP。',
+        '流量經 nginx 或 Cloudflare 時，請設定信任層數，令封鎖、限流、審計日誌使用真實用戶 IP，而非代理伺服器 IP。',
       proxyTrustHops: '信任代理層數',
       proxyTrustHopsHint:
         '0 = 直連（忽略 header）。1 = nginx 或 Cloudflare→應用。2 = Cloudflare→nginx→應用。',
@@ -2241,17 +2243,17 @@ const dict = {
       requiredMissing: '有必須軟件缺失',
     },
     support: {
-      title: '支持',
+      title: '支援',
       subtitle: '作者、贊助與 YSK Limited — 免費產品，務實支援',
-      pillSupport: '支持',
-      pillSponsor: '支持／贊助 Linktree',
+      pillSupport: '支援',
+      pillSponsor: '支援／贊助 Linktree',
       pillHelp: '遇到問題？ email@ysk.hk',
       creatorTitle: '作者',
       creatorBody:
-        '本 Grok → OpenAI Gateway 為免費開源產品，供希望自行運行 Grok CLI 作為 API 的使用者。項目以開源方式維護；你的意見與錯誤回報十分重要。',
-      sponsorTitle: '支持／贊助',
+        '本閘道為免費開源產品，供希望以本機模型提供 API 的使用者。項目以開源方式維護；你的意見與錯誤回報十分重要。',
+      sponsorTitle: '支援／贊助',
       sponsorBody:
-        '若本 Gateway 為你節省時間，歡迎贊助開發。每一份支持均有助產品繼續免費供所有人使用。',
+        '若本 Gateway 為你節省時間，歡迎贊助開發。每一份支援均有助產品繼續免費供所有人使用。',
       githubSponsors: 'GitHub 贊助',
       linktree: 'Linktree',
       walletsTitle: '加密貨幣／Web3 地址',

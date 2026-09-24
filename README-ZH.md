@@ -28,8 +28,8 @@ GCTOAC（`gctoac` :3847）仍是 Grok CLI 產品。YSK Omni **不再** spawn `gr
 - 已拉取的 GGUF：Load 後由持久 `llama-server` 代理；safetensors 走 `vllm serve` 或 `python -m vllm.entrypoints.openai.api_server`
 - 無本機引擎時用 `model=echo`；圖像／TTS／STT 未設 worker 時回 **501** `engine_unconfigured`
 - 每把 key 的 **safe** / **agent** 政策 + 全域安全覆寫
-- AES-256-GCM 加密 + 完整 chat 稽核
-- **Admin Panel** — OTP 登入（`ysk-omni admin otp`）、儀表板、對話、金鑰、**Catalog（Pull / Load / Unload）**、文件、稽核、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2
+- AES-256-GCM 加密 + 完整 chat 審計
+- **Admin Panel** — OTP 登入（`ysk-omni admin otp`）、儀表板、對話、金鑰、**Catalog（Pull / Load / Unload）**、文件、審計、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2
 - **媒體庫** — 圖像／語音／影片工作列；未接影片 worker 時回可播放的短 H.264 MP4 fixture
 - **持久化對話佇列**、**DDoS／防濫用**、控制 CLI（`setup` / `start --pm2` / `doctor` / keys / queue / ddos）
 
@@ -260,7 +260,7 @@ PORT=4000
 | `ysk-omni docs list\|show\|delete` | 文件（delete 需 `--yes`） |
 | `ysk-omni chats list\|show` | API 對話請求（meta） |
 | `ysk-omni conversations list\|delete` | Playground 線程 |
-| `ysk-omni audit list [--action …]` | 稽核日誌 |
+| `ysk-omni audit list [--action …]` | 審計日誌 |
 
 ```bash
 ysk-omni --home ~/.ysk-omni-alt setup
@@ -541,7 +541,7 @@ Admin **JSON API**（`/admin/api/*`）可用：
 | **對話記錄** | 搜尋／篩選／分頁；**完整解密** prompt／reasoning／response |
 | **API 金鑰** | 建立／編輯 mode／role／限流／IP 白名單；撤銷 |
 | **文件** | 搜尋／篩選／分頁；預覽、下載、刪除；DB 與檔案系統儲存 |
-| **稽核日誌** | 搜尋／篩選／分頁；可讀動作標籤 |
+| **審計日誌** | 搜尋／篩選／分頁；可讀動作標籤 |
 | **用量與防護** | 24h 統計、按模型／按金鑰分 tab、限流摘要 |
 | **媒體庫** | **分 tab：** 工作室 · 資產 · 工作。KPI 條。工作室：生成／編輯／**圖生影片（1–15 秒）**／**配音**（`ara` `eve` `leo` `rex` `sal` `mio` → `reference_to_video`）。素材庫選取 + 拖放。預覽 lightbox |
 | **佇列** | **分 tab：** 總覽 · 工作列表 · 政策。KPI 條（自動 soft-refresh）。暫停／排空、死信篩選、取消／重新入隊／優先級／清理、併發與公平預設 |
@@ -550,7 +550,7 @@ Admin **JSON API**（`/admin/api/*`）可用：
 | **API 能力** | **分 tab：** 協議 · 媒體 · 能力 · 模擬。KPI 啟用計數。預設：開放／鎖定／開發 |
 | **PM2** | **分 tab：** 運行方式 · 連接埠 · 設定 · 日誌。KPI 進程條。Runner 切換（ysk-omni ↔ PM2）、監聽 port（預設 3850）、設定、清除日誌 + 自動裁剪 |
 | **系統狀態** | **分 tab：** 軟件 · 套件 · 環境 · **Grok sessions**。Software tab 有 **Grok inspect** 卡（version／channel／models／skills／MCP）。Sessions tab 列出 `~/.grok/sessions`（搜尋 + 刪除）。一鍵更新並重啟 |
-| **支持** | 捐助／GitHub Sponsors／Linktree／加密地址、YSK Limited 服務、**email@ysk.hk** |
+| **支援** | 捐助／GitHub Sponsors／Linktree／加密地址、YSK Limited 服務、**email@ysk.hk** |
 
 Admin 共用 UX：分段 tab + 頂部 KPI 卡片、精簡正式 EN／繁中文案、table 操作按鈕置中；僅需運維刷新的頁面保留右上角 **重新整理**（儀表板／用量／DDoS／PM2）。
 
@@ -568,7 +568,7 @@ Admin 共用 UX：分段 tab + 頂部 KPI 卡片、精簡正式 EN／繁中文�
 
 ### 反向代理／CDN（客戶端 IP）
 
-經 **nginx** 或 **Cloudflare** 時，請設定信任層數，令封鎖、限流、稽核使用**真實用戶 IP**：
+經 **nginx** 或 **Cloudflare** 時，請設定信任層數，令封鎖、限流、審計使用**真實用戶 IP**：
 
 | 設定 | 常見值 |
 |------|--------|
@@ -728,9 +728,9 @@ npm publish --access public --otp=<2FA六位碼>
 
 🌐 [linktr.ee/yanshekki](https://linktr.ee/yanshekki) · 📄 [產品頁](https://ysk.hk/products/ysk-omni) · 🏢 [ysk.hk](https://ysk.hk/)
 
-### ☕ 支持 / 打賞
+### ☕ 支援／贊助
 
-若本 Grok → OpenAI Gateway 對你有幫助，歡迎請我喝杯咖啡！
+若 YSK Omni 對你有幫助，歡迎贊助開發。
 
 | 網絡 | 地址 |
 | --- | --- |
