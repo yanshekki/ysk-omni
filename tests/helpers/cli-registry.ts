@@ -72,7 +72,6 @@ export const CLI_EXPECTED_TOP_LEVEL = [
   'load',
   'unload',
   'runtimes',
-  'grok',
   'api',
   'doctor',
   'open',

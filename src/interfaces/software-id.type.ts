@@ -1,7 +1,8 @@
 export type SoftwareId =
   | 'node'
   | 'npm'
-  | 'grok'
+  | 'llama-server'
+  | 'ffmpeg'
   | 'pm2'
   | 'prisma'
   | 'git'

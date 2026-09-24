@@ -22,7 +22,7 @@ export const ExceptionFactory = {
     return new HttpException(429, message, ErrorCodes.RATE_LIMITED);
   },
 
-  concurrencyLimit(message = 'Too many concurrent Grok jobs'): HttpException {
+  concurrencyLimit(message = 'Too many concurrent engine jobs'): HttpException {
     return new HttpException(429, message, ErrorCodes.CONCURRENCY_LIMIT);
   },
 
@@ -30,11 +30,11 @@ export const ExceptionFactory = {
     return new HttpException(502, message, ErrorCodes.GROK_ERROR, details);
   },
 
-  grokTimeout(message = 'Grok CLI timed out'): HttpException {
+  grokTimeout(message = 'The local engine timed out'): HttpException {
     return new HttpException(504, message, ErrorCodes.GROK_TIMEOUT);
   },
 
-  grokNotAvailable(message = 'Grok CLI is not available'): HttpException {
+  grokNotAvailable(message = 'The local engine is not available'): HttpException {
     return new HttpException(503, message, ErrorCodes.GROK_NOT_AVAILABLE);
   },
 

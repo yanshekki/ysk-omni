@@ -16,6 +16,7 @@ import { grokInspectService } from '../../services/grok-inspect.service';
 import { grokSessionsService } from '../../services/grok-sessions.service';
 import { grokCliService } from '../../services/grok-cli.service';
 import { encryptionService } from '../../services/encryption.service';
+import { llamaServerBin } from '../../services/runtimes/llama-server';
 import { requestIp } from '../../utils/client-ip';
 
 /** Admin handlers: core */
@@ -121,7 +122,7 @@ export const adminCoreHandlers = {
     } catch {
       dbOk = false;
     }
-    const grokOk = await grokCliService.isAvailable();
+    const textEngineUp = Boolean(llamaServerBin());
     let version = null as Awaited<
       ReturnType<typeof updateService.getVersionInfo>
     > | null;
@@ -138,20 +139,11 @@ export const adminCoreHandlers = {
     } catch {
       software = null;
     }
-    let grokInspect = null as Awaited<
-      ReturnType<typeof grokInspectService.snapshot>
-    > | null;
-    try {
-      grokInspect = await grokInspectService.snapshot();
-    } catch {
-      grokInspect = null;
-    }
     res.json({
       object: 'admin.system',
       data: {
         database: dbOk ? 'up' : 'down',
-        grokCli: grokOk ? 'up' : 'down',
-        grokInspect,
+        textEngine: textEngineUp ? 'up' : 'down',
         concurrency: {
           active: grokCliService.activeCount,
           max: grokCliService.maxConcurrent,
@@ -161,8 +153,8 @@ export const adminCoreHandlers = {
         updating: updateService.isUpdating(),
         env: {
           nodeEnv: env.NODE_ENV,
-          grokSafeModeEnv: env.GROK_SAFE_MODE,
-          grokDefaultModel: env.GROK_DEFAULT_MODEL,
+          safeModeEnv: env.GROK_SAFE_MODE,
+          defaultModel: env.GROK_DEFAULT_MODEL,
           storageDir: env.storageDir,
           adminPanelEnabled: env.ADMIN_PANEL_ENABLED,
           port: env.PORT,

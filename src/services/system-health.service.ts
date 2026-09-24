@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { SoftwareCheck } from '../interfaces/software-check.interface';
 import type { SystemSoftwareReport } from '../interfaces/system-software-report.interface';
+import { llamaServerBin } from './runtimes/llama-server';
 
 
 function packageRoot(): string {
@@ -90,9 +91,10 @@ export class SystemHealthService {
       /* ignore */
     }
 
-    const [npm, grok, pm2, git, prismaCli] = await Promise.all([
+    const [npm, llama, ffmpeg, pm2, git, prismaCli] = await Promise.all([
       this.checkNpm(),
-      this.checkGrok(),
+      this.checkLlamaServer(),
+      this.checkFfmpeg(),
       this.checkPm2(),
       this.checkGit(),
       this.checkPrismaCli(prismaBundled),
@@ -127,7 +129,8 @@ export class SystemHealthService {
     const checks: SoftwareCheck[] = [
       node,
       npm,
-      grok,
+      llama,
+      ffmpeg,
       pm2,
       prismaCli,
       git,
@@ -157,16 +160,46 @@ export class SystemHealthService {
     };
   }
 
-  private async checkGrok(): Promise<SoftwareCheck> {
+  private async checkLlamaServer(): Promise<SoftwareCheck> {
+    const bin = llamaServerBin() || (await which('llama-server'));
+    if (!bin) {
+      return {
+        id: 'llama-server',
+        name: 'llama-server',
+        level: 'recommended',
+        installed: false,
+        version: null,
+        path: null,
+        ok: true,
+        detail: 'Not on PATH. Install llama.cpp or set OMNI_LLAMA_SERVER.',
+      };
+    }
+    const r = await runVersion(bin, ['--version']);
     return {
-      id: 'grok',
-      name: 'Grok CLI',
-      level: 'optional',
-      installed: false,
-      version: null,
-      path: null,
+      id: 'llama-server',
+      name: 'llama-server',
+      level: 'recommended',
+      installed: true,
+      version: r.ok ? extractVersion(r.stdout) : null,
+      path: bin,
       ok: true,
-      detail: 'CLI spawn removed; local engines attach in later phases',
+    };
+  }
+
+  private async checkFfmpeg(): Promise<SoftwareCheck> {
+    const binPath = (await which('ffmpeg')) || 'ffmpeg';
+    const r = await runVersion(binPath, ['-version']);
+    return {
+      id: 'ffmpeg',
+      name: 'ffmpeg',
+      level: 'recommended',
+      installed: r.ok,
+      version: r.ok ? extractVersion(r.stdout) : null,
+      path: r.ok ? binPath : null,
+      ok: true,
+      detail: r.ok
+        ? undefined
+        : 'Not on PATH. Needed to convert image / video / audio formats.',
     };
   }
 

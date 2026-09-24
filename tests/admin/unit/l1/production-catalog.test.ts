@@ -68,5 +68,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).not.toContain('稽核日誌');
     expect(boot).not.toContain('揀圖像');
     expect(boot).not.toContain('准用清單');
+    expect(boot).not.toContain('Grok CLI');
+    expect(boot).not.toContain('Grok CLI spawn');
+    expect(boot).not.toContain('歷史殘留');
   });
 });

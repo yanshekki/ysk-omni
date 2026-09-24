@@ -31,7 +31,6 @@ describe('cli commander registry (help matrix)', () => {
       'audit',
       'stats',
       'models',
-      'grok',
       'api',
       'doctor',
       'open',

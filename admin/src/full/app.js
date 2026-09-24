@@ -3446,7 +3446,7 @@ async function renderSettings() {
   };
 }
 
-/** Admin: Grok CLI capability + protocol feature flags — tab layout matches other pages */
+/** Admin: protocol and capability feature flags — tab layout matches other pages */
 async function renderApiFeatures() {
   const res = await api('/api-features');
   if (state.page !== 'apiFeatures') return;
@@ -3707,7 +3707,7 @@ async function renderMedia() {
   const jobParams = new URLSearchParams({ limit: '50', offset: '0' });
   appendSortParams(jobParams, f, 'jobSortBy', 'jobSortDir');
 
-  // Keys + full model catalog (all Grok models + system default) + assets/jobs
+  // Keys + full model catalog (local models + system default) + assets/jobs
   const [catalog, , assetsRes, jobsRes] = await Promise.all([
     loadModels(false).catch(() => ({
       models: state.models || [],
@@ -3737,7 +3737,7 @@ async function renderMedia() {
     : state.models || [];
   const defaultModel =
     catalog.defaultModel || modelList[0] || '';
-  // All Grok CLI models; system default selected
+  // All local catalog models; system default selected
   const genModelOpts = modelList.length
     ? modelList
         .map(
@@ -3747,7 +3747,7 @@ async function renderMedia() {
         .join('')
     : `<option value="">${escapeHtml(defaultModel || t('media.modelEmpty'))}</option>`;
 
-  // Grok Imagine aspect_ratio (not OpenAI pixel sizes)
+  // OpenAI-compat aspect_ratio for image / video
   const aspectOpts = [
     ['1:1', '1:1 · square'],
     ['16:9', '16:9 · landscape'],
@@ -5177,25 +5177,10 @@ async function renderSystem() {
   const soft = data.software || { checks: [], allRequiredOk: true };
   const checks = soft.checks || [];
   const tab =
-    state.systemTab === 'package' ||
-    state.systemTab === 'env' ||
-    state.systemTab === 'sessions'
+    state.systemTab === 'package' || state.systemTab === 'env'
       ? state.systemTab
       : 'software';
   state.systemTab = tab;
-
-  let sessionPack = { data: [], total: 0 };
-  try {
-    const qs = new URLSearchParams({
-      limit: tab === 'sessions' ? '50' : '1',
-      offset: '0',
-    });
-    if (tab === 'sessions' && state.grokSessionQ) qs.set('q', state.grokSessionQ);
-    const sess = await api(`/grok/sessions?${qs}`);
-    sessionPack = { data: sess.data || [], total: sess.total || 0 };
-  } catch (e) {
-    sessionPack = { data: [], total: 0, error: e.message || String(e) };
-  }
 
   const softBody = checks
     .map(
@@ -5243,13 +5228,9 @@ async function renderSystem() {
         <div class="muted card-sub">${escapeHtml(t('system.runtime'))}</div>
       </div>
       <div class="card">
-        <div class="label">${escapeHtml(t('system.grokCli'))}</div>
-        <div class="value value-sm">${runtimeBadge(data.grokCli)}</div>
-        <div class="muted card-sub">${escapeHtml(
-          data.grokInspect?.grokVersion
-            ? `${data.grokInspect.grokVersion}${data.grokInspect.channel ? ` · ${data.grokInspect.channel}` : ''}`
-            : t('system.runtime'),
-        )}</div>
+        <div class="label">${escapeHtml(t('system.textEngine'))}</div>
+        <div class="value value-sm">${runtimeBadge(data.textEngine)}</div>
+        <div class="muted card-sub">llama-server</div>
       </div>
       <div class="card">
         <div class="label">${escapeHtml(t('system.concurrency'))}</div>
@@ -5267,51 +5248,11 @@ async function renderSystem() {
       </div>
     </div>`;
 
-  const gi = data.grokInspect;
-  const inspectStats = gi
-    ? [
-        [t('system.grokVersion'), gi.grokVersion || '—'],
-        [t('system.inspectChannel'), gi.channel || '—'],
-        [t('system.inspectDefaultModel'), gi.defaultModel || '—'],
-        [t('system.inspectModels'), String(gi.models?.length ?? 0)],
-        [t('system.inspectSkills'), String(gi.skills ?? 0)],
-        [t('system.inspectMcp'), String(gi.mcpServers ?? 0)],
-        [t('system.inspectPlugins'), String(gi.plugins ?? 0)],
-        [t('system.inspectHooks'), String(gi.hooks ?? 0)],
-      ]
-    : [];
-  const inspectCard = gi
-    ? `
-    <div class="panel system-inspect-panel">
-      <div class="panel-h">
-        <div class="panel-h-text">
-          <strong>${escapeHtml(t('system.grokInspect'))}</strong>
-          <span class="muted panel-h-sub">${escapeHtml(t('system.grokInspectHint'))}</span>
-        </div>
-      </div>
-      <div class="panel-pad">
-        <div class="grid system-inspect-grid">
-          ${inspectStats
-            .map(
-              ([label, value]) => `
-            <div class="card">
-              <div class="label">${escapeHtml(label)}</div>
-              <div class="value value-sm">${escapeHtml(value)}</div>
-            </div>`,
-            )
-            .join('')}
-        </div>
-        ${gi.error ? `<div class="error-box">${escapeHtml(gi.error)}</div>` : ''}
-      </div>
-    </div>`
-    : '';
-
   const softwarePane = `
     <div class="system-tab-toolbar">
       <span class="muted">${escapeHtml(t('system.softwareHint'))}</span>
       ${softSummary}
     </div>
-    ${inspectCard}
     ${softTable}`;
 
   const packagePane = `
@@ -5347,43 +5288,6 @@ async function renderSystem() {
       </div>
     </div>`;
 
-  const sessionRows = (sessionPack.data || [])
-    .map(
-      (s) => `
-      <tr>
-        <td><code class="cell-code">${escapeHtml(s.id)}</code></td>
-        <td><div class="cell-primary">${escapeHtml(s.title || '—')}</div>
-          <div class="cell-sub">${escapeHtml(s.summary || '')}</div></td>
-        <td class="muted">${escapeHtml(s.cwd || '—')}</td>
-        <td>${escapeHtml((s.updatedAt || '').slice(0, 19).replace('T', ' ') || '—')}</td>
-        <td>${s.messageCount != null ? s.messageCount : '—'}</td>
-        <td><button type="button" class="btn danger sm" data-del-gsess="${escapeHtml(s.id)}">${escapeHtml(t('system.sessionDelete'))}</button></td>
-      </tr>`,
-    )
-    .join('');
-  const sessionsPane = `
-    <div class="system-tab-toolbar">
-      <span class="muted">${escapeHtml(t('system.sessionsHint'))}</span>
-      <form id="gsess-search" class="inline-form">
-        <input type="search" id="gsess-q" value="${escapeHtml(state.grokSessionQ || '')}" placeholder="${escapeHtml(t('system.sessionsSearch'))}" />
-        <button type="submit" class="btn secondary sm">${escapeHtml(t('common.search') || 'Search')}</button>
-      </form>
-    </div>
-    ${sessionPack.error ? `<div class="error-box">${escapeHtml(sessionPack.error)}</div>` : ''}
-    ${dataTablePanelHtml({
-      headHtml: `
-        <th>${escapeHtml(t('system.sessionId'))}</th>
-        <th>${escapeHtml(t('system.sessionTitle'))}</th>
-        <th>${escapeHtml(t('system.sessionCwd'))}</th>
-        <th>${escapeHtml(t('system.sessionUpdated'))}</th>
-        <th>${escapeHtml(t('chats.msgs') || '#')}</th>
-        <th></th>`,
-      bodyHtml: sessionRows,
-      colSpan: 6,
-      emptyText: t('common.empty'),
-    })}
-    <div class="muted">${escapeHtml(String(sessionPack.total || 0))}</div>`;
-
   document.getElementById('app').innerHTML = shell(`
     <div class="topbar">
       <h2>${escapeHtml(t('system.title'))}</h2>
@@ -5407,10 +5311,6 @@ async function renderSystem() {
         <button type="button" role="tab" class="seg-tab ${tab === 'env' ? 'is-active' : ''}" data-system-tab="env" aria-selected="${tab === 'env'}">
           ${escapeHtml(t('system.tabEnv'))}
         </button>
-        <button type="button" role="tab" class="seg-tab ${tab === 'sessions' ? 'is-active' : ''}" data-system-tab="sessions" aria-selected="${tab === 'sessions'}">
-          ${escapeHtml(t('system.tabSessions'))}
-          <span class="seg-tab-count">${sessionPack.total}</span>
-        </button>
       </div>
       <div class="usage-tab-body">
         <div class="usage-tab-pane system-tab-pane-software" id="system-tab-software" ${tab === 'software' ? '' : 'hidden'}>
@@ -5422,45 +5322,16 @@ async function renderSystem() {
         <div class="usage-tab-pane system-tab-pane-env" id="system-tab-env" ${tab === 'env' ? '' : 'hidden'}>
           ${envPane}
         </div>
-        <div class="usage-tab-pane system-tab-pane-sessions" id="system-tab-sessions" ${tab === 'sessions' ? '' : 'hidden'}>
-          ${sessionsPane}
-        </div>
       </div>
     </div>
   `);
   bindShell();
 
-  document.getElementById('gsess-search')?.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    state.grokSessionQ = document.getElementById('gsess-q')?.value || '';
-    renderSystem().catch(onErr);
-  });
-  document.querySelectorAll('[data-del-gsess]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-del-gsess');
-      if (!id) return;
-      const yes = await uiConfirm({
-        title: t('system.sessionDelete'),
-        message: t('system.sessionDeleteConfirm').replace('{id}', id),
-      });
-      if (!yes) return;
-      try {
-        await api(`/grok/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        await renderSystem();
-      } catch (e) {
-        onErr(e);
-      }
-    });
-  });
-
   document.querySelectorAll('[data-system-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const raw = btn.getAttribute('data-system-tab') || 'software';
       const next =
-        raw === 'package' ||
-        raw === 'env' ||
-        raw === 'software' ||
-        raw === 'sessions'
+        raw === 'package' || raw === 'env' || raw === 'software'
           ? raw
           : 'software';
       if (state.systemTab === next) return;
@@ -7282,9 +7153,9 @@ const chatUi = {
   keyId: '',
   model: '',
   reasoning: true,
-  /** Grok --reasoning-effort; empty = CLI default */
+  /** Reasoning effort; empty = engine default */
   effort: '',
-  /** Grok --resume UUID */
+  /** Session UUID */
   resumeId: '',
   forkSession: false,
   memory: false,
@@ -9673,7 +9544,7 @@ function bindChatPageFileDrop() {
 }
 
 /**
- * Collect document IDs for Grok: current pending chips + every prior message
+ * Collect document IDs: current pending chips + every prior message
  * that still carries `docs` so multi-turn keeps attachments in context.
  * @returns {string[]}
  */

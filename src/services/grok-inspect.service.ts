@@ -33,7 +33,7 @@ export class GrokInspectService {
       mcpServers: 0,
       plugins: 0,
       hooks: 0,
-      error: 'Grok CLI spawn removed; text chat uses llama-server / vLLM / echo',
+      error: 'No external CLI is attached; text chat uses llama-server / vLLM / echo',
     };
   }
 }

@@ -24,5 +24,11 @@ describe('ExceptionFactory', () => {
     expect(body.error.code).toBe('model_not_allowed');
     expect(body.error.message).toContain('echo');
   });
+
+  it('engine timeout copy does not mention Grok CLI', () => {
+    expect(ExceptionFactory.grokTimeout().message).not.toMatch(/Grok/i);
+    expect(ExceptionFactory.grokNotAvailable().message).not.toMatch(/Grok/i);
+    expect(ExceptionFactory.concurrencyLimit().message).not.toMatch(/Grok/i);
+  });
 });
 

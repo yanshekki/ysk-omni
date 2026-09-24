@@ -845,19 +845,19 @@ program
   });
 
 const grokEnvCmd = program
-  .command('grok')
-  .description('GCTOAC leftover (inspect / sessions). Does not spawn grok.');
+  .command('grok', { hidden: true })
+  .description('Internal leftover inspect / sessions');
 
 grokEnvCmd
   .command('inspect')
-  .description('Leftover inspect snapshot (Grok CLI spawn removed)')
+  .description('Internal leftover inspect snapshot')
   .action(async () => {
     await cmdGrokInspect(globalOpts());
   });
 
 const grokSessionsCmd = grokEnvCmd
   .command('sessions')
-  .description('Leftover session table (no grok -p resume)')
+  .description('Internal leftover session table')
   .option('-q, --q <text>', 'Search title / summary / id')
   .option('--cwd <path>', 'Filter by working directory')
   .option('--limit <n>', 'Max rows', (v: string) => Number(v))
@@ -867,7 +867,7 @@ const grokSessionsCmd = grokEnvCmd
 
 grokSessionsCmd
   .command('list')
-  .description('Leftover session table (no grok -p resume)')
+  .description('Internal leftover session table')
   .option('-q, --q <text>', 'Search title / summary / id')
   .option('--cwd <path>', 'Filter by working directory')
   .option('--limit <n>', 'Max rows', (v: string) => Number(v))
@@ -884,7 +884,7 @@ grokSessionsCmd
     await cmdGrokSessionsDelete({ ...globalOpts(), id, yes: opts.yes });
   });
 
-// ——— API features / Grok capability gates ———
+// ——— API features / capability gates ———
 const apiCmd = program
   .command('api')
   .description('API protocol and capability feature flags');

@@ -50,7 +50,7 @@ describe('Admin locale parity (en / zh-Hant)', () => {
 
   it('zh-Hant uses Hong Kong written Chinese glossary', () => {
     const banned =
-      /稽核日誌|揀圖像|用戶端以 GET|准用清單|軟體|網路|默認/;
+      /稽核日誌|揀圖像|用戶端以 GET|准用清單|軟體|網路|默認|歷史殘留|Grok CLI/;
     const hits: string[] = [];
     for (const [k, v] of zh) {
       if (typeof v === 'string' && banned.test(v)) hits.push(`${k}: ${v}`);
