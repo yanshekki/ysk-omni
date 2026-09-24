@@ -2815,6 +2815,43 @@ button.dash-kpi:hover {
   min-width: 9.5rem;
   gap: 8px;
 }
+.catalog-dl-dock {
+  margin: 0 0 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  background: #fff;
+}
+.catalog-dl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.catalog-dl-job {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border-color);
+}
+.catalog-dl-job:first-child {
+  border-top: 0;
+}
+.catalog-dl-job-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.catalog-dl-downloading .catalog-pull-bar > span {
+  background: var(--brand-gradient);
+}
+.catalog-dl-error .catalog-pull-bar > span {
+  background: #ef4444;
+  width: 100% !important;
+}
+.catalog-dl-done .catalog-pull-bar > span {
+  width: 100% !important;
+}
 .catalog-pull-banner {
   display: flex;
   align-items: center;

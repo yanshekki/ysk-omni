@@ -220,6 +220,8 @@ const state = {
   catalogModality: '',
   catalogPulling: '',
   catalogPull: { id: '', bytes: 0, total: 0 },
+  catalogQueue: [],
+  catalogQueueRunning: false,
   catalogHubQ: '',
   catalogHubHits: null,
   catalogHubNext: '',
@@ -9668,25 +9670,6 @@ function fmtMb(n) {
   return `${Math.round(v).toLocaleString()} MB`;
 }
 
-function catalogPullProgressHtml(id, active) {
-  const p = state.catalogPull || {};
-  const live = active || p.id === id;
-  const bytes = live ? p.bytes : 0;
-  const total = live ? p.total : 0;
-  const pct = total > 0 ? Math.min(100, Math.max(0, Math.round((bytes / total) * 100))) : 0;
-  const meta =
-    live && total > 0
-      ? `${pct}% · ${fmtMb(bytes / (1024 * 1024))} / ${fmtMb(total / (1024 * 1024))}`
-      : t('catalog.pulling');
-  return `
-    <div class="catalog-pull-progress${live && total <= 0 ? ' is-indeterminate' : ''}" data-pull-status="${escapeHtml(id)}" data-pull-live="${live ? '1' : ''}" ${live ? '' : 'hidden'}>
-      <div class="catalog-pull-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
-        <span style="width:${live && total > 0 ? pct : 0}%"></span>
-      </div>
-      <div class="catalog-pull-meta muted">${escapeHtml(meta)}</div>
-    </div>`;
-}
-
 function assertPullRecorded(last) {
   const status = last?.status;
   const pathOnDisk = last?.entry?.path;
@@ -9696,48 +9679,225 @@ function assertPullRecorded(last) {
   throw new Error(reason || t('catalog.pullFail'));
 }
 
-function updatePullProgress(el, bytes, total) {
-  if (!el) return;
-  el.hidden = false;
-  const bar = el.querySelector('.catalog-pull-bar');
-  const fill = el.querySelector('.catalog-pull-bar > span');
-  const meta = el.querySelector('.catalog-pull-meta');
-  const b = Number(bytes) || 0;
-  const tot = Number(total) || 0;
-  if (tot > 0) {
-    const pct = Math.min(100, Math.max(0, Math.round((b / tot) * 100)));
-    el.classList.remove('is-indeterminate');
-    if (fill) fill.style.width = `${pct}%`;
-    if (bar) bar.setAttribute('aria-valuenow', String(pct));
-    if (meta) {
-      meta.textContent = `${pct}% · ${fmtMb(b / (1024 * 1024))} / ${fmtMb(tot / (1024 * 1024))}`;
-    }
-  } else {
-    el.classList.add('is-indeterminate');
-    if (fill) fill.style.width = '40%';
-    if (meta) meta.textContent = t('catalog.pulling');
+function fmtDuration(sec) {
+  const n = Math.max(0, Math.round(Number(sec) || 0));
+  if (n < 1) return t('catalog.dlEtaCalc');
+  const zh = getLocale() === 'zh-Hant';
+  const h = Math.floor(n / 3600);
+  const m = Math.floor((n % 3600) / 60);
+  const s = n % 60;
+  if (h > 0) return zh ? `${h} 小時 ${m} 分` : `${h}h ${m}m`;
+  if (m > 0) return zh ? `${m} 分 ${s} 秒` : `${m}m ${s}s`;
+  return zh ? `${s} 秒` : `${s}s`;
+}
+
+function fmtSpeed(bps) {
+  const v = Number(bps) || 0;
+  if (v <= 0) return '—';
+  return `${fmtMb(v / (1024 * 1024))}`;
+}
+
+function catalogJobSpeed(job) {
+  const samples = job.samples || [];
+  if (samples.length < 2) return 0;
+  const a = samples[0];
+  const b = samples[samples.length - 1];
+  const dt = (b.t - a.t) / 1000;
+  if (dt < 0.4) return 0;
+  return Math.max(0, (b.bytes - a.bytes) / dt);
+}
+
+function catalogJobEta(job) {
+  const speed = catalogJobSpeed(job);
+  if (!speed || !job.total || job.bytes >= job.total) return null;
+  return (job.total - job.bytes) / speed;
+}
+
+function catalogJobPct(job) {
+  if (!job.total) return 0;
+  return Math.min(100, Math.max(0, Math.round((job.bytes / job.total) * 100)));
+}
+
+function catalogQueueHas(id) {
+  return (state.catalogQueue || []).some(
+    (j) =>
+      (j.id === id || j.spec === id || String(j.spec).startsWith(`${id}:`)) &&
+      (j.status === 'queued' || j.status === 'downloading'),
+  );
+}
+
+function catalogDlDockHtml() {
+  const jobs = state.catalogQueue || [];
+  if (!jobs.length) return '';
+  const rows = jobs
+    .map((job) => {
+      const pct = catalogJobPct(job);
+      const speed = catalogJobSpeed(job);
+      const eta = catalogJobEta(job);
+      const active = job.status === 'downloading';
+      const barClass = active && job.total <= 0 ? ' is-indeterminate' : '';
+      let detail = t('catalog.dlQueued');
+      if (job.status === 'downloading') {
+        const parts = [];
+        if (job.total > 0) {
+          parts.push(`${pct}%`);
+          parts.push(
+            `${fmtMb(job.bytes / (1024 * 1024))} / ${fmtMb(job.total / (1024 * 1024))}`,
+          );
+        }
+        if (speed > 0) parts.push(tf('catalog.dlSpeed', { speed: fmtSpeed(speed) }));
+        parts.push(
+          eta != null ? tf('catalog.dlEta', { time: fmtDuration(eta) }) : t('catalog.dlEtaCalc'),
+        );
+        detail = parts.join(' · ');
+      } else if (job.status === 'done') {
+        detail = t('catalog.dlDone');
+      } else if (job.status === 'error') {
+        detail = job.error || t('catalog.dlError');
+      } else {
+        detail = t('catalog.dlWaiting');
+      }
+      const badge =
+        job.status === 'downloading'
+          ? t('catalog.dlActive')
+          : job.status === 'queued'
+            ? t('catalog.dlQueued')
+            : job.status === 'done'
+              ? t('catalog.dlDone')
+              : t('catalog.dlError');
+      return `
+        <div class="catalog-dl-job catalog-dl-${escapeHtml(job.status)}" data-dl-id="${escapeHtml(job.spec)}">
+          <div class="catalog-dl-job-head">
+            <div>
+              <div class="cell-primary">${escapeHtml(job.label || job.id)}</div>
+              <div class="cell-sub mono">${escapeHtml(job.spec)}</div>
+            </div>
+            <span class="badge ${job.status === 'error' ? 'warn' : job.status === 'done' ? 'success' : 'muted'}">${escapeHtml(badge)}</span>
+          </div>
+          <div class="catalog-pull-progress${barClass}">
+            <div class="catalog-pull-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+              <span style="width:${job.total > 0 ? pct : 0}%"></span>
+            </div>
+            <div class="catalog-pull-meta muted">${escapeHtml(detail)}</div>
+          </div>
+        </div>`;
+    })
+    .join('');
+  return `
+    <section id="cat-dl-dock" class="panel catalog-dl-dock" aria-live="polite">
+      <div class="panel-h">
+        <div class="panel-h-text">
+          <strong>${escapeHtml(t('catalog.dlQueue'))}</strong>
+          <span class="muted">${escapeHtml(String(jobs.length))}</span>
+        </div>
+      </div>
+      <div class="catalog-dl-list">${rows}</div>
+    </section>`;
+}
+
+function paintCatalogQueue() {
+  const host = document.getElementById('cat-dl-dock');
+  const html = catalogDlDockHtml();
+  if (!html) {
+    if (host) host.remove();
+    return;
   }
+  if (host) {
+    host.outerHTML = html;
+    return;
+  }
+  const tabs = document.querySelector('.catalog-tabs-panel');
+  if (tabs) tabs.insertAdjacentHTML('beforebegin', html);
 }
 
-function setCatalogPullProgress(id, bytes, total) {
-  state.catalogPulling = id || '';
-  state.catalogPull = {
-    id: id || '',
-    bytes: Number(bytes) || 0,
-    total: Number(total) || 0,
-  };
-  const banner = document.getElementById('cat-pull-banner');
-  if (banner) banner.hidden = !id;
-  document.querySelectorAll('[data-pull-live="1"]').forEach((el) => {
-    updatePullProgress(el, bytes, total);
+function enqueueCatalogPull(spec, label) {
+  const q = state.catalogQueue || [];
+  if (q.some((j) => j.spec === spec && (j.status === 'queued' || j.status === 'downloading'))) {
+    return;
+  }
+  q.push({
+    id: spec.split(':')[0],
+    spec,
+    label: label || spec,
+    status: 'queued',
+    bytes: 0,
+    total: 0,
+    samples: [],
+    error: '',
   });
+  state.catalogQueue = q;
+  paintCatalogQueue();
+  pumpCatalogQueue().catch(onErr);
 }
 
-function clearCatalogPull() {
-  state.catalogPulling = '';
-  state.catalogPull = { id: '', bytes: 0, total: 0 };
-  const banner = document.getElementById('cat-pull-banner');
-  if (banner) banner.hidden = true;
+async function pumpCatalogQueue() {
+  if (state.catalogQueueRunning) return;
+  const job = (state.catalogQueue || []).find((j) => j.status === 'queued');
+  if (!job) return;
+  state.catalogQueueRunning = true;
+  job.status = 'downloading';
+  job.samples = [{ t: Date.now(), bytes: 0 }];
+  paintCatalogQueue();
+  try {
+    const res = await fetch(`${API}/catalog/pull`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
+      },
+      body: JSON.stringify({ model: job.spec }),
+    });
+    const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+    let text = '';
+    if (reader) {
+      const dec = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += dec.decode(value, { stream: true });
+        const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+        const last = lines[lines.length - 1];
+        if (!last) continue;
+        try {
+          const ev = JSON.parse(last);
+          if (ev.status === 'downloading') {
+            job.bytes = Number(ev.bytes) || 0;
+            job.total = Number(ev.total) || 0;
+            job.samples.push({ t: Date.now(), bytes: job.bytes });
+            if (job.samples.length > 10) job.samples.shift();
+            paintCatalogQueue();
+          }
+        } catch {
+          /* partial line */
+        }
+      }
+    } else {
+      text = await res.text();
+    }
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
+    if (!res.ok) throw new Error(last.error?.message || last.reason || res.statusText);
+    assertPullRecorded(last);
+    job.status = 'done';
+    job.bytes = job.total || job.bytes;
+    paintCatalogQueue();
+    setTimeout(() => {
+      state.catalogQueue = (state.catalogQueue || []).filter((j) => j !== job);
+      const busy = (state.catalogQueue || []).some(
+        (j) => j.status === 'queued' || j.status === 'downloading',
+      );
+      if (state.page === 'catalog' && !busy) renderCatalog().catch(onErr);
+      else paintCatalogQueue();
+    }, 1800);
+  } catch (err) {
+    job.status = 'error';
+    job.error = err instanceof Error ? err.message : String(err);
+    paintCatalogQueue();
+    onErr(err);
+  } finally {
+    state.catalogQueueRunning = false;
+    pumpCatalogQueue().catch(onErr);
+  }
 }
 
 async function loadCatalogHub({ append = false } = {}) {
@@ -9797,7 +9957,7 @@ async function renderCatalog() {
   const visiblePacks = modality
     ? packs.filter((p) => p.modality === modality)
     : packs;
-  const pulling = state.catalogPulling || state.catalogPull?.id || '';
+
 
   const packRows = visiblePacks
     .map((p) => {
@@ -9812,7 +9972,7 @@ async function renderCatalog() {
             )
             .join('')}</select>`
         : `<span class="muted">${escapeHtml(t('catalog.noQuant'))}</span>`;
-      const isPulling = pulling === p.id;
+      const isPulling = catalogQueueHas(p.id);
       const pullLabel = isPulling
         ? t('catalog.pulling')
         : onDisk.length
@@ -9836,7 +9996,6 @@ async function renderCatalog() {
         <td>
           <div class="row-actions">
             <button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(p.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(pullLabel)}</button>
-            ${catalogPullProgressHtml(p.id, isPulling)}
           </div>
         </td>
       </tr>`;
@@ -9970,7 +10129,7 @@ async function renderCatalog() {
   const hubRows = hubHits
     .map((h) => {
       const onDisk = catalogLocalsForPack({ id: h.id }, local);
-      const isPulling = pulling === h.id || pulling.startsWith(`${h.id}:`);
+      const isPulling = catalogQueueHas(h.id);
       const pullBtn = h.supported
         ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
         : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
@@ -9999,9 +10158,8 @@ async function renderCatalog() {
               : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
         }</td>
         <td>
-          <div class="row-actions catalog-pull-actions">
+          <div class="row-actions">
             ${pullBtn}
-            ${catalogPullProgressHtml(h.id, isPulling)}
           </div>
         </td>
       </tr>`;
@@ -10084,12 +10242,6 @@ async function renderCatalog() {
         <button type="button" class="btn sm" id="cat-sync">${escapeHtml(t('catalog.sync'))}</button>
       </div>
     </div>
-    <div id="cat-pull-banner" class="catalog-pull-banner" ${pulling ? '' : 'hidden'}>
-      <div class="catalog-pull-banner-copy">
-        <strong>${escapeHtml(tf('catalog.pullingBanner', { id: pulling || '—' }))}</strong>
-      </div>
-      ${catalogPullProgressHtml(pulling || 'banner', Boolean(pulling))}
-    </div>
     ${pageMetaHtml([
       t('catalog.intro'),
       t('catalog.syncHint'),
@@ -10098,6 +10250,7 @@ async function renderCatalog() {
         : '',
     ])}
     ${kpiGrid}
+    ${catalogDlDockHtml()}
     <div class="usage-tabs-panel panel catalog-tabs-panel media-tabs-panel">
       <div class="seg-tabs" role="tablist" aria-label="${escapeHtml(t('catalog.title'))}">
         <button type="button" role="tab" class="seg-tab ${tab === 'local' ? 'is-active' : ''}" data-catalog-tab="local" aria-selected="${tab === 'local'}">
@@ -10214,64 +10367,13 @@ async function renderCatalog() {
     }
   });
   document.querySelectorAll('[data-pull]').forEach((btn) => {
-    btn.onclick = async () => {
+    btn.onclick = () => {
       const packId = btn.getAttribute('data-pull') || '';
       const sel = document.querySelector(`[data-quant-for="${CSS.escape(packId)}"]`);
       const quant = sel && sel.value ? sel.value : '';
       const spec = quant ? `${packId}:${quant}` : packId;
+      enqueueCatalogPull(spec, catalogPackName({ id: packId }));
       btn.disabled = true;
-      btn.textContent = t('catalog.pulling');
-      setCatalogPullProgress(packId, 0, 0);
-      try {
-        const res = await fetch(`${API}/catalog/pull`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
-          },
-          body: JSON.stringify({ model: spec }),
-        });
-        const reader = res.body && res.body.getReader ? res.body.getReader() : null;
-        let text = '';
-        if (reader) {
-          const dec = new TextDecoder();
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = dec.decode(value, { stream: true });
-            text += chunk;
-            const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-            const last = lines[lines.length - 1];
-            if (!last) continue;
-            try {
-              const ev = JSON.parse(last);
-              if (ev.status === 'downloading') {
-                setCatalogPullProgress(packId, ev.bytes, ev.total);
-              } else if (ev.status) {
-                setCatalogPullProgress(packId, state.catalogPull.bytes, state.catalogPull.total);
-              }
-            } catch {
-              /* partial line */
-            }
-          }
-        } else {
-          text = await res.text();
-        }
-        const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-        const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
-        if (!res.ok) {
-          throw new Error(last.error?.message || last.reason || res.statusText);
-        }
-        assertPullRecorded(last);
-        clearCatalogPull();
-        state.catalogTab = 'local';
-        await renderCatalog();
-      } catch (e) {
-        clearCatalogPull();
-        btn.disabled = false;
-        btn.textContent = t('catalog.pull');
-        onErr(e);
-      }
     };
   });
   document.querySelectorAll('[data-load]').forEach((btn) => {
@@ -10323,65 +10425,10 @@ async function renderCatalog() {
       }
     };
   });
-  document.getElementById('cat-spec-pull')?.addEventListener('click', async () => {
+  document.getElementById('cat-spec-pull')?.addEventListener('click', () => {
     const spec = document.getElementById('cat-spec')?.value.trim();
     if (!spec) return;
-    const btn = document.getElementById('cat-spec-pull');
-    if (btn) {
-      btn.setAttribute('disabled', 'disabled');
-      btn.textContent = t('catalog.pulling');
-    }
-    setCatalogPullProgress(spec, 0, 0);
-    try {
-      const res = await fetch(`${API}/catalog/pull`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
-        },
-        body: JSON.stringify({ model: spec }),
-      });
-      const reader = res.body && res.body.getReader ? res.body.getReader() : null;
-      let text = '';
-      if (reader) {
-        const dec = new TextDecoder();
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = dec.decode(value, { stream: true });
-          text += chunk;
-          const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-          const last = lines[lines.length - 1];
-          if (!last) continue;
-          try {
-            const ev = JSON.parse(last);
-            if (ev.status === 'downloading') {
-              setCatalogPullProgress(spec, ev.bytes, ev.total);
-            }
-          } catch {
-            /* partial line */
-          }
-        }
-      } else {
-        text = await res.text();
-      }
-      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-      const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
-      if (!res.ok) {
-        throw new Error(last.error?.message || last.reason || res.statusText);
-      }
-      assertPullRecorded(last);
-      clearCatalogPull();
-      state.catalogTab = 'local';
-      await renderCatalog();
-    } catch (e) {
-      clearCatalogPull();
-      if (btn) {
-        btn.removeAttribute('disabled');
-        btn.textContent = t('catalog.pullSpecBtn');
-      }
-      onErr(e);
-    }
+    enqueueCatalogPull(spec, spec);
   });
 }
 
