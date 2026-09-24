@@ -9902,26 +9902,128 @@ async function pumpCatalogQueue() {
   }
 }
 
+function catalogHubRowHtml(h, local) {
+  const onDisk = catalogLocalsForPack({ id: h.id }, local);
+  const isPulling = catalogQueueHas(h.id);
+  const canPull = h.runtime === 'llamacpp';
+  const pullBtn = canPull
+    ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
+    : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
+  return `
+      <tr>
+        <td>
+          <div class="cell-primary">${escapeHtml(catalogPackName(h))}</div>
+          <div class="cell-sub mono">${escapeHtml(h.id)}</div>
+        </td>
+        <td><span class="badge muted">${escapeHtml(catalogModalityLabel(h.modality))}</span></td>
+        <td><span class="badge muted">${escapeHtml(h.runtime || '—')}</span></td>
+        <td class="catalog-vram-cell">
+          <div class="cell-primary">${escapeHtml(fmtMb(h.sizeMb))}</div>
+          <div class="cell-sub">${escapeHtml(h.sizeLabel || t('catalog.sizeEst'))}</div>
+        </td>
+        <td class="catalog-vram-cell">
+          <div class="cell-primary">${escapeHtml(fmtMb(h.vramMb))}</div>
+          <div class="cell-sub">${h.paramsB ? escapeHtml(`${h.paramsB}B`) : escapeHtml(t('catalog.sizeEst'))}</div>
+        </td>
+        <td>${escapeHtml(fmtDownloads(h.downloads))}</td>
+        <td>${
+          onDisk.length
+            ? `<span class="badge success">${escapeHtml(t('catalog.onDisk'))}</span>`
+            : canPull
+              ? `<span class="muted">—</span>`
+              : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
+        }</td>
+        <td>
+          <div class="row-actions">
+            ${pullBtn}
+          </div>
+        </td>
+      </tr>`;
+}
+
+function bindCatalogPullButtons(root) {
+  (root || document).querySelectorAll('[data-pull]').forEach((btn) => {
+    if (btn.dataset.boundPull === '1') return;
+    btn.dataset.boundPull = '1';
+    btn.onclick = () => {
+      const packId = btn.getAttribute('data-pull') || '';
+      const sel = document.querySelector(`[data-quant-for="${CSS.escape(packId)}"]`);
+      const quant = sel && sel.value ? sel.value : '';
+      const spec = quant ? `${packId}:${quant}` : packId;
+      enqueueCatalogPull(spec, catalogPackName({ id: packId }));
+      btn.disabled = true;
+    };
+  });
+}
+
+function catalogHubPagerHtml(shown, hasMore, loading) {
+  return `
+    <div class="data-pager" id="cat-hub-pager">
+      <div class="data-pager-meta">
+        <span id="cat-hub-count">${escapeHtml(tf('common.pagerTotal', { n: shown }))}</span>
+      </div>
+      <div class="data-pager-actions">
+        <button type="button" class="btn secondary sm" id="cat-hub-more" ${hasMore && !loading ? '' : 'disabled'}>${escapeHtml(loading ? t('catalog.hubLoading') : t('catalog.hubMore'))}</button>
+      </div>
+    </div>`;
+}
+
 async function loadCatalogHub({ append = false } = {}) {
   if (state.catalogHubBusy) return;
   state.catalogHubBusy = true;
+  const moreBtn = document.getElementById('cat-hub-more');
+  if (moreBtn) {
+    moreBtn.disabled = true;
+    moreBtn.textContent = t('catalog.hubLoading');
+  }
+  const y = window.scrollY;
   try {
     const qs = new URLSearchParams();
     if (state.catalogHubQ) qs.set('q', state.catalogHubQ);
     if (state.catalogModality) qs.set('modality', state.catalogModality);
     if (append && state.catalogHubNext) qs.set('cursor', state.catalogHubNext);
     const data = await api(`/catalog/hub?${qs}`);
-    const hits = data.hits || [];
+    const hits = (data.hits || []).filter((h) => h.supported !== false);
     state.catalogHubHits = append
       ? [...(state.catalogHubHits || []), ...hits]
       : hits;
     state.catalogHubNext = data.nextCursor || '';
+    if (append) {
+      const tbody = document.getElementById('cat-hub-tbody');
+      if (tbody) {
+        tbody.querySelector('.empty-row')?.remove();
+        const local = state.catalogLocal || [];
+        tbody.insertAdjacentHTML(
+          'beforeend',
+          hits.map((h) => catalogHubRowHtml(h, local)).join(''),
+        );
+        bindCatalogPullButtons(tbody);
+      }
+      const count = document.getElementById('cat-hub-count');
+      const shown = (state.catalogHubHits || []).length;
+      if (count) count.textContent = tf('common.pagerTotal', { n: shown });
+      const headMeta = document.querySelector('#catalog-tab-hub .panel-h-meta');
+      if (headMeta) headMeta.textContent = tf('common.pagerTotal', { n: shown });
+      if (moreBtn) {
+        moreBtn.textContent = t('catalog.hubMore');
+        moreBtn.disabled = !state.catalogHubNext;
+        if (!state.catalogHubNext) moreBtn.remove();
+      }
+      window.scrollTo(0, y);
+      return;
+    }
+    await renderCatalog();
   } catch (e) {
     if (!append) state.catalogHubHits = [];
     onErr(e);
+    if (!append) await renderCatalog();
   } finally {
     state.catalogHubBusy = false;
-    await renderCatalog();
+    if (moreBtn && document.body.contains(moreBtn)) {
+      moreBtn.disabled = !state.catalogHubNext;
+      moreBtn.textContent = t('catalog.hubMore');
+    }
+    if (append) window.scrollTo(0, y);
   }
 }
 
@@ -9934,6 +10036,7 @@ async function renderCatalog() {
   }
   const packs = data.packs && data.packs.length ? data.packs : CURATED_PACKS;
   const local = data.local || [];
+  state.catalogLocal = local;
   const loaded = data.loaded || [];
   if (data.popularSyncedAt) state.catalogPopularSyncedAt = data.popularSyncedAt;
   if (
@@ -10128,46 +10231,7 @@ async function renderCatalog() {
   const hubHits = (Array.isArray(state.catalogHubHits) ? state.catalogHubHits : []).filter(
     (h) => h.supported !== false,
   );
-  const hubRows = hubHits
-    .map((h) => {
-      const onDisk = catalogLocalsForPack({ id: h.id }, local);
-      const isPulling = catalogQueueHas(h.id);
-      const canPull = h.runtime === 'llamacpp';
-      const pullBtn = canPull
-        ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
-        : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
-      return `
-      <tr>
-        <td>
-          <div class="cell-primary">${escapeHtml(catalogPackName(h))}</div>
-          <div class="cell-sub mono">${escapeHtml(h.id)}</div>
-        </td>
-        <td><span class="badge muted">${escapeHtml(catalogModalityLabel(h.modality))}</span></td>
-        <td><span class="badge muted">${escapeHtml(h.runtime || '—')}</span></td>
-        <td class="catalog-vram-cell">
-          <div class="cell-primary">${escapeHtml(fmtMb(h.sizeMb))}</div>
-          <div class="cell-sub">${escapeHtml(h.sizeLabel || t('catalog.sizeEst'))}</div>
-        </td>
-        <td class="catalog-vram-cell">
-          <div class="cell-primary">${escapeHtml(fmtMb(h.vramMb))}</div>
-          <div class="cell-sub">${h.paramsB ? escapeHtml(`${h.paramsB}B`) : escapeHtml(t('catalog.sizeEst'))}</div>
-        </td>
-        <td>${escapeHtml(fmtDownloads(h.downloads))}</td>
-        <td>${
-          onDisk.length
-            ? `<span class="badge success">${escapeHtml(t('catalog.onDisk'))}</span>`
-            : canPull
-              ? `<span class="muted">—</span>`
-              : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
-        }</td>
-        <td>
-          <div class="row-actions">
-            ${pullBtn}
-          </div>
-        </td>
-      </tr>`;
-    })
-    .join('');
+  const hubRows = hubHits.map((h) => catalogHubRowHtml(h, local)).join('');
   const hubEmpty = `
     <tr class="empty-row"><td colspan="8">
       <div class="data-empty">
@@ -10228,14 +10292,10 @@ async function renderCatalog() {
             <th>${escapeHtml(t('catalog.colStatus'))}</th>
             <th>${escapeHtml(t('common.actions'))}</th>
           </tr></thead>
-          <tbody>${hubRows || hubEmpty}</tbody>
+          <tbody id="cat-hub-tbody">${hubRows || hubEmpty}</tbody>
         </table>
       </div>
-      ${
-        state.catalogHubNext
-          ? `<div class="pager"><button type="button" class="btn secondary sm" id="cat-hub-more">${escapeHtml(t('catalog.hubMore'))}</button></div>`
-          : ''
-      }
+      ${hubHits.length ? catalogHubPagerHtml(hubHits.length, Boolean(state.catalogHubNext), false) : ''}
     </div>`;
 
   document.getElementById('app').innerHTML = shell(`
@@ -10369,16 +10429,7 @@ async function renderCatalog() {
       onErr(e);
     }
   });
-  document.querySelectorAll('[data-pull]').forEach((btn) => {
-    btn.onclick = () => {
-      const packId = btn.getAttribute('data-pull') || '';
-      const sel = document.querySelector(`[data-quant-for="${CSS.escape(packId)}"]`);
-      const quant = sel && sel.value ? sel.value : '';
-      const spec = quant ? `${packId}:${quant}` : packId;
-      enqueueCatalogPull(spec, catalogPackName({ id: packId }));
-      btn.disabled = true;
-    };
-  });
+  bindCatalogPullButtons(document);
   document.querySelectorAll('[data-load]').forEach((btn) => {
     btn.onclick = async () => {
       try {

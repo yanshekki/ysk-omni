@@ -34,6 +34,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('cat-spec');
     expect(boot).toContain('catalog-hub-stack');
     expect(boot).toContain('cat-hub-go');
+    expect(boot).toContain('cat-hub-pager');
+    expect(boot).toContain('data-pager');
     expect(boot).toContain('catalog-pull-bar');
     expect(boot).toContain('cat-dl-dock');
     expect(boot).toContain('Download queue');
