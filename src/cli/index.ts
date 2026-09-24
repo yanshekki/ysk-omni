@@ -73,10 +73,14 @@ import { cmdAuditList } from './commands/audit';
 import { cmdStats } from './commands/stats';
 import {
   cmdCatalog,
+  cmdCatalogSearch,
+  cmdCatalogSync,
   cmdShow,
   cmdPull,
   cmdLocalModels,
   cmdRm,
+  cmdLoad,
+  cmdUnload,
 } from './commands/catalog';
 import {
   cmdGrokInspect,
@@ -729,12 +733,28 @@ program
     await cmdStats(globalOpts());
   });
 
-program
+const catalogCmd = program
   .command('catalog')
-  .description('List curated Hugging Face packs')
+  .description('Local registry + Hub (search, sync popular GGUF ids)')
   .option('--modality <m>', 'Filter: text|image|video|tts|stt')
   .action(async (opts: { modality?: string }) => {
     await cmdCatalog({ ...globalOpts(), modality: opts.modality });
+  });
+
+catalogCmd
+  .command('search')
+  .description('Search Hugging Face Hub (runnable runtimes only)')
+  .argument('[q]', 'Search string')
+  .option('--modality <m>', 'text|image|video|tts|stt')
+  .action(async (q: string | undefined, opts: { modality?: string }) => {
+    await cmdCatalogSearch({ ...globalOpts(), q, modality: opts.modality });
+  });
+
+catalogCmd
+  .command('sync')
+  .description('Cache top 50 GGUF ids by downloads (metadata only)')
+  .action(async () => {
+    await cmdCatalogSync(globalOpts());
   });
 
 program
@@ -762,10 +782,26 @@ program
 
 program
   .command('rm')
-  .description('Remove a model from the local registry')
+  .description('Delete a local model (registry + file under models/)')
   .argument('<id>', 'Registry id')
   .action(async (id: string) => {
     await cmdRm({ ...globalOpts(), id });
+  });
+
+program
+  .command('load')
+  .description('Load a local GGUF into llama-server (or vLLM)')
+  .argument('<id>', 'Registry id')
+  .action(async (id: string) => {
+    await cmdLoad({ ...globalOpts(), id });
+  });
+
+program
+  .command('unload')
+  .description('Unload a local engine')
+  .argument('<id>', 'Registry id')
+  .action(async (id: string) => {
+    await cmdUnload({ ...globalOpts(), id });
   });
 
 const grokEnvCmd = program

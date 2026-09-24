@@ -216,7 +216,7 @@ const state = {
   /** API features tab: 'protocols' | 'media' | 'caps' | 'emu' */
   apiFeaturesTab: 'protocols',
   /** Catalog: 'packs' | 'local' */
-  catalogTab: 'packs',
+  catalogTab: 'local',
   catalogModality: '',
   catalogPulling: '',
   catalogHubQ: '',
@@ -9708,11 +9708,9 @@ async function renderCatalog() {
     ? Math.min(100, Math.round((usedMb / budgetMb) * 100))
     : 0;
   const tab =
-    state.catalogTab === 'local' ||
-    state.catalogTab === 'packs' ||
-    state.catalogTab === 'hub'
+    state.catalogTab === 'hub' || state.catalogTab === 'local'
       ? state.catalogTab
-      : 'packs';
+      : 'local';
   state.catalogTab = tab;
   const modality = state.catalogModality || '';
   const modalities = ['text', 'image', 'video', 'tts', 'stt'];
@@ -9792,6 +9790,7 @@ async function renderCatalog() {
           <div class="row-actions">
             <button type="button" class="btn sm" data-load="${escapeHtml(m.id)}" data-vram="${m.vramMb ?? 0}" ${isLoaded ? 'disabled' : ''}>${escapeHtml(t('catalog.load'))}</button>
             <button type="button" class="btn secondary sm" data-unload="${escapeHtml(m.id)}" ${isLoaded ? '' : 'disabled'}>${escapeHtml(t('catalog.unload'))}</button>
+            <button type="button" class="btn danger sm" data-rm="${escapeHtml(m.id)}">${escapeHtml(t('catalog.delete'))}</button>
           </div>
         </td>
       </tr>`;
@@ -9827,9 +9826,9 @@ async function renderCatalog() {
         <div class="muted card-sub">${escapeHtml(t('catalog.kpiLocalSub'))}</div>
       </div>
       <div class="card">
-        <div class="label">${escapeHtml(t('catalog.kpiPacks'))}</div>
-        <div class="value value-sm">${packs.length}</div>
-        <div class="muted card-sub">${escapeHtml(t('catalog.kpiPacksSub'))}</div>
+        <div class="label">${escapeHtml(t('catalog.tabHub'))}</div>
+        <div class="value value-sm">${(data.popular || []).length}</div>
+        <div class="muted card-sub">${escapeHtml(t('catalog.sync'))}</div>
       </div>
     </div>`;
 
@@ -9885,7 +9884,9 @@ async function renderCatalog() {
       </div>
     </div>`;
 
-  const hubHits = Array.isArray(state.catalogHubHits) ? state.catalogHubHits : [];
+  const hubHits = (Array.isArray(state.catalogHubHits) ? state.catalogHubHits : []).filter(
+    (h) => h.supported !== false,
+  );
   const hubRows = hubHits
     .map((h) => {
       const onDisk = catalogLocalsForPack({ id: h.id }, local);
@@ -9945,7 +9946,13 @@ async function renderCatalog() {
             )
             .join('')}
         </select>
-      </label>`,
+      </label>
+      <label>${escapeHtml(t('catalog.pullSpec'))}
+        <input type="text" id="cat-spec" placeholder="${escapeHtml(t('catalog.pullSpecPh'))}" autocomplete="off" />
+      </label>
+      <div class="data-filter-actions-inline">
+        <button type="button" class="btn sm" id="cat-spec-pull">${escapeHtml(t('catalog.pullSpecBtn'))}</button>
+      </div>`,
   });
   const hubTable = `
     <div class="panel data-table-panel">
@@ -9986,10 +9993,6 @@ async function renderCatalog() {
     ${kpiGrid}
     <div class="usage-tabs-panel panel catalog-tabs-panel media-tabs-panel">
       <div class="seg-tabs" role="tablist" aria-label="${escapeHtml(t('catalog.title'))}">
-        <button type="button" role="tab" class="seg-tab ${tab === 'packs' ? 'is-active' : ''}" data-catalog-tab="packs" aria-selected="${tab === 'packs'}">
-          ${escapeHtml(t('catalog.tabPacks'))}
-          <span class="seg-tab-count">${packs.length}</span>
-        </button>
         <button type="button" role="tab" class="seg-tab ${tab === 'local' ? 'is-active' : ''}" data-catalog-tab="local" aria-selected="${tab === 'local'}">
           ${escapeHtml(t('catalog.tabLocal'))}
           <span class="seg-tab-count">${local.length}</span>
@@ -9999,10 +10002,6 @@ async function renderCatalog() {
         </button>
       </div>
       <div class="usage-tab-body">
-        <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-packs" ${tab === 'packs' ? '' : 'hidden'}>
-          ${modFilter}
-          ${packsTable}
-        </div>
         <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-local" ${tab === 'local' ? '' : 'hidden'}>
           ${localTable}
         </div>
@@ -10184,6 +10183,62 @@ async function renderCatalog() {
         onErr(e);
       }
     };
+  });
+  document.querySelectorAll('[data-rm]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute('data-rm') || '';
+      const yes = await uiConfirm({
+        variant: 'danger',
+        message: tf('catalog.deleteConfirm', { id }),
+        confirmText: t('catalog.delete'),
+      });
+      if (!yes) return;
+      try {
+        await api('/catalog/rm', {
+          method: 'POST',
+          body: JSON.stringify({ id }),
+        });
+        await renderCatalog();
+      } catch (e) {
+        onErr(e);
+      }
+    };
+  });
+  document.getElementById('cat-spec-pull')?.addEventListener('click', async () => {
+    const spec = document.getElementById('cat-spec')?.value.trim();
+    if (!spec) return;
+    const btn = document.getElementById('cat-spec-pull');
+    if (btn) {
+      btn.setAttribute('disabled', 'disabled');
+      btn.textContent = t('catalog.pulling');
+    }
+    state.catalogPulling = spec;
+    try {
+      const res = await fetch(`${API}/catalog/pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
+        },
+        body: JSON.stringify({ model: spec }),
+      });
+      const text = await res.text();
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
+      if (!res.ok || last.status === 'error') {
+        throw new Error(last.error?.message || last.reason || res.statusText);
+      }
+      state.catalogPulling = '';
+      state.catalogTab = 'local';
+      await renderCatalog();
+    } catch (e) {
+      state.catalogPulling = '';
+      if (btn) {
+        btn.removeAttribute('disabled');
+        btn.textContent = t('catalog.pullSpecBtn');
+      }
+      onErr(e);
+    }
   });
 }
 

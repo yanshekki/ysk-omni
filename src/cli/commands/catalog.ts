@@ -1,53 +1,57 @@
-import { loadCuratedPacks, type CuratedPack } from '../../catalog/curated';
 import { parseHfSpec, listQuants } from '../../services/hf/spec';
 import { listHubFiles, pullModel } from '../../services/hf/client';
 import { recordPullIfOk } from '../../services/hf/record-pull';
+import { findEntry, loadRegistry } from '../../services/hf/registry';
+import { deleteLocalModel } from '../../services/hf/delete-local';
 import {
-  findEntry,
-  loadRegistry,
-  removeEntry,
-} from '../../services/hf/registry';
+  loadPopularCache,
+  searchHub,
+  syncPopularGguf,
+} from '../../services/hf/hub-search';
+import {
+  engineManager,
+  readEnginesState,
+} from '../../services/runtimes/engine-manager';
 import { initCliRuntime, emitJson, type CliOpts } from '../lib/runtime-context';
 import { fail, info, ok } from '../lib/print';
 import path from 'node:path';
 import { ECHO_MODEL_ID } from '../../services/runtimes/echo';
 
-function printPack(p: CuratedPack): void {
-  const q = p.quants.length ? p.quants.join(', ') : '(safetensors / no GGUF list)';
-  info(`  ${p.id}  [${p.modality}/${p.runtime}]  quants: ${q}`);
-}
-
 export async function cmdCatalog(
   opts: CliOpts & { modality?: string },
 ): Promise<void> {
-  initCliRuntime(opts);
-  const packs = loadCuratedPacks().filter((p) =>
-    opts.modality ? p.modality === opts.modality : true,
+  const rt = initCliRuntime(opts);
+  const file = path.join(rt.paths.home, 'registry.json');
+  const models = loadRegistry(file).models.filter((m) =>
+    opts.modality ? m.modality === opts.modality : true,
   );
+  const popular = loadPopularCache();
   if (opts.json) {
-    emitJson({ packs });
+    emitJson({ models, popular: popular?.hits || [], popularSyncedAt: popular?.syncedAt || null });
     return;
   }
-  ok(`Curated catalog (${packs.length})`);
-  for (const p of packs) printPack(p);
+  ok(`Local models (${models.length})`);
+  for (const m of models) {
+    info(`  ${m.id}  [${m.modality}/${m.runtime}]  ${m.path || '(no file)'}`);
+  }
+  if (popular?.hits?.length) {
+    ok(`Synced popular GGUF (${popular.hits.length})  ${popular.syncedAt}`);
+    for (const h of popular.hits.slice(0, 12)) {
+      info(`  ${h.id}  [${h.modality}/${h.runtime}]  ${h.downloads}`);
+    }
+    if (popular.hits.length > 12) info(`  … ${popular.hits.length - 12} more (catalog search / Admin)`);
+  }
 }
 
 export async function cmdShow(opts: CliOpts & { spec: string }): Promise<void> {
   initCliRuntime(opts);
   const spec = parseHfSpec(opts.spec);
-  const packs = loadCuratedPacks();
-  const curated = packs.find(
-    (p) => p.repoId === spec.repoId || p.id === spec.repoId,
-  );
-  let quants = curated?.quants ? [...curated.quants] : [];
+  let quants: string[] = [];
   try {
     const files = await listHubFiles(spec.repoId);
-    const fromHub = listQuants(files);
-    for (const q of fromHub) {
-      if (!quants.includes(q)) quants.push(q);
-    }
+    quants = listQuants(files);
   } catch {
-    /* curated list is enough for offline show */
+    /* Hub unavailable */
   }
   if (opts.json) {
     emitJson({ repoId: spec.repoId, quant: spec.quant, quants });
@@ -107,18 +111,102 @@ export async function cmdLocalModels(opts: CliOpts): Promise<void> {
 }
 
 export async function cmdRm(opts: CliOpts & { id: string }): Promise<void> {
-  const rt = initCliRuntime(opts);
-  const file = path.join(rt.paths.home, 'registry.json');
-  const hit = findEntry(opts.id, file);
-  const okDel = removeEntry(hit?.id || opts.id, file);
-  if (!okDel) {
+  initCliRuntime(opts);
+  try {
+    const out = await deleteLocalModel(opts.id);
+    if (opts.json) {
+      emitJson(out);
+      return;
+    }
+    ok(`Removed ${out.removed}${out.file ? ` and deleted ${out.file}` : ''}`);
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+  }
+}
+
+export async function cmdCatalogSearch(
+  opts: CliOpts & { q?: string; modality?: string },
+): Promise<void> {
+  initCliRuntime(opts);
+  try {
+    const data = await searchHub({
+      q: opts.q,
+      modality: opts.modality,
+      limit: 24,
+    });
+    if (opts.json) {
+      emitJson(data);
+      return;
+    }
+    ok(`Hub search (${data.hits.length})`);
+    for (const h of data.hits) {
+      info(`  ${h.id}  [${h.modality}/${h.runtime}]  dl=${h.downloads}`);
+    }
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+  }
+}
+
+export async function cmdCatalogSync(opts: CliOpts): Promise<void> {
+  initCliRuntime(opts);
+  try {
+    const cache = await syncPopularGguf();
+    if (opts.json) {
+      emitJson({ count: cache.hits.length, syncedAt: cache.syncedAt, hits: cache.hits });
+      return;
+    }
+    ok(`Synced ${cache.hits.length} popular GGUF ids (metadata only)`);
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+  }
+}
+
+export async function cmdLoad(opts: CliOpts & { id: string }): Promise<void> {
+  initCliRuntime(opts);
+  const entry = findEntry(opts.id);
+  if (!entry) {
     fail(`not found: ${opts.id}`);
     process.exitCode = 1;
     return;
   }
+  try {
+    const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));
+    const eng =
+      isGguf || entry.runtime === 'llamacpp'
+        ? await engineManager.loadGguf(entry)
+        : await engineManager.loadVllm(entry);
+    if (opts.json) {
+      emitJson({ id: eng.id, port: eng.port, kind: eng.kind });
+      return;
+    }
+    ok(`Loaded ${eng.id} on 127.0.0.1:${eng.port} (${eng.kind})`);
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+  }
+}
+
+export async function cmdUnload(opts: CliOpts & { id: string }): Promise<void> {
+  initCliRuntime(opts);
+  const removed = await engineManager.unload(opts.id);
+  const row = readEnginesState().loaded.find((e) => e.id === opts.id);
+  if (row?.pid) {
+    try {
+      process.kill(row.pid, 'SIGTERM');
+    } catch {
+      /* ignore */
+    }
+  }
   if (opts.json) {
-    emitJson({ removed: hit?.id || opts.id });
+    emitJson({ unloaded: removed || Boolean(row) });
     return;
   }
-  ok(`Removed ${hit?.id || opts.id}`);
+  if (removed || row) ok(`Unloaded ${opts.id}`);
+  else {
+    fail(`not loaded: ${opts.id}`);
+    process.exitCode = 1;
+  }
 }

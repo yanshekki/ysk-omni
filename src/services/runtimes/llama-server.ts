@@ -73,7 +73,9 @@ export async function spawnLlamaServer(modelPath: string): Promise<SpawnedLlama>
   const port = pickPort();
   const child: ChildProcess = spawn(bin, llamaServerArgs(modelPath, port), {
     stdio: 'ignore',
+    detached: true,
   });
+  child.unref();
   try {
     await waitForHttp(`http://127.0.0.1:${port}/health`, healthTimeoutMs(modelPath));
     return { child, port };

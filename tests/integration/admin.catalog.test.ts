@@ -85,6 +85,16 @@ describe('admin catalog + Hub search', () => {
     }
   });
 
+  it('POST /admin/api/catalog/rm requires id', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/catalog/rm', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(res.status).toBe(400);
+  });
+
   it('POST /admin/api/catalog/pull requires model', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/admin/api/catalog/pull', {

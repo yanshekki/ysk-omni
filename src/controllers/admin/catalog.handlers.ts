@@ -4,6 +4,7 @@ import path from 'node:path';
 import { omniHome } from '../../config/omni-home';
 import { loadCuratedPacks } from '../../catalog/curated';
 import { loadRegistry, findEntry } from '../../services/hf/registry';
+import { deleteLocalModel } from '../../services/hf/delete-local';
 import { pullModel } from '../../services/hf/client';
 import { recordPullIfOk } from '../../services/hf/record-pull';
 import { vramScheduler } from '../../services/vram-scheduler';
@@ -120,6 +121,25 @@ export const adminCatalogHandlers = {
       ...vramScheduler.snapshot(),
       loaded: engineManager.list(),
     });
+  }),
+
+  removeLocal: asyncHandler(async (req: Request, res: Response) => {
+    const id = String((req.body as { id?: string })?.id || '').trim();
+    if (!id) throw ExceptionFactory.validation('id is required');
+    try {
+      const out = await deleteLocalModel(id);
+      res.status(200).json({
+        ok: true,
+        ...out,
+        ...vramScheduler.snapshot(),
+        loaded: engineManager.list(),
+        local: loadRegistry().models,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.startsWith('not found')) throw ExceptionFactory.notFound('Model');
+      throw err;
+    }
   }),
 
   unloadModel: asyncHandler(async (req: Request, res: Response) => {

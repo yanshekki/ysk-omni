@@ -6,6 +6,7 @@ import {
   buildHubSearchUrl,
   classifyHubModel,
   HUB_POPULAR_LIMIT,
+  keepRunnableHits,
   loadPopularCache,
   parseLinkCursor,
   savePopularCache,
@@ -42,6 +43,24 @@ describe('Hugging Face Hub search helpers', () => {
     });
     expect(hit.runtime).toBe('unknown');
     expect(hit.supported).toBe(false);
+  });
+
+  it('drops unsupported hits from Hub lists', () => {
+    const kept = keepRunnableHits([
+      classifyHubModel({
+        id: 'Qwen/Qwen3-VL-8B-Instruct',
+        pipeline_tag: 'image-text-to-text',
+        tags: [],
+      }),
+      classifyHubModel({
+        id: 'unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF',
+        pipeline_tag: 'text-generation',
+        tags: ['gguf'],
+      }),
+    ]);
+    expect(kept.map((h) => h.id)).toEqual([
+      'unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF',
+    ]);
   });
 
   it('builds Hub REST URLs (no RSS)', () => {

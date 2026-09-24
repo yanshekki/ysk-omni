@@ -26,10 +26,11 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('Local models');
     expect(boot).toContain('catalog-kpi-grid');
     expect(boot).toContain('data-catalog-tab');
-    expect(boot).toContain('Curated packs');
     expect(boot).toContain('catalog/hub');
     expect(boot).toContain('Hugging Face');
     expect(boot).toContain('Sync popular');
     expect(boot).toContain('catalog/sync');
+    expect(boot).toContain('catalog/rm');
+    expect(boot).toContain('cat-spec');
   });
 });

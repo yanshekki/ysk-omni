@@ -28,6 +28,7 @@ export const adminController = {
   catalogHub: adminCatalogHandlers.hub,
   catalogSync: adminCatalogHandlers.sync,
   catalogPull: adminCatalogHandlers.pull,
+  catalogRemove: adminCatalogHandlers.removeLocal,
   loadModel: adminCatalogHandlers.loadModel,
   unloadModel: adminCatalogHandlers.unloadModel,
   apiFeaturesGet: adminApiFeaturesHandlers.get,

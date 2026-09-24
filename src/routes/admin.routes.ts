@@ -82,6 +82,7 @@ router.get('/catalog', adminController.catalog);
 router.get('/catalog/hub', adminController.catalogHub);
 router.post('/catalog/sync', adminController.catalogSync);
 router.post('/catalog/pull', adminController.catalogPull);
+router.post('/catalog/rm', adminController.catalogRemove);
 router.post('/models/load', adminController.loadModel);
 router.post('/models/unload', adminController.unloadModel);
 router.get('/system', adminController.system);

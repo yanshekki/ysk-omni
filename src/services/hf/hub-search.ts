@@ -225,6 +225,10 @@ export async function syncPopularGguf(): Promise<PopularCache> {
   return savePopularCache(result.hits);
 }
 
+export function keepRunnableHits(hits: HubSearchHit[]): HubSearchHit[] {
+  return hits.filter((h) => Boolean(h.id) && h.supported);
+}
+
 export async function searchHub(opts: {
   q?: string;
   modality?: string;
@@ -234,9 +238,11 @@ export async function searchHub(opts: {
   const url = buildHubSearchUrl(opts);
   const { json, link } = await getJsonWithLink(url);
   const rows = Array.isArray(json) ? json : [];
-  const hits = rows
-    .map((row) => classifyHubModel((row || {}) as Parameters<typeof classifyHubModel>[0]))
-    .filter((h) => h.id);
+  const hits = keepRunnableHits(
+    rows.map((row) =>
+      classifyHubModel((row || {}) as Parameters<typeof classifyHubModel>[0]),
+    ),
+  );
   return {
     hits,
     nextCursor: parseLinkCursor(link),
