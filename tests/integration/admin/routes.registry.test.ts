@@ -29,6 +29,7 @@ const ADMIN_COVERAGE: Array<{
   { method: 'get', path: '/admin/api/usage', coveredBy: 'admin.routes.full' },
   { method: 'get', path: '/admin/api/models', coveredBy: 'admin.routes.full' },
   { method: 'get', path: '/admin/api/catalog', coveredBy: 'admin.catalog' },
+  { method: 'get', path: '/admin/api/runtimes', coveredBy: 'admin.runtimes' },
   { method: 'get', path: '/admin/api/catalog/hub', coveredBy: 'admin.catalog' },
   { method: 'post', path: '/admin/api/catalog/sync', coveredBy: 'admin.catalog' },
   { method: 'post', path: '/admin/api/catalog/pull', coveredBy: 'admin.catalog' },

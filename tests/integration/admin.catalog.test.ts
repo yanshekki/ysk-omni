@@ -18,6 +18,21 @@ describe('admin catalog + Hub search', () => {
     await stopHarness(h);
   });
 
+  it('GET /admin/api/runtimes lists engines by host OS', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/runtimes', {
+      key: h.adminKey,
+    });
+    expect(res.status).toBe(200);
+    const body = res.json as {
+      host?: { os?: string };
+      items?: Array<{ id: string; install?: Record<string, string> }>;
+    };
+    expect(['darwin', 'linux', 'win32']).toContain(body.host?.os);
+    expect((body.items || []).some((i) => i.id === 'llamacpp')).toBe(true);
+    expect((body.items || [])[0]?.install?.linux).toBeTruthy();
+  });
+
   it('GET /admin/api/catalog returns curated packs', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/admin/api/catalog', {

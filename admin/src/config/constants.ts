@@ -16,6 +16,7 @@ export type PageId =
   | 'documents'
   | 'media'
   | 'catalog'
+  | 'runtimes'
   | 'audit'
   | 'settings'
   | 'apiFeatures'
@@ -36,6 +37,7 @@ export const PAGE_HASH: Record<string, PageId> = {
   documents: 'documents',
   media: 'media',
   catalog: 'catalog',
+  runtimes: 'runtimes',
   audit: 'audit',
   settings: 'settings',
   'api-features': 'apiFeatures',
@@ -62,6 +64,7 @@ export const NAV_ITEMS: { id: PageId; labelKey: string }[] = [
   { id: 'documents', labelKey: 'nav.documents' },
   { id: 'media', labelKey: 'nav.media' },
   { id: 'catalog', labelKey: 'nav.catalog' },
+  { id: 'runtimes', labelKey: 'nav.runtimes' },
   { id: 'audit', labelKey: 'nav.audit' },
   { id: 'settings', labelKey: 'nav.settings' },
   { id: 'apiFeatures', labelKey: 'nav.apiFeatures' },

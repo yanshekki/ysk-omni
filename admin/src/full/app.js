@@ -227,6 +227,9 @@ const state = {
   catalogHubNext: '',
   catalogHubBusy: false,
   catalogPopularSyncedAt: '',
+  runtimesOs: 'host',
+  runtimesMod: '',
+  runtimesReport: null,
   models: [],
   keys: [],
 };
@@ -241,6 +244,7 @@ const PAGE_FROM_HASH = {
   documents: 'documents',
   media: 'media',
   catalog: 'catalog',
+  runtimes: 'runtimes',
   audit: 'audit',
   settings: 'settings',
   'api-features': 'apiFeatures',
@@ -1018,6 +1022,7 @@ function pageTitle() {
     apiFeatures: t('nav.apiFeatures'),
     media: t('nav.media'),
     catalog: t('nav.catalog'),
+    runtimes: t('nav.runtimes'),
     usage: t('nav.usage'),
     ddos: t('nav.ddos'),
     queue: t('nav.queue'),
@@ -1063,6 +1068,7 @@ function shell(content) {
         ${nav('documents', t('nav.documents'))}
         ${nav('media', t('nav.media'))}
         ${nav('catalog', t('nav.catalog'))}
+        ${nav('runtimes', t('nav.runtimes'))}
         ${nav('audit', t('nav.audit'))}
         ${nav('settings', t('nav.settings'))}
         ${nav('apiFeatures', t('nav.apiFeatures'))}
@@ -10486,6 +10492,198 @@ async function renderCatalog() {
   });
 }
 
+function runtimeStatusBadge(status) {
+  if (status === 'installed') {
+    return `<span class="badge success">${escapeHtml(t('runtimes.statusInstalled'))}</span>`;
+  }
+  if (status === 'configured') {
+    return `<span class="badge success">${escapeHtml(t('runtimes.statusConfigured'))}</span>`;
+  }
+  if (status === 'unsupported') {
+    return `<span class="badge muted">${escapeHtml(t('runtimes.statusUnsupported'))}</span>`;
+  }
+  return `<span class="badge warn">${escapeHtml(t('runtimes.statusMissing'))}</span>`;
+}
+
+function runtimeSupportLabel(level) {
+  if (level === 'full') return t('runtimes.supportFull');
+  if (level === 'partial') return t('runtimes.supportPartial');
+  return t('runtimes.supportNone');
+}
+
+async function renderRuntimes() {
+  if (!state.runtimesReport) {
+    try {
+      state.runtimesReport = await api('/runtimes');
+    } catch (e) {
+      onErr(e);
+      state.runtimesReport = { host: { os: 'linux', osLabel: 'Linux', arch: '', platform: '—' }, items: [] };
+    }
+  }
+  const report = state.runtimesReport;
+  const hostOs = report.host?.os || 'linux';
+  const osFilter = state.runtimesOs || 'host';
+  const viewOs =
+    osFilter === 'host' || osFilter === 'all' ? hostOs : osFilter;
+  const mod = state.runtimesMod || '';
+  const items = (report.items || []).filter((it) => {
+    if (mod && !(it.modalities || []).includes(mod)) return false;
+    if (osFilter === 'all') return true;
+    const os = osFilter === 'host' ? hostOs : osFilter;
+    return (it.support || {})[os] !== 'none';
+  });
+  const ready = (report.items || []).filter(
+    (it) => it.status === 'installed' || it.status === 'configured',
+  ).length;
+  const missing = (report.items || []).filter((it) => it.status === 'missing').length;
+
+  const osChips = [
+    ['host', t('runtimes.filterHost')],
+    ['all', t('runtimes.filterAll')],
+    ['darwin', t('runtimes.osMac')],
+    ['linux', t('runtimes.osLinux')],
+    ['win32', t('runtimes.osWin')],
+  ]
+    .map(
+      ([val, label]) =>
+        `<button type="button" class="catalog-mod-chip ${osFilter === val ? 'is-on' : ''}" data-rt-os="${val}">${escapeHtml(label)}</button>`,
+    )
+    .join('');
+  const modChips = [
+    ['', t('catalog.filterAll')],
+    ['text', t('catalog.mod.text')],
+    ['image', t('catalog.mod.image')],
+    ['video', t('catalog.mod.video')],
+    ['tts', t('catalog.mod.tts')],
+    ['stt', t('catalog.mod.stt')],
+  ]
+    .map(
+      ([val, label]) =>
+        `<button type="button" class="catalog-mod-chip ${mod === val ? 'is-on' : ''}" data-rt-mod="${escapeHtml(val)}">${escapeHtml(label)}</button>`,
+    )
+    .join('');
+
+  const cards = items
+    .map((it) => {
+      const cmd = (it.install && it.install[viewOs]) || '';
+      const note = (it.notes && it.notes[viewOs]) || it.detail || '';
+      const osCells = ['darwin', 'linux', 'win32']
+        .map((os) => {
+          const lv = (it.support || {})[os] || 'none';
+          const cls = lv === 'full' ? 'success' : lv === 'partial' ? 'warn' : 'muted';
+          const label =
+            os === 'darwin' ? t('runtimes.osMac') : os === 'win32' ? t('runtimes.osWin') : t('runtimes.osLinux');
+          return `<span class="badge ${cls}" title="${escapeHtml(label)}">${escapeHtml(label)} · ${escapeHtml(runtimeSupportLabel(lv))}</span>`;
+        })
+        .join('');
+      const mods = (it.modalities || [])
+        .map((m) => `<span class="badge muted">${escapeHtml(hasT(`catalog.mod.${m}`) ? t(`catalog.mod.${m}`) : m)}</span>`)
+        .join('');
+      return `
+        <article class="panel runtime-card" data-runtime-id="${escapeHtml(it.id)}">
+          <div class="panel-h">
+            <div class="panel-h-text">
+              <strong>${escapeHtml(it.name)}</strong>
+              <span class="muted">${escapeHtml(hasT(`runtimes.${it.id}`) ? t(`runtimes.${it.id}`) : '')}</span>
+            </div>
+            ${runtimeStatusBadge(it.status)}
+          </div>
+          <div class="panel-pad runtime-card-body">
+            <div class="runtime-card-mods">${mods}</div>
+            <div class="runtime-os-row">${osCells}</div>
+            ${
+              it.path
+                ? `<div class="cell-sub mono">${escapeHtml(t('runtimes.path'))}: ${escapeHtml(it.path)}${it.version ? ` · ${escapeHtml(it.version)}` : ''}</div>`
+                : `<div class="cell-sub muted">${escapeHtml(note)}</div>`
+            }
+            <pre class="runtime-cmd">${escapeHtml(cmd)}</pre>
+            <div class="runtime-card-actions">
+              <button type="button" class="btn sm" data-copy-cmd="${encodeURIComponent(cmd)}">${escapeHtml(t('runtimes.copyCmd'))}</button>
+              <a class="btn secondary sm" href="${escapeHtml(it.docs)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('runtimes.docs'))}</a>
+            </div>
+          </div>
+        </article>`;
+    })
+    .join('');
+
+  document.getElementById('app').innerHTML = shell(`
+    <div class="topbar">
+      <h2>${escapeHtml(t('runtimes.title'))}</h2>
+      <div class="toolbar">
+        <button type="button" class="btn secondary sm" id="rt-refresh">${escapeHtml(t('runtimes.refresh'))}</button>
+      </div>
+    </div>
+    ${pageMetaHtml([t('runtimes.intro'), tf('runtimes.cmdFor', { os: t(viewOs === 'darwin' ? 'runtimes.osMac' : viewOs === 'win32' ? 'runtimes.osWin' : 'runtimes.osLinux') })])}
+    <div class="grid catalog-kpi-grid media-kpi-grid">
+      <div class="card">
+        <div class="label">${escapeHtml(t('runtimes.kpiInstalled'))}</div>
+        <div class="value value-sm">${ready}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('runtimes.kpiMissing'))}</div>
+        <div class="value value-sm">${missing}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('runtimes.kpiHost'))}</div>
+        <div class="value value-sm">${escapeHtml(report.host?.osLabel || '—')}</div>
+        <div class="muted card-sub">${escapeHtml(report.host?.platform || '')}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('runtimes.kpiArch'))}</div>
+        <div class="value value-sm">${escapeHtml(report.host?.arch || '—')}</div>
+      </div>
+    </div>
+    <div class="panel catalog-hub-card" style="margin-bottom:14px">
+      <div class="panel-h">
+        <div class="panel-h-text">
+          <strong>${escapeHtml(t('runtimes.filterOs'))}</strong>
+        </div>
+      </div>
+      <div class="catalog-mod-chips" style="padding-top:12px">${osChips}</div>
+      <div class="catalog-mod-chips">${modChips}</div>
+    </div>
+    <div class="runtime-grid">
+      ${cards || `<div class="data-empty"><strong>${escapeHtml(t('runtimes.empty'))}</strong></div>`}
+    </div>
+  `);
+  bindShell();
+  document.querySelectorAll('[data-rt-os]').forEach((btn) => {
+    btn.onclick = () => {
+      state.runtimesOs = btn.getAttribute('data-rt-os') || 'host';
+      renderRuntimes().catch(onErr);
+    };
+  });
+  document.querySelectorAll('[data-rt-mod]').forEach((btn) => {
+    btn.onclick = () => {
+      state.runtimesMod = btn.getAttribute('data-rt-mod') || '';
+      renderRuntimes().catch(onErr);
+    };
+  });
+  document.getElementById('rt-refresh')?.addEventListener('click', () => {
+    state.runtimesReport = null;
+    renderRuntimes().catch(onErr);
+  });
+  document.querySelectorAll('[data-copy-cmd]').forEach((btn) => {
+    btn.onclick = async () => {
+      let v = btn.getAttribute('data-copy-cmd') || '';
+      try {
+        v = decodeURIComponent(v);
+      } catch {
+        /* keep raw */
+      }
+      try {
+        await navigator.clipboard.writeText(v);
+        btn.textContent = t('loginCopied');
+        setTimeout(() => {
+          btn.textContent = t('runtimes.copyCmd');
+        }, 1200);
+      } catch {
+        /* ignore */
+      }
+    };
+  });
+}
+
 async function render() {
   const app = document.getElementById('app');
   try {
@@ -10501,6 +10699,7 @@ async function render() {
     else if (state.page === 'documents') await renderDocuments();
     else if (state.page === 'media') await renderMedia();
     else if (state.page === 'catalog') await renderCatalog();
+    else if (state.page === 'runtimes') await renderRuntimes();
     else if (state.page === 'audit') await renderAudit();
     else if (state.page === 'settings') await renderSettings();
     else if (state.page === 'apiFeatures') await renderApiFeatures();

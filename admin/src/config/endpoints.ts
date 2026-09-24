@@ -12,6 +12,7 @@ export const endpoints = {
   usage: '/usage',
   models: '/models',
   catalog: '/catalog',
+  runtimes: '/runtimes',
   catalogPull: '/catalog/pull',
   modelsLoad: '/models/load',
   modelsUnload: '/models/unload',

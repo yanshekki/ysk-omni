@@ -82,6 +82,7 @@ import {
   cmdLoad,
   cmdUnload,
 } from './commands/catalog';
+import { cmdRuntimes } from './commands/runtimes';
 import {
   cmdGrokInspect,
   cmdGrokSessionsList,
@@ -786,6 +787,13 @@ program
   .argument('<id>', 'Registry id')
   .action(async (id: string) => {
     await cmdRm({ ...globalOpts(), id });
+  });
+
+program
+  .command('runtimes')
+  .description('List inference runtimes, host OS support, and install commands')
+  .action(async () => {
+    await cmdRuntimes(globalOpts());
   });
 
 program

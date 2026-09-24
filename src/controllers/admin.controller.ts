@@ -11,6 +11,7 @@ import { adminQueueHandlers } from './admin/queue.handlers';
 import { adminApiFeaturesHandlers } from './admin/api-features.handlers';
 import { adminMediaHandlers } from './admin/media.handlers';
 import { adminCatalogHandlers } from './admin/catalog.handlers';
+import { adminRuntimesHandlers } from './admin/runtimes.handlers';
 
 /** Composed Admin API handlers (split by domain for maintainability). */
 export const adminController = {
@@ -31,6 +32,7 @@ export const adminController = {
   catalogRemove: adminCatalogHandlers.removeLocal,
   loadModel: adminCatalogHandlers.loadModel,
   unloadModel: adminCatalogHandlers.unloadModel,
+  runtimes: adminRuntimesHandlers.list,
   apiFeaturesGet: adminApiFeaturesHandlers.get,
   apiFeaturesPut: adminApiFeaturesHandlers.put,
   apiFeaturesPreset: adminApiFeaturesHandlers.preset,

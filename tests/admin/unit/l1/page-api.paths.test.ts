@@ -72,6 +72,7 @@ describe('page-api paths registry (every page has an API)', () => {
     documents: '/documents',
     media: '/media/assets',
     catalog: '/catalog',
+    runtimes: '/runtimes',
     audit: '/audit-logs',
     settings: '/settings',
     apiFeatures: '/api-features',

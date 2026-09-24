@@ -65,6 +65,12 @@ const renderSystem = makeApiExplorerPage({
   hint: 'System info & updates — full UI in A2',
 });
 
+const renderRuntimesPage = makeApiExplorerPage({
+  titleKey: 'nav.runtimes',
+  path: endpoints.runtimes,
+  hint: 'Install inference engines by OS',
+});
+
 export const pageRegistry: Record<Exclude<PageId, 'login'>, PageRenderer> = {
   dashboard: renderDashboardPage,
   chat: renderChatPage,
@@ -73,6 +79,7 @@ export const pageRegistry: Record<Exclude<PageId, 'login'>, PageRenderer> = {
   documents: renderDocumentsPage,
   media: renderMediaPage,
   catalog: renderCatalogPage,
+  runtimes: renderRuntimesPage,
   audit: renderAudit,
   settings: renderSettings,
   apiFeatures: renderApiFeaturesPage,
