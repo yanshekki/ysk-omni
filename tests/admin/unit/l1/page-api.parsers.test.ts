@@ -135,7 +135,7 @@ const fixtures = {
   },
   system: {
     object: 'admin.system',
-    data: { version: '1.7.4' },
+    data: { version: '1.0.0' },
   },
 } as const;
 
@@ -239,7 +239,7 @@ describe('page: audit / settings / ddos / queue / pm2 / system', () => {
     expect(fixtures.ddos.data.activeConn).toBe(0);
     expect(fixtures.queue.data.enabled).toBe(true);
     expect(fixtures.pm2.data.available).toBe(true);
-    expect(fixtures.system.data.version).toBe('1.7.4');
+    expect(fixtures.system.data.version).toBe('1.0.0');
   });
 });
 
