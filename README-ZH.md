@@ -10,7 +10,7 @@
 
 **產品頁：** [ysk.hk/products/ysk-omni](https://ysk.hk/products/ysk-omni) · EN：[ysk.hk/en/products/ysk-omni](https://ysk.hk/en/products/ysk-omni)
 
-將本機 **[Grok CLI](https://x.ai)**（`grok -p` headless）包裝成可上線的 **OpenAI 相容 HTTP API**。
+本機 Hugging Face 模型，前面放一層可上線的 **OpenAI 相容 HTTP API**。文字走 llama-server / vLLM；圖像、語音、影片走獨立 worker。
 
 | | |
 |--|--|
@@ -18,58 +18,33 @@
 | **CLI** | `ysk-omni` · 短名 `ysko` |
 | **預設 port** | **`3850`** |
 | **NODE_ENV 預設** | **`production`**（本機開發才設 `development`） |
+| **產品頁** | [ysk.hk/products/omni](https://ysk.hk/products/omni) |
+
+GCTOAC（`gctoac` :3847）仍是 Grok CLI 產品。YSK Omni **不再** spawn `grok -p`。
 
 **主要能力**
 
-- OpenAI 相容 `POST /v1/chat/completions` + **`POST /v1/responses`**（文字子集）+ Anthropic 相容 **`POST /v1/messages`**（stream / 非 stream）
-- Thinking / `reasoning_content`（DeepSeek 風格 + Grok `thought`）
+- OpenAI 相容 `POST /v1/chat/completions` + **`POST /v1/responses`**（文字子集）+ Anthropic 相容 **`POST /v1/messages`**
+- 已拉取的 GGUF：Load 後由持久 `llama-server` 代理；safetensors 走 `vllm serve` 或 `python -m vllm.entrypoints.openai.api_server`
+- 無本機引擎時用 `model=echo`；圖像／TTS／STT 未設 worker 時回 **501** `engine_unconfigured`
 - 每把 key 的 **safe** / **agent** 政策 + 全域安全覆寫
 - AES-256-GCM 加密 + 完整 chat 稽核
-- **Admin Panel** — OTP 登入（`ysk-omni admin otp`）、儀表板、對話、金鑰、文件、稽核、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2、系統更新；各頁統一 **KPI + 分 tab** 版面
-- **媒體庫** — 工作室（生成／編輯／**圖生影片 1–15 秒**／**reference-to-video + 預設配音**）、資產與工作列表、瀏覽器預覽 lightbox（圖／片／聲／PDF／文字）
-- **持久化對話佇列** — 每個對話先入隊（租約認領）再由進程內 worker 消費；Admin 可暫停／排空／取消／死信；可選 `Idempotency-Key`；無 live Response 時離線收集串流結果
-- **DDoS／防濫用** — 可配置限流、多規則自動封鎖、反向代理真實客戶端 IP（nginx / Cloudflare）
-- 控制 CLI：生命週期 + **settings / api features / queue / ddos / keys / docs / chats / stats / models / admin sessions / grok inspect / grok sessions**（與 Admin 對齊，見下方 CLI 表）
-- **API features**（Admin 分 tab + `ysk-omni api features`）：協議與 Grok 能力閘（tools / vision / schema / effort…）
-
-### Grok CLI 能力對齊（產品「100%」定義）
-
-| 能力 | Chat | Responses | Anthropic Messages | Admin 開關 |
-|------|:----:|:---------:|:------------------:|------------|
-| 文字 + stream | ✅ | ✅ | ✅ | 協議開關 |
-| Vision / 圖片 | ✅ | ✅ | ✅ | `vision` |
-| Images `/v1/images/generations` + `/edits` | ✅ OpenAI 形狀（`b64_json` / `url`） | — | — | `imagesApi` + `tools` + agent key |
-| Files `/v1/files` | ✅ | — | — | `filesOpenAiAlias` |
-| Videos `/v1/videos` | ✅ Grok `image_to_video`（1–15 秒）／`reference_to_video` + voices | — | — | `videoApi` |
-| Audio speech / transcriptions | ✅ mock 或 503 | — | — | `audioApi` + provider env |
-| Tools | ✅ | ✅ | ✅（含 `tool_use`/`tool_result`） | `tools` |
-| 回應 tool_calls | ✅* | 文字 | ✅ `tool_use` | `tools` |
-| JSON schema | ✅ | ✅ | 可透傳 | `structuredOutput` |
-| Reasoning effort | ✅ | ✅ | thinking→effort | `reasoningEffort` |
-| Session resume / fork | ✅ | — | — | `sessionResume` |
-| Assistants-lite | — | — | — | `assistantsEmulation` |
-| temperature 等採樣 | 接受† | 接受† | 接受† | `strictSampling` |
-
-\* 視 Grok stream 是否發出 tool 事件。  
-† Grok CLI 無採樣旋鈕；`strictSampling` 可改為拒絕。  
-**不宣稱** 官方雲端 100%（embeddings / realtime 等需獨立後端）。
+- **Admin Panel** — OTP 登入（`ysk-omni admin otp`）、儀表板、對話、金鑰、**Catalog（Pull / Load / Unload）**、文件、稽核、用量、**媒體庫**、**對話佇列**、**DDoS 中心**、安全設定、**API 能力**、PM2
+- **媒體庫** — 圖像／語音／影片工作列；未接影片 worker 時回可播放的短 H.264 MP4 fixture
+- **持久化對話佇列**、**DDoS／防濫用**、控制 CLI（`setup` / `start --pm2` / `doctor` / keys / queue / ddos）
 
 ```text
 Client (OpenAI SDK / curl / Open WebUI)
         │  Authorization: Bearer omni_live_...
         ▼
    Express Gateway :3850
-   · 認證 · 限流 · safe/agent
-   · 入隊 ChatJob（AES-GCM payload）· SSE 以 gog.queue 佔位
-   · 代理感知 Client IP · 自動封鎖
-   · 加密稽核 · Admin /admin（佇列控制）
-   · ysk-omni start | stop | status | update
+   · 認證 · 限流 · safe/agent · 佇列 · Admin
         │
-        ▼
-   進程內 worker（租約 / 公平輪詢 / 併發）
-        │
-        ▼
-   grok -p …  （本機 Grok CLI）
+        ├─ 文字 GGUF → llama-server（OMNI_LLAMA_SERVER / PATH）
+        ├─ 文字 safetensors → vLLM
+        ├─ 圖像 → OMNI_IMAGE_URL（OpenAI 形狀，不是 Comfy 原生 /prompt）
+        ├─ TTS / STT → OMNI_TTS_URL / OMNI_STT_URL
+        └─ 影片 → OMNI_VIDEO_URL 或可播放 MP4 fixture
 ```
 
 ---
@@ -79,23 +54,20 @@ Client (OpenAI SDK / curl / Open WebUI)
 ### 1. 前置要求
 
 - **Node.js** ≥ 20  
-- **Grok CLI**（Grok Build **1.0+**）已安裝並登入：
-
-```bash
-curl -fsSL https://x.ai/cli/install.sh | bash
-grok login
-grok --version
-```
+- 文字 GGUF：`llama-server`（Homebrew `llama.cpp` 或 `OMNI_LLAMA_SERVER`）  
+- 文字 safetensors：`vllm` 或 `python -m vllm.entrypoints.openai.api_server`  
+- 圖像／語音／影片：另開 OpenAI 形狀 HTTP worker（ComfyUI 原生 API 需要轉接層）
 
 ### 2. 安裝並啟動
 
 ```bash
 npm install -g ysk-omni
 
-ysk-omni doctor   # 檢查 Node / Grok / 環境 / runner / 代理
-ysk-omni setup    # 資料目錄、.env（NODE_ENV=production）、資料庫、admin API key
+ysk-omni doctor   # 檢查 Node / llama-server / vLLM / 已載入引擎 / 環境
+ysk-omni setup    # 資料目錄、.env、資料庫、admin API key；會嘗試 npm i -g pm2
 ysk-omni start    # http://127.0.0.1:3850
-ysk-omni status   # runner、port、proxy、health
+ysk-omni start --pm2
+ysk-omni status
 ```
 
 開啟 Admin（OTP 登入 — **不會**在瀏覽器長期保存 API key）：
@@ -129,7 +101,7 @@ curl -s http://127.0.0.1:3850/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "grok-4.6",
+    "model": "echo",
     "messages": [{"role":"user","content":"用一個字打招呼"}]
   }'
 ```
@@ -281,10 +253,10 @@ PORT=4000
 | 指令 | 說明 |
 |------|------|
 | `ysk-omni stats` | 儀表板式摘要 |
-| `ysk-omni grok inspect` | 本機 Grok Build 快照（version、models、skills、MCP） |
-| `ysk-omni grok sessions` | 列出本機 Grok CLI sessions |
-| `ysk-omni grok sessions delete <id> --yes` | 永久刪除一個 Grok session |
-| `ysk-omni models [--refresh]` | 本機 Grok 模型列表 |
+| `ysk-omni grok inspect` | 本機 Grok Build 環境快照（與推理無關） |
+| `ysk-omni grok sessions` | 閘道殘留 session 表（不再 resume `grok -p`） |
+| `ysk-omni models` | 本機 registry + `echo` |
+
 | `ysk-omni docs list\|show\|delete` | 文件（delete 需 `--yes`） |
 | `ysk-omni chats list\|show` | API 對話請求（meta） |
 | `ysk-omni conversations list\|delete` | Playground 線程 |
@@ -774,4 +746,4 @@ MIT — 見 [LICENSE](./LICENSE)。
 
 ## 免責聲明
 
-本 gateway 會啟動 **Grok CLI**，視政策可能使用檔案系統、shell、網絡等工具。認證、暴露範圍、key 模式由你負責。作者不對濫用或資料損失負責。
+本 gateway 會 spawn 本機推論行程（llama-server / vLLM）並轉發至你設定的圖像／語音／影片 worker。認證、暴露範圍、key 模式由你負責。作者不對濫用或資料損失負責。
