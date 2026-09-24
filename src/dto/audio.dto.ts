@@ -13,3 +13,17 @@ export const createSpeechSchema = z.object({
 });
 
 export type CreateSpeechDto = z.infer<typeof createSpeechSchema>;
+
+export const adminSpeechSchema = z
+  .object({
+    input: z.string().min(1).max(MAX_MESSAGE_CHARS).optional(),
+    prompt: z.string().min(1).max(MAX_MESSAGE_CHARS).optional(),
+    voice: z.string().min(1).max(64).optional(),
+    model: z.string().min(1).max(128).optional(),
+    apiKeyId: z.string().uuid().optional(),
+  })
+  .refine((d) => Boolean(String(d.input || d.prompt || '').trim()), {
+    message: 'input is required',
+  });
+
+export type AdminSpeechDto = z.infer<typeof adminSpeechSchema>;

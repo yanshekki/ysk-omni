@@ -67,4 +67,21 @@ describe('mediaStoreService', () => {
     expect(read.bytes.equals(png)).toBe(true);
     expect(read.mime).toBe('image/png');
   });
+
+  it('saves wav with a .wav storage path', async () => {
+    if (!dbOk) return;
+    const wav = Buffer.from('RIFF....WAVEfmt ');
+    const stored = await mediaStoreService.save({
+      apiKeyId: keyId,
+      kind: 'audio',
+      mime: 'audio/wav',
+      bytes: wav,
+      originalName: 's.wav',
+      provider: 'tts',
+      prompt: 'hello',
+    });
+    expect(stored.mime).toBe('audio/wav');
+    const read = await mediaStoreService.readBytes(stored.id, keyId);
+    expect(read.bytes.equals(wav)).toBe(true);
+  });
 });

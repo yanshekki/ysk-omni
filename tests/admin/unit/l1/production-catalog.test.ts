@@ -47,6 +47,10 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('catalog-pull-bar');
     expect(boot).toContain('cat-dl-dock');
     expect(boot).toContain('Download queue');
+    expect(boot).toContain('data-mg-mode="speech"');
+    expect(boot).toContain('data-mg-mode="transcribe"');
+    expect(boot).toContain('media/speech');
+    expect(boot).toContain('media/transcribe');
     expect(boot).toContain('catalog.colSize');
   });
 });

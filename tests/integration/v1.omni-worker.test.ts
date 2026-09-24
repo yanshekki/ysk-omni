@@ -99,6 +99,45 @@ describe('gateway proxies the bundled OpenAI media worker', () => {
     expect(res.text.includes('RIFF') || res.text.includes('WAVE')).toBe(true);
   });
 
+  it('POST /admin/api/media/speech stores a wav asset', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/media/speech', {
+      method: 'POST',
+      key: h.adminKey,
+      body: { input: 'hello from studio' },
+    });
+    expect(res.status).toBe(200);
+    const body = res.json as { data?: { asset_id?: string; mime?: string } };
+    expect(body.data?.asset_id).toBeTruthy();
+    expect(String(body.data?.mime || '')).toMatch(/audio\//);
+    const dl = await apiFetch(
+      h.baseUrl,
+      `/admin/api/media/assets/${body.data?.asset_id}/download`,
+      { key: h.adminKey },
+    );
+    expect(dl.status).toBe(200);
+    expect(dl.text.includes('RIFF') || dl.text.includes('WAVE')).toBe(true);
+  });
+
+  it('POST /admin/api/media/transcribe stores transcript text', async () => {
+    if (!h) return;
+    const fd = new FormData();
+    fd.append(
+      'file',
+      new Blob([Buffer.from('RIFF')], { type: 'audio/wav' }),
+      'a.wav',
+    );
+    const res = await apiFetch(h.baseUrl, '/admin/api/media/transcribe', {
+      method: 'POST',
+      key: h.adminKey,
+      formData: fd,
+    });
+    expect(res.status).toBe(200);
+    const body = res.json as { data?: { text?: string; asset_id?: string } };
+    expect(body.data?.text).toBe('ysk-omni-stt-fixture');
+    expect(body.data?.asset_id).toBeTruthy();
+  });
+
   it('POST /v1/audio/transcriptions returns fixture text', async () => {
     if (!h) return;
     const fd = new FormData();

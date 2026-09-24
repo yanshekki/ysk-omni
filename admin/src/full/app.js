@@ -3833,9 +3833,11 @@ async function renderMedia() {
           <button type="button" class="seg-tab is-active" data-mg-mode="generate" role="tab" aria-selected="true">${escapeHtml(t('media.modeGenerate'))}</button>
           <button type="button" class="seg-tab" data-mg-mode="edit" role="tab" aria-selected="false">${escapeHtml(t('media.modeEdit'))}</button>
           <button type="button" class="seg-tab" data-mg-mode="video" role="tab" aria-selected="false">${escapeHtml(t('media.modeVideo'))}</button>
+          <button type="button" class="seg-tab" data-mg-mode="speech" role="tab" aria-selected="false">${escapeHtml(t('media.modeSpeech'))}</button>
+          <button type="button" class="seg-tab" data-mg-mode="transcribe" role="tab" aria-selected="false">${escapeHtml(t('media.modeTranscribe'))}</button>
         </div>
         <div class="form-grid">
-          <label class="full">${escapeHtml(t('media.generatePrompt'))}
+          <label class="full" id="mg-prompt-wrap">${escapeHtml(t('media.generatePrompt'))}
             <textarea id="mg-prompt" rows="3" placeholder="${escapeHtml(t('media.generatePromptPh'))}"></textarea>
           </label>
           <label>${escapeHtml(t('media.generateKey'))}
@@ -4011,7 +4013,13 @@ async function renderMedia() {
     };
 
     const setMediaMode = (mode) => {
-      mediaMode = mode === 'edit' || mode === 'video' ? mode : 'generate';
+      mediaMode =
+        mode === 'edit' ||
+        mode === 'video' ||
+        mode === 'speech' ||
+        mode === 'transcribe'
+          ? mode
+          : 'generate';
       document.querySelectorAll('[data-mg-mode]').forEach((b) => {
         const on = b.getAttribute('data-mg-mode') === mediaMode;
         b.classList.toggle('is-active', on);
@@ -4021,18 +4029,34 @@ async function renderMedia() {
       const nWrap = document.getElementById('mg-n-wrap');
       const durWrap = document.getElementById('mg-duration-wrap');
       const voiceWrap = document.getElementById('mg-voice-wrap');
+      const aspectWrap = document.getElementById('mg-aspect-wrap');
+      const promptWrap = document.getElementById('mg-prompt-wrap');
       const submit = document.getElementById('mg-submit');
-      if (srcSec) srcSec.hidden = mediaMode === 'generate';
-      if (nWrap) nWrap.hidden = mediaMode === 'video';
+      if (srcSec) {
+        srcSec.hidden = mediaMode === 'generate' || mediaMode === 'speech';
+      }
+      if (nWrap) nWrap.hidden = mediaMode !== 'generate' && mediaMode !== 'edit';
       if (durWrap) durWrap.hidden = mediaMode !== 'video';
       if (voiceWrap) voiceWrap.hidden = mediaMode !== 'video';
+      if (aspectWrap) {
+        aspectWrap.hidden = mediaMode === 'speech' || mediaMode === 'transcribe';
+      }
+      if (promptWrap) promptWrap.hidden = mediaMode === 'transcribe';
+      const fileEl = document.getElementById('mg-file');
+      if (fileEl) {
+        fileEl.accept = mediaMode === 'transcribe' ? 'audio/*' : 'image/*';
+      }
       if (submit) {
         submit.textContent =
           mediaMode === 'edit'
             ? t('media.editSubmit')
             : mediaMode === 'video'
               ? t('media.videoSubmit')
-              : t('media.generateSubmit');
+              : mediaMode === 'speech'
+                ? t('media.speechSubmit')
+                : mediaMode === 'transcribe'
+                  ? t('media.transcribeSubmit')
+                  : t('media.generateSubmit');
       }
       const ta = document.getElementById('mg-prompt');
       if (ta) {
@@ -4041,17 +4065,27 @@ async function renderMedia() {
             ? t('media.editPromptPh')
             : mediaMode === 'video'
               ? t('media.videoPromptPh')
-              : t('media.generatePromptPh');
+              : mediaMode === 'speech'
+                ? t('media.speechPromptPh')
+                : t('media.generatePromptPh');
       }
       const dropTitle = document.getElementById('mg-drop-title');
       const dropHint = document.getElementById('mg-drop-hint');
       if (dropTitle) {
         dropTitle.textContent =
-          mediaMode === 'video' ? t('media.dropTitleVideo') : t('media.dropTitle');
+          mediaMode === 'video'
+            ? t('media.dropTitleVideo')
+            : mediaMode === 'transcribe'
+              ? t('media.dropTitleAudio')
+              : t('media.dropTitle');
       }
       if (dropHint) {
         dropHint.textContent =
-          mediaMode === 'video' ? t('media.dropHintVideo') : t('media.dropHint');
+          mediaMode === 'video'
+            ? t('media.dropHintVideo')
+            : mediaMode === 'transcribe'
+              ? t('media.dropHintAudio')
+              : t('media.dropHint');
       }
     };
 
@@ -4069,17 +4103,28 @@ async function renderMedia() {
       if (file.type && file.type.startsWith('image/')) return true;
       return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(file.name || '');
     };
+    const acceptAudioFile = (file) => {
+      if (!file) return false;
+      if (file.type && file.type.startsWith('audio/')) return true;
+      return /\.(wav|mp3|m4a|aac|ogg|oga|flac|opus|webm)$/i.test(file.name || '');
+    };
     const takeFiles = (fileList) => {
-      const file = [...(fileList || [])].find(acceptImageFile);
+      const accept =
+        mediaMode === 'transcribe' ? acceptAudioFile : acceptImageFile;
+      const file = [...(fileList || [])].find(accept);
       if (!file) {
-        showError(t('media.sourceNeedImage'));
+        showError(
+          mediaMode === 'transcribe'
+            ? t('media.sourceNeedAudio')
+            : t('media.sourceNeedImage'),
+        );
         return;
       }
       setMediaSource({
         kind: 'file',
         file,
         name: file.name,
-        mime: file.type || 'image/*',
+        mime: file.type || (mediaMode === 'transcribe' ? 'audio/*' : 'image/*'),
       });
       showError('');
     };
@@ -4101,7 +4146,8 @@ async function renderMedia() {
       e.preventDefault();
       e.stopPropagation();
       openMediaSourceLibraryPicker({
-        imagesOnly: true,
+        imagesOnly: mediaMode !== 'transcribe',
+        audioOnly: mediaMode === 'transcribe',
         onPick: (item) => {
           setMediaSource({
             kind: item.kind,
@@ -4160,7 +4206,7 @@ async function renderMedia() {
     window.addEventListener(
       'dragenter',
       (e) => {
-        if (mediaMode === 'generate') return;
+        if (mediaMode === 'generate' || mediaMode === 'speech') return;
         if (![...(e.dataTransfer?.types || [])].includes('Files')) return;
         dragDepth += 1;
         mediaPage?.classList.add('is-media-file-drag');
@@ -4180,7 +4226,7 @@ async function renderMedia() {
       (e) => {
         dragDepth = 0;
         mediaPage?.classList.remove('is-media-file-drag');
-        if (mediaMode === 'generate') return;
+        if (mediaMode === 'generate' || mediaMode === 'speech') return;
         if (e.dataTransfer?.files?.length) {
           e.preventDefault();
           takeFiles(e.dataTransfer.files);
@@ -4191,7 +4237,7 @@ async function renderMedia() {
     window.addEventListener(
       'dragover',
       (e) => {
-        if (mediaMode === 'generate') return;
+        if (mediaMode === 'generate' || mediaMode === 'speech') return;
         if ([...(e.dataTransfer?.types || [])].includes('Files')) {
           e.preventDefault();
         }
@@ -4201,7 +4247,7 @@ async function renderMedia() {
 
     document.getElementById('mg-submit')?.addEventListener('click', async () => {
       const prompt = document.getElementById('mg-prompt')?.value?.trim() || '';
-      if (!prompt) {
+      if (!prompt && mediaMode !== 'transcribe') {
         showError(t('media.generateNeedPrompt'));
         return;
       }
@@ -4219,7 +4265,11 @@ async function renderMedia() {
           ? t('media.videoBusy')
           : mediaMode === 'edit'
             ? t('media.editBusy')
-            : t('media.generateBusy');
+            : mediaMode === 'speech'
+              ? t('media.speechBusy')
+              : mediaMode === 'transcribe'
+                ? t('media.transcribeBusy')
+                : t('media.generateBusy');
       if (btn) {
         btn.disabled = true;
         btn.textContent = busyLabel;
@@ -4259,6 +4309,95 @@ async function renderMedia() {
           state.mediaFilter.tab = 'assets';
           state.mediaFilter.offset = 0;
           await renderMedia();
+          return;
+        }
+
+        if (mediaMode === 'speech') {
+          if (!prompt) {
+            throw new Error(t('media.generateNeedPrompt'));
+          }
+          const res = await api('/media/speech', {
+            method: 'POST',
+            body: JSON.stringify({
+              input: prompt,
+              ...(model ? { model } : {}),
+              ...(apiKeyId ? { apiKeyId } : {}),
+            }),
+          });
+          const id = res?.data?.asset_id;
+          if (st) st.textContent = t('media.speechOk');
+          state.mediaFilter.tab = 'assets';
+          state.mediaFilter.offset = 0;
+          await renderMedia();
+          if (id) {
+            try {
+              const blob = await fetchMediaBlob(id);
+              openMediaPreviewLightbox(
+                {
+                  id,
+                  mime: blob.type || 'audio/wav',
+                  filename: `speech-${String(id).slice(0, 8)}.wav`,
+                  kind: 'audio',
+                  bytes: blob.size,
+                  prompt,
+                },
+                blob,
+              );
+            } catch {
+              /* ignore */
+            }
+          }
+          return;
+        }
+
+        if (mediaMode === 'transcribe') {
+          if (!mediaSource) {
+            throw new Error(t('media.transcribeNeedAudio'));
+          }
+          const fd = new FormData();
+          if (apiKeyId) fd.append('apiKeyId', apiKeyId);
+          if (mediaSource.kind === 'file' && mediaSource.file) {
+            fd.append('file', mediaSource.file);
+          } else if (mediaSource.kind === 'asset' && mediaSource.id) {
+            fd.append('sourceAssetId', mediaSource.id);
+          } else if (mediaSource.kind === 'document' && mediaSource.id) {
+            fd.append('sourceDocumentId', mediaSource.id);
+          }
+          const res = await parseApiResponse(
+            await fetch('/admin/api/media/transcribe', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${state.key}` },
+              body: fd,
+            }),
+          );
+          const id = res?.data?.asset_id;
+          const text = res?.data?.text || '';
+          if (st) {
+            st.textContent = text
+              ? `${t('media.transcribeOk')} ${text.slice(0, 120)}`
+              : t('media.transcribeOk');
+          }
+          state.mediaFilter.tab = 'assets';
+          state.mediaFilter.offset = 0;
+          await renderMedia();
+          if (id) {
+            try {
+              const blob = await fetchMediaBlob(id);
+              openMediaPreviewLightbox(
+                {
+                  id,
+                  mime: 'text/plain',
+                  filename: `transcript-${String(id).slice(0, 8)}.txt`,
+                  kind: 'file',
+                  bytes: blob.size,
+                  prompt: text.slice(0, 200),
+                },
+                blob,
+              );
+            } catch {
+              /* ignore */
+            }
+          }
           return;
         }
 
@@ -4452,10 +4591,11 @@ async function renderMedia() {
 
 /**
  * Pick a source image from Documents library or Media assets (admin-wide).
- * @param {{ imagesOnly?: boolean, onPick: (item: { kind: 'asset'|'document', id: string, name: string, mime: string }) => void }} opts
+ * @param {{ imagesOnly?: boolean, audioOnly?: boolean, onPick: (item: { kind: 'asset'|'document', id: string, name: string, mime: string }) => void }} opts
  */
 async function openMediaSourceLibraryPicker(opts) {
-  const imagesOnly = opts.imagesOnly !== false;
+  const audioOnly = Boolean(opts.audioOnly);
+  const imagesOnly = !audioOnly && opts.imagesOnly !== false;
   let libTab = 'documents'; // 'documents' | 'assets'
   let loadSeq = 0;
   /** @type {{ kind: 'asset'|'document', id: string, name: string, mime: string } | null} */
@@ -4475,7 +4615,7 @@ async function openMediaSourceLibraryPicker(opts) {
           <input type="search" id="mlib-q" class="chat-lib-search" placeholder="${escapeHtml(t('media.librarySearch'))}" autocomplete="off" />
           <span class="muted chat-lib-count" id="mlib-count"></span>
         </div>
-        <div class="muted chat-lib-formats">${escapeHtml(t('media.libraryFormats'))}</div>
+        <div class="muted chat-lib-formats">${escapeHtml(audioOnly ? t('media.libraryFormatsAudio') : t('media.libraryFormats'))}</div>
         <div id="mlib-list" class="chat-lib-list" role="listbox">
           <div class="muted chat-lib-status">${escapeHtml(t('common.loading') || '…')}</div>
         </div>
@@ -4502,6 +4642,14 @@ async function openMediaSourceLibraryPicker(opts) {
   const isImageMime = (m) => String(m || '').startsWith('image/');
   const isImageName = (n) =>
     /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(String(n || ''));
+  const isAudioMime = (m) => String(m || '').startsWith('audio/');
+  const isAudioName = (n) =>
+    /\.(wav|mp3|m4a|aac|ogg|oga|flac|opus|webm)$/i.test(String(n || ''));
+  const passMime = (mime, name) => {
+    if (audioOnly) return isAudioMime(mime) || isAudioName(name);
+    if (imagesOnly) return isImageMime(mime) || isImageName(name);
+    return true;
+  };
 
   const renderRows = (items) => {
     if (!listEl) return;
@@ -4565,14 +4713,10 @@ async function openMediaSourceLibraryPicker(opts) {
         const params = new URLSearchParams({ limit: '80', offset: '0' });
         if (q) params.set('q', q);
         if (imagesOnly) params.set('kind', 'image');
+        if (audioOnly) params.set('kind', 'audio');
         const res = await api(`/media/assets?${params}`);
         items = (res.data || [])
-          .filter(
-            (a) =>
-              !imagesOnly ||
-              isImageMime(a.mime) ||
-              isImageName(a.filename),
-          )
+          .filter((a) => passMime(a.mime, a.filename))
           .map((a) => ({
             kind: 'asset',
             kindLabel: t('media.sourceKindAsset'),
@@ -4586,12 +4730,7 @@ async function openMediaSourceLibraryPicker(opts) {
         if (q) params.set('q', q);
         const res = await api(`/documents?${params}`);
         items = (res.data || [])
-          .filter(
-            (d) =>
-              !imagesOnly ||
-              isImageMime(d.mimeType) ||
-              isImageName(d.originalName),
-          )
+          .filter((d) => passMime(d.mimeType, d.originalName))
           .map((d) => ({
             kind: 'document',
             kindLabel: t('media.sourceKindDocument'),

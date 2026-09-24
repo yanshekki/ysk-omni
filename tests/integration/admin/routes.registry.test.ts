@@ -73,6 +73,8 @@ const ADMIN_COVERAGE: Array<{
   { method: 'post', path: '/admin/api/media/generate', coveredBy: 'routes.hit-matrix' },
   { method: 'post', path: '/admin/api/media/edit', coveredBy: 'routes.hit-matrix' },
   { method: 'post', path: '/admin/api/media/videos', coveredBy: 'routes.hit-matrix' },
+  { method: 'post', path: '/admin/api/media/speech', coveredBy: 'admin.media-audio' },
+  { method: 'post', path: '/admin/api/media/transcribe', coveredBy: 'admin.media-audio' },
   { method: 'get', path: '/admin/api/ddos/connections', coveredBy: 'admin.routes.full' },
   { method: 'get', path: '/admin/api/ddos/blacklist', coveredBy: 'admin.routes.full' },
   { method: 'get', path: '/admin/api/ddos/stats', coveredBy: 'admin.routes.full' },
@@ -145,5 +147,7 @@ describe('admin routes registry', () => {
     expect(keys).toContain('POST /admin/api/media/generate');
     expect(keys).toContain('POST /admin/api/media/edit');
     expect(keys).toContain('POST /admin/api/media/videos');
+    expect(keys).toContain('POST /admin/api/media/speech');
+    expect(keys).toContain('POST /admin/api/media/transcribe');
   });
 });

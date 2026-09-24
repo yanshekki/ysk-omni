@@ -32,6 +32,8 @@ export const endpoints = {
   mediaAsset: (id: string) => `/media/assets/${id}`,
   mediaAssetDownload: (id: string) => `/media/assets/${id}/download`,
   mediaJobs: '/media/jobs',
+  mediaSpeech: '/media/speech',
+  mediaTranscribe: '/media/transcribe',
   audit: '/audit-logs',
   settings: '/settings',
   apiFeatures: '/api-features',

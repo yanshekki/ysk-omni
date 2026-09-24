@@ -15,6 +15,11 @@ import { auditService } from '../../services/audit.service';
 import { documentService } from '../../services/document.service';
 import { mediaJobsService } from '../../services/media/media-jobs.service';
 import { mediaOrchestratorService } from '../../services/media/media-orchestrator.service';
+import { mediaStoreService } from '../../services/media/media-store.service';
+import {
+  synthesizeSpeech,
+  transcribeAudio,
+} from '../../services/media/audio-worker';
 import { requestIp } from '../../utils/client-ip';
 import type { AuthenticatedApiKey } from '../../interfaces';
 import { resolveScalarOrderBy } from '../../utils/list-sort';
@@ -485,6 +490,109 @@ export const adminMediaHandlers = {
       data: job,
     });
   }),
+
+  speech: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.apiKey) throw ExceptionFactory.unauthorized();
+    const raw = req.body as {
+      input?: string;
+      prompt?: string;
+      voice?: string;
+      model?: string;
+      apiKeyId?: string;
+    };
+    const input = String(raw.input || raw.prompt || '').trim();
+    if (!input) throw ExceptionFactory.validation('input is required');
+    const actor = await resolveMediaActor(req, raw.apiKeyId);
+    const { bytes, mime } = await synthesizeSpeech({
+      input,
+      voice: raw.voice,
+      model: raw.model,
+    });
+    const stored = await mediaStoreService.save({
+      apiKeyId: actor.id,
+      kind: 'audio',
+      mime,
+      bytes,
+      originalName: `speech-${Date.now()}.${mime.includes('mpeg') ? 'mp3' : 'wav'}`,
+      source: 'generation',
+      provider: 'tts',
+      prompt: input,
+    });
+    await auditService.log({
+      apiKeyId: req.apiKey.id,
+      action: AUDIT_ACTIONS.MEDIA_GENERATE,
+      resource: 'media_asset',
+      resourceId: stored.id,
+      meta: { via: 'admin.media.speech', asKeyId: actor.id, bytes: stored.byteSize },
+      ip: requestIp(req),
+    });
+    res.status(200).json({
+      object: 'admin.media.speech',
+      data: {
+        asset_id: stored.id,
+        mime: stored.mime,
+        bytes: stored.byteSize,
+      },
+    });
+  }),
+
+  transcribe: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.apiKey) throw ExceptionFactory.unauthorized();
+    const files = req.files as
+      | { [field: string]: Express.Multer.File[] }
+      | undefined;
+    const file =
+      files?.file?.[0] ||
+      (req.file as Express.Multer.File | undefined);
+    const raw = req.body || {};
+    const sourceAssetId =
+      (typeof raw.sourceAssetId === 'string' && raw.sourceAssetId) ||
+      (typeof raw.source_asset_id === 'string' && raw.source_asset_id) ||
+      undefined;
+    const sourceDocumentId =
+      (typeof raw.sourceDocumentId === 'string' && raw.sourceDocumentId) ||
+      (typeof raw.source_document_id === 'string' && raw.source_document_id) ||
+      undefined;
+    const apiKeyId =
+      typeof raw.apiKeyId === 'string' && raw.apiKeyId
+        ? raw.apiKeyId
+        : undefined;
+    const src = await resolveMediaSourceBytes({
+      file,
+      sourceAssetId,
+      sourceDocumentId,
+      requireAudio: true,
+    });
+    const actor = await resolveMediaActor(req, apiKeyId);
+    const { text } = await transcribeAudio({
+      bytes: src.bytes,
+      filename: src.name || 'audio.wav',
+      mime: src.mime,
+    });
+    const stored = await mediaStoreService.save({
+      apiKeyId: actor.id,
+      kind: 'file',
+      mime: 'text/plain',
+      bytes: Buffer.from(text || ' ', 'utf8'),
+      originalName: `transcript-${Date.now()}.txt`,
+      source: 'transcription',
+      provider: 'stt',
+      prompt: src.name || src.id || 'audio',
+      meta: { sourceKind: src.kind, sourceId: src.id || null },
+    });
+    await auditService.log({
+      apiKeyId: req.apiKey.id,
+      action: AUDIT_ACTIONS.MEDIA_GENERATE,
+      resource: 'media_asset',
+      resourceId: stored.id,
+      meta: { via: 'admin.media.transcribe', asKeyId: actor.id },
+      ip: requestIp(req),
+    });
+    res.status(200).json({
+      object: 'admin.media.transcribe',
+      data: { text, asset_id: stored.id },
+    });
+  }),
 };
 
 async function resolveMediaActor(
@@ -510,6 +618,7 @@ async function resolveMediaSourceBytes(input: {
   sourceAssetId?: string;
   sourceDocumentId?: string;
   requireImage?: boolean;
+  requireAudio?: boolean;
 }): Promise<{
   bytes: Buffer;
   mime: string;
@@ -537,6 +646,12 @@ async function resolveMediaSourceBytes(input: {
         { reason: 'source_must_be_image' },
       );
     }
+    if (input.requireAudio && !String(row.mime || '').startsWith('audio/')) {
+      throw ExceptionFactory.validation(
+        'Source media asset must be audio for transcription',
+        { reason: 'source_must_be_audio' },
+      );
+    }
     const full = path.join(mediaRoot(), row.storagePath);
     const bytes = await fs.readFile(full);
     return {
@@ -559,6 +674,12 @@ async function resolveMediaSourceBytes(input: {
         { reason: 'source_must_be_image' },
       );
     }
+    if (input.requireAudio && !String(doc.mimeType || '').startsWith('audio/')) {
+      throw ExceptionFactory.validation(
+        'Source document must be audio for transcription',
+        { reason: 'source_must_be_audio' },
+      );
+    }
     const bytes = await documentService.readDecryptedContent(
       doc.apiKeyId,
       doc.id,
@@ -573,7 +694,9 @@ async function resolveMediaSourceBytes(input: {
   }
 
   throw ExceptionFactory.validation(
-    'Provide an image file, sourceAssetId, or sourceDocumentId',
+    input.requireAudio
+      ? 'Provide an audio file, sourceAssetId, or sourceDocumentId'
+      : 'Provide an image file, sourceAssetId, or sourceDocumentId',
     { reason: 'source_required' },
   );
 }

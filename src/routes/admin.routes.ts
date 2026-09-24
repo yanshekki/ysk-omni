@@ -11,6 +11,7 @@ import {
 import { ddosPolicyUpdateSchema } from '../dto/ddos.dto';
 import { adminPlaygroundChatSchema } from '../dto/chat.dto';
 import { createImageGenerationSchema } from '../dto/images.dto';
+import { adminSpeechSchema } from '../dto/audio.dto';
 import { z } from 'zod';
 import {
   conversationListQuerySchema,
@@ -222,6 +223,12 @@ router.post(
   uploadImageEdit,
   adminController.createVideo,
 );
+router.post(
+  '/media/speech',
+  validate(adminSpeechSchema, 'body'),
+  adminController.speech,
+);
+router.post('/media/transcribe', uploadSingle, adminController.transcribe);
 
 // DDoS control center
 router.get('/ddos/connections', adminController.ddosConnections);

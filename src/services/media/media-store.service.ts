@@ -26,6 +26,26 @@ function mediaRoot(): string {
   return path.join(env.storageDir, 'media');
 }
 
+export function extForMime(mime: string): string {
+  const m = String(mime || '')
+    .split(';')[0]
+    .trim()
+    .toLowerCase();
+  if (m === 'image/jpeg') return '.jpg';
+  if (m === 'image/webp') return '.webp';
+  if (m === 'image/gif') return '.gif';
+  if (m === 'video/mp4') return '.mp4';
+  if (m === 'audio/mpeg') return '.mp3';
+  if (m === 'audio/wav' || m === 'audio/x-wav' || m === 'audio/wave') {
+    return '.wav';
+  }
+  if (m === 'audio/ogg' || m === 'audio/opus') return '.ogg';
+  if (m === 'text/plain') return '.txt';
+  if (m.startsWith('audio/')) return '.bin';
+  if (m.startsWith('image/')) return '.png';
+  return '.bin';
+}
+
 export class MediaStoreService {
   async ensureDir(): Promise<void> {
     await fs.mkdir(mediaRoot(), { recursive: true });
@@ -46,18 +66,7 @@ export class MediaStoreService {
     await this.ensureDir();
 
     const id = createId();
-    const ext =
-      input.mime === 'image/jpeg'
-        ? '.jpg'
-        : input.mime === 'image/webp'
-          ? '.webp'
-          : input.mime === 'image/gif'
-            ? '.gif'
-            : input.mime === 'video/mp4'
-              ? '.mp4'
-              : input.mime === 'audio/mpeg'
-                ? '.mp3'
-                : '.png';
+    const ext = extForMime(input.mime);
     const rel = path.join(id.slice(0, 2), `${id}${ext}`);
     const full = path.join(mediaRoot(), rel);
     await fs.mkdir(path.dirname(full), { recursive: true });
