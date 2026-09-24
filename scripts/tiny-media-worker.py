@@ -72,7 +72,13 @@ def local_sd_src() -> str:
         return env
     root = _models_root()
     if root.is_dir():
-        dirs = [p for p in root.iterdir() if p.is_dir() and (p / "model_index.json").exists()]
+        dirs = [
+            p
+            for p in root.iterdir()
+            if p.is_dir()
+            and (p / "model_index.json").exists()
+            and (p / "unet").is_dir()
+        ]
         for p in dirs:
             if "sdxl" in p.name.lower():
                 return str(p)

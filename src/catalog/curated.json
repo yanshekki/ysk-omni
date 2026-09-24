@@ -41,8 +41,8 @@
       "vramMb": 4000
     },
     {
-      "id": "Systran/faster-whisper-large-v3-turbo",
-      "repoId": "Systran/faster-whisper-large-v3-turbo",
+      "id": "Systran/faster-whisper-large-v3",
+      "repoId": "Systran/faster-whisper-large-v3",
       "modality": "stt",
       "runtime": "whisper",
       "quants": [],

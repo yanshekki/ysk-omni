@@ -87,8 +87,9 @@ export function pickGgufFile(
 
 const SKIP_PULL_NAME =
   /(^|\/)(README(\.[a-z]+)?|LICENSE.*|\.gitattributes)$/i;
-const SKIP_PULL_EXT = /\.(h5|msgpack|ot|pkl|png|jpg|jpeg|gif|webp|md)$/i;
-const MAX_PULL_FILE_BYTES = 900 * 1024 * 1024;
+const SKIP_PULL_EXT =
+  /\.(h5|msgpack|ot|pkl|png|jpg|jpeg|gif|webp|md|onnx|onnx_data)$/i;
+const MAX_PULL_FILE_BYTES = 8 * 1024 * 1024 * 1024;
 
 /** GGUF first; else snapshot weights for whisper / diffusion repos. */
 export function pickPullFiles(
@@ -100,7 +101,7 @@ export function pickPullFiles(
     const meta = files.find((f) => f.path === gguf.path);
     return [{ path: gguf.path, size: meta?.size }];
   }
-  return files.filter((f) => {
+  const raw = files.filter((f) => {
     if (!f.path || f.path.endsWith('/')) return false;
     if (SKIP_PULL_NAME.test(f.path) || SKIP_PULL_EXT.test(f.path)) return false;
     if ((f.size || 0) > MAX_PULL_FILE_BYTES) return false;
@@ -108,6 +109,22 @@ export function pickPullFiles(
       /\.(bin|safetensors|json|txt|model)$/i.test(f.path) ||
       /model_index\.json$/i.test(f.path)
     );
+  });
+  const names = new Set(raw.map((f) => f.path));
+  const preferFp16 = raw.filter((f) => {
+    if (/\.fp16\./i.test(f.path)) return true;
+    const twins = [
+      f.path.replace(/diffusion_pytorch_model\./, 'diffusion_pytorch_model.fp16.'),
+      f.path.replace(/pytorch_model\./, 'pytorch_model.fp16.'),
+      f.path.replace(/model\./, 'model.fp16.'),
+      f.path.replace(/(\.safetensors|\.bin)$/i, '.fp16$1'),
+    ];
+    return !twins.some((t) => t !== f.path && names.has(t));
+  });
+  const hasUnet = preferFp16.some((f) => f.path.includes('/unet/'));
+  return preferFp16.filter((f) => {
+    if (hasUnet && !f.path.includes('/')) return false;
+    return true;
   });
 }
 
