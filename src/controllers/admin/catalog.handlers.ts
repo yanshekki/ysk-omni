@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
+import fs from 'node:fs';
 import { asyncHandler } from '../../utils/async-handler';
 import path from 'node:path';
 import { omniHome } from '../../config/omni-home';
 import { loadCuratedPacks } from '../../catalog/curated';
-import { loadRegistry, findEntry } from '../../services/hf/registry';
+import { loadRegistry, findEntry, pruneMissingFiles } from '../../services/hf/registry';
 import { deleteLocalModel } from '../../services/hf/delete-local';
 import { pullModel } from '../../services/hf/client';
 import { recordPullIfOk } from '../../services/hf/record-pull';
@@ -20,7 +21,7 @@ import {
 export const adminCatalogHandlers = {
   catalog: asyncHandler(async (_req: Request, res: Response) => {
     const packs = loadCuratedPacks();
-    const local = loadRegistry().models;
+    const local = pruneMissingFiles().models;
     const snap = vramScheduler.snapshot();
     const popular = loadPopularCache();
     res.status(200).json({
@@ -108,6 +109,11 @@ export const adminCatalogHandlers = {
     }
     if (!entry) {
       throw ExceptionFactory.notFound('Model');
+    }
+    if (!entry.path || !fs.existsSync(entry.path)) {
+      throw ExceptionFactory.engineUnconfigured(
+        `No GGUF file on disk for ${entry.id}; Pull a GGUF first`,
+      );
     }
     const patched = { ...entry, vramMb: vramMb || entry.vramMb };
     const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));

@@ -761,6 +761,7 @@ const dict = {
         'Adds the 50 most-downloaded GGUF ids to the list. This does not download files; Pull a row to fetch weights.',
       noQuant: '—',
       pullFail: 'Pull failed',
+      pullNoGguf: 'No GGUF file in this repository. It was not added to local models.',
       loadFail: 'Load failed',
       unloadFail: 'Unload failed',
       mod: {
@@ -2103,6 +2104,7 @@ const dict = {
         '將下載次數最高的 50 個 GGUF 識別碼加入清單。此步驟不會下載檔案，請自行按 Pull 取得權重。',
       noQuant: '—',
       pullFail: '拉取失敗',
+      pullNoGguf: '此儲存庫沒有 GGUF 檔，因此未加入本機模型。',
       loadFail: '載入失敗',
       unloadFail: '卸載失敗',
       mod: {

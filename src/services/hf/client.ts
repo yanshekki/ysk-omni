@@ -106,7 +106,7 @@ export async function pullModel(
     const skipped: PullProgress = {
       status: 'skipped',
       model: specRaw,
-      reason: 'no GGUF file in repo (safetensors ids are recorded without download)',
+      reason: 'no GGUF file in repo',
     };
     emit(skipped);
     return skipped;

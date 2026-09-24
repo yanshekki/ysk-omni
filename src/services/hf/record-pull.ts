@@ -8,6 +8,7 @@ import {
   type RegistryEntry,
 } from './registry';
 import { parseHfSpec } from './spec';
+import { estimateDiskVram } from './hub-search';
 
 export function sha256File(filePath: string): string {
   const hash = crypto.createHash('sha256');
@@ -25,14 +26,7 @@ export function sha256File(filePath: string): string {
 }
 
 export function shouldRecordPull(result: PullProgress): boolean {
-  if (result.status === 'done' && result.path) return true;
-  if (
-    result.status === 'skipped' &&
-    (result.reason || '').includes('no GGUF file')
-  ) {
-    return true;
-  }
-  return false;
+  return result.status === 'done' && Boolean(result.path);
 }
 
 export function recordPullIfOk(
@@ -43,20 +37,19 @@ export function recordPullIfOk(
   if (!shouldRecordPull(result)) return null;
   const spec = parseHfSpec(specRaw);
   const curated = findCuratedPack(spec.repoId);
-  const quant = spec.quant || (result.path ? '' : 'Q4_K_M');
-  let sha256 = '';
-  if (result.path && fs.existsSync(result.path)) {
-    sha256 = sha256File(result.path);
-  }
+  if (!result.path || !fs.existsSync(result.path)) return null;
+  const quant = spec.quant || '';
+  const sha256 = sha256File(result.path);
+  const est = estimateDiskVram(spec.repoId, 'llamacpp');
   const entry: RegistryEntry = {
     id: makeEntryId(spec.repoId, quant || undefined),
     repoId: spec.repoId,
     filename: result.file || '',
-    path: result.path || '',
+    path: result.path,
     quant,
     modality: curated?.modality || 'text',
-    runtime: curated?.runtime || (result.path ? 'llamacpp' : 'vllm'),
-    vramMb: curated?.vramMb || 0,
+    runtime: curated?.runtime || 'llamacpp',
+    vramMb: curated?.vramMb || est.vramMb || 0,
     pulledAt: new Date().toISOString(),
     sha256,
   };

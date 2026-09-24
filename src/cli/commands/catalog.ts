@@ -85,12 +85,12 @@ export async function cmdPull(opts: CliOpts & { spec: string }): Promise<void> {
     emitJson({ result, entry });
     return;
   }
-  if (result.status === 'done' && entry) {
+  if (result.status === 'done' && entry?.path) {
     ok(`Pulled ${entry.id} → ${entry.path} sha256=${entry.sha256.slice(0, 12)}…`);
-  } else if (entry) {
-    info(`Recorded ${entry.id} (${result.status}${result.reason ? `: ${result.reason}` : ''})`);
   } else {
-    fail(`Pull did not record a registry entry (${result.status}${result.reason ? `: ${result.reason}` : ''})`);
+    fail(
+      `Pull did not save a local GGUF (${result.status}${result.reason ? `: ${result.reason}` : ''})`,
+    );
     process.exitCode = 1;
   }
 }

@@ -34,6 +34,15 @@ export function emptyRegistry(): ModelRegistry {
   return { models: [] };
 }
 
+export function pruneMissingFiles(file = registryPath()): ModelRegistry {
+  const reg = loadRegistry(file);
+  const kept = reg.models.filter((m) => Boolean(m.path) && fs.existsSync(m.path));
+  if (kept.length !== reg.models.length) {
+    saveRegistry({ models: kept }, file);
+  }
+  return { models: kept };
+}
+
 export function loadRegistry(file = registryPath()): ModelRegistry {
   try {
     const raw = fs.readFileSync(file, 'utf8');

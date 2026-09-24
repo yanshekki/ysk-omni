@@ -55,7 +55,7 @@ describe('recordPullIfOk', () => {
     expect(loadRegistry(path.join(dir, 'registry.json')).models).toHaveLength(0);
   });
 
-  it('records safetensors ids when the repo has no GGUF', () => {
+  it('does not record repos with no GGUF file', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-rec-'));
     dirs.push(dir);
     const entry = recordPullIfOk(
@@ -63,11 +63,11 @@ describe('recordPullIfOk', () => {
       {
         status: 'skipped',
         model: 'Qwen/Qwen2.5-7B-Instruct',
-        reason: 'no GGUF file in repo (safetensors ids are recorded without download)',
+        reason: 'no GGUF file in repo',
       },
       path.join(dir, 'registry.json'),
     );
-    expect(entry?.runtime).toBe('vllm');
-    expect(entry?.path).toBe('');
+    expect(entry).toBeNull();
+    expect(loadRegistry(path.join(dir, 'registry.json')).models).toHaveLength(0);
   });
 });

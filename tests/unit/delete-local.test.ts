@@ -43,3 +43,36 @@ describe('deleteLocalModel', () => {
     expect(fs.existsSync(gguf)).toBe(false);
   });
 });
+
+describe('pruneMissingFiles', () => {
+  it('drops registry rows without a file on disk', async () => {
+    const { pruneMissingFiles, upsertEntry, loadRegistry } = await import(
+      '../../src/services/hf/registry'
+    );
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-prune-'));
+    process.env.OMNI_HOME = home;
+    const file = path.join(home, 'registry.json');
+    upsertEntry(
+      {
+        id: 'ghost/model',
+        repoId: 'ghost/model',
+        filename: '',
+        path: '',
+        quant: 'Q4_K_M',
+        modality: 'text',
+        runtime: 'vllm',
+        vramMb: 0,
+        pulledAt: new Date().toISOString(),
+        sha256: '',
+      },
+      file,
+    );
+    const kept = pruneMissingFiles(file);
+    expect(kept.models).toHaveLength(0);
+    expect(loadRegistry(file).models).toHaveLength(0);
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+});

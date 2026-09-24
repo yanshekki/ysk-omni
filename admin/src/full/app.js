@@ -9677,6 +9677,15 @@ function catalogPullProgressHtml(id, active) {
     </div>`;
 }
 
+function assertPullRecorded(last) {
+  const status = last?.status;
+  const pathOnDisk = last?.entry?.path;
+  if (status === 'done' && pathOnDisk) return;
+  const reason = String(last?.reason || '');
+  if (reason.includes('no GGUF')) throw new Error(t('catalog.pullNoGguf'));
+  throw new Error(reason || t('catalog.pullFail'));
+}
+
 function updatePullProgress(el, bytes, total) {
   if (!el) return;
   el.hidden = false;
@@ -10213,9 +10222,7 @@ async function renderCatalog() {
         if (!res.ok) {
           throw new Error(last.error?.message || last.reason || res.statusText);
         }
-        if (last.status === 'error') {
-          throw new Error(last.reason || t('catalog.pullFail'));
-        }
+        assertPullRecorded(last);
         state.catalogPulling = '';
         state.catalogTab = 'local';
         await renderCatalog();
@@ -10297,9 +10304,10 @@ async function renderCatalog() {
       const text = await res.text();
       const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
       const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
-      if (!res.ok || last.status === 'error') {
+      if (!res.ok) {
         throw new Error(last.error?.message || last.reason || res.statusText);
       }
+      assertPullRecorded(last);
       state.catalogPulling = '';
       state.catalogTab = 'local';
       await renderCatalog();
