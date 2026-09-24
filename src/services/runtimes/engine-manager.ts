@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import type { ChildProcess } from 'node:child_process';
 import { findEntry, type RegistryEntry } from '../hf/registry';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
@@ -9,16 +11,65 @@ import {
   proxyLlamaStream,
   spawnLlamaServer,
 } from './llama-server';
+import { spawnVllmServe, vllmBin } from './vllm';
 import type { OpenAiChatCompletion } from '../../interfaces/open-ai-chat-completion.interface';
 
 export type LoadedEngine = {
   id: string;
-  kind: 'llamacpp';
+  kind: 'llamacpp' | 'vllm';
   port: number;
   modelPath: string;
   vramMb: number;
   child: ChildProcess;
 };
+
+export type EngineStateRow = {
+  id: string;
+  kind: 'llamacpp' | 'vllm';
+  port: number;
+  modelPath: string;
+  vramMb: number;
+  pid: number | null;
+};
+
+export function enginesStatePath(): string {
+  const home = process.env.OMNI_HOME?.trim()
+    ? path.resolve(process.env.OMNI_HOME.trim())
+    : path.join(os.homedir(), '.ysk-omni');
+  return path.join(home, 'engines.json');
+}
+
+function pidAlive(pid: number | null | undefined): boolean {
+  if (!pid || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function readEnginesState(): {
+  loaded: EngineStateRow[];
+  usedMb: number;
+  budgetMb: number;
+} {
+  try {
+    const raw = JSON.parse(fs.readFileSync(enginesStatePath(), 'utf8')) as {
+      loaded?: EngineStateRow[];
+      usedMb?: number;
+      budgetMb?: number;
+    };
+    const loaded = (raw.loaded || []).filter((e) => pidAlive(e.pid));
+    return {
+      loaded,
+      usedMb: loaded.reduce((s, e) => s + (e.vramMb || 0), 0),
+      budgetMb: raw.budgetMb || 24_000,
+    };
+  } catch {
+    return { loaded: [], usedMb: 0, budgetMb: 24_000 };
+  }
+}
 
 export class EngineManager {
   private engines = new Map<string, LoadedEngine>();
@@ -38,6 +89,7 @@ export class EngineManager {
     const eng = this.get(id);
     if (!eng) {
       vramScheduler.unload(id);
+      this.persist();
       return false;
     }
     try {
@@ -47,6 +99,7 @@ export class EngineManager {
     }
     this.engines.delete(eng.id);
     vramScheduler.unload(eng.id);
+    this.persist();
     return true;
   }
 
@@ -93,10 +146,76 @@ export class EngineManager {
       child: spawned.child,
     };
     this.engines.set(entry.id, eng);
+    this.persist();
     return eng;
   }
 
+  async loadVllm(entry: RegistryEntry): Promise<LoadedEngine> {
+    const existing = this.engines.get(entry.id);
+    if (existing) return existing;
+    if (!vllmBin()) {
+      throw ExceptionFactory.engineUnconfigured(
+        `vllm is not on PATH; install vLLM and retry load of ${entry.id}`,
+      );
+    }
+    const plan = vramScheduler.load({
+      id: entry.id,
+      vramMb: entry.vramMb || 16_000,
+    });
+    if (!plan.accept) {
+      throw ExceptionFactory.validation(
+        `model ${entry.id} needs ${entry.vramMb} MB and does not fit VRAM budget`,
+      );
+    }
+    for (const id of plan.unload) {
+      if (id !== entry.id) await this.unload(id);
+    }
+    const spawned = await spawnVllmServe(entry.repoId);
+    const eng: LoadedEngine = {
+      id: entry.id,
+      kind: 'vllm',
+      port: spawned.port,
+      modelPath: entry.repoId,
+      vramMb: entry.vramMb || 16_000,
+      child: spawned.child,
+    };
+    this.engines.set(entry.id, eng);
+    this.persist();
+    return eng;
+  }
+
+  persist(): void {
+    const snap = vramScheduler.snapshot();
+    const loaded: EngineStateRow[] = [...this.engines.values()].map((e) => ({
+      id: e.id,
+      kind: e.kind,
+      port: e.port,
+      modelPath: e.modelPath,
+      vramMb: e.vramMb,
+      pid: e.child.pid ?? null,
+    }));
+    const file = enginesStatePath();
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(
+      file,
+      JSON.stringify(
+        {
+          loaded,
+          usedMb: snap.usedMb,
+          budgetMb: snap.budgetMb,
+          updatedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+  }
+
   async ensureLlama(model: string): Promise<LoadedEngine> {
+    return this.ensureEngine(model);
+  }
+
+  async ensureEngine(model: string): Promise<LoadedEngine> {
     const loaded = this.get(model);
     if (loaded) return loaded;
     const entry = findEntry(model);
@@ -105,7 +224,11 @@ export class EngineManager {
         `unknown model ${model}; pull a GGUF or use model=echo`,
       );
     }
-    return this.loadGguf(entry);
+    const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));
+    if (isGguf || entry.runtime === 'llamacpp') {
+      return this.loadGguf(entry);
+    }
+    return this.loadVllm(entry);
   }
 
   async chatJson(

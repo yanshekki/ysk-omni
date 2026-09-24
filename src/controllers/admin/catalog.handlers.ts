@@ -62,7 +62,12 @@ export const adminCatalogHandlers = {
     if (!entry) {
       throw ExceptionFactory.notFound('Model');
     }
-    const eng = await engineManager.loadGguf({ ...entry, vramMb: vramMb || entry.vramMb });
+    const patched = { ...entry, vramMb: vramMb || entry.vramMb };
+    const isGguf = Boolean(entry.path?.toLowerCase().endsWith('.gguf'));
+    const eng =
+      isGguf || entry.runtime === 'llamacpp'
+        ? await engineManager.loadGguf(patched)
+        : await engineManager.loadVllm(patched);
     res.status(200).json({
       ok: true,
       engine: { id: eng.id, port: eng.port, kind: eng.kind },

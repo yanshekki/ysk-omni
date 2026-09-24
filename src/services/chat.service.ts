@@ -50,6 +50,7 @@ import {
 } from './runtimes/echo';
 import { engineManager } from './runtimes/engine-manager';
 import { llamaServerBin } from './runtimes/llama-server';
+import { vllmBin } from './runtimes/vllm';
 import { findEntry } from './hf/registry';
 import { grokSessionMapService } from './grok-session-map.service';
 import { policyService } from './policy.service';
@@ -284,10 +285,16 @@ export class ChatService {
     const wantsLlama =
       Boolean(gguf?.path?.toLowerCase().endsWith('.gguf')) ||
       gguf?.runtime === 'llamacpp';
-    if (wantsLlama) {
-      if (!llamaServerBin()) {
+    const wantsVllm = gguf?.runtime === 'vllm' || (Boolean(gguf) && !wantsLlama);
+    if (wantsLlama || wantsVllm) {
+      if (wantsLlama && !llamaServerBin()) {
         throw ExceptionFactory.engineUnconfigured(
           `llama-server is not on PATH; cannot serve ${model}. Install llama.cpp or use model=echo`,
+        );
+      }
+      if (wantsVllm && !wantsLlama && !vllmBin()) {
+        throw ExceptionFactory.engineUnconfigured(
+          `vllm is not on PATH; cannot serve ${model}. Install vLLM or use model=echo`,
         );
       }
       if (stream && res) {
