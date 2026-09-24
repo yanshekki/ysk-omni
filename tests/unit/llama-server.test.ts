@@ -4,6 +4,8 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   chatLlamaServer,
+  llamaGpuLayers,
+  llamaServerArgs,
   llamaServerBin,
 } from '../../src/services/runtimes/llama-server';
 import {
@@ -20,11 +22,13 @@ describe('llama-server spawn/proxy', () => {
   let prevPath = '';
   let prevHome = '';
   let prevOverride = '';
+  let prevGpu = '';
 
   beforeEach(() => {
     prevPath = process.env.PATH || '';
     prevHome = process.env.OMNI_HOME || '';
     prevOverride = process.env.OMNI_LLAMA_SERVER || '';
+    prevGpu = process.env.OMNI_LLAMA_N_GPU_LAYERS || '';
   });
 
   afterEach(async () => {
@@ -35,6 +39,8 @@ describe('llama-server spawn/proxy', () => {
     else delete process.env.OMNI_HOME;
     if (prevOverride) process.env.OMNI_LLAMA_SERVER = prevOverride;
     else delete process.env.OMNI_LLAMA_SERVER;
+    if (prevGpu) process.env.OMNI_LLAMA_N_GPU_LAYERS = prevGpu;
+    else delete process.env.OMNI_LLAMA_N_GPU_LAYERS;
     for (const d of dirs.splice(0)) {
       fs.rmSync(d, { recursive: true, force: true });
     }
@@ -59,6 +65,17 @@ describe('llama-server spawn/proxy', () => {
   it('llamaServerBin finds the binary on PATH / OMNI_LLAMA_SERVER', () => {
     const { bin } = installFakeBin();
     expect(llamaServerBin()).toBe(bin);
+  });
+
+  it('llamaServerArgs includes --n-gpu-layers from env (default -1)', () => {
+    delete process.env.OMNI_LLAMA_N_GPU_LAYERS;
+    expect(llamaGpuLayers()).toBe(-1);
+    const args = llamaServerArgs('/tmp/model.gguf', 19001);
+    expect(args).toContain('--n-gpu-layers');
+    expect(args[args.indexOf('--n-gpu-layers') + 1]).toBe('-1');
+    process.env.OMNI_LLAMA_N_GPU_LAYERS = '0';
+    expect(llamaGpuLayers()).toBe(0);
+    expect(llamaServerArgs('/tmp/model.gguf', 19001)).toContain('0');
   });
 
   it('chatLlamaServer spawns the binary and proxies OpenAI chat JSON', async () => {

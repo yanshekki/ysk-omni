@@ -10,6 +10,27 @@ export function llamaServerBin(): string | null {
   return r.status === 0 && p ? p : null;
 }
 
+/** llama.cpp --n-gpu-layers. Default -1 (all layers). Set OMNI_LLAMA_N_GPU_LAYERS=0 for CPU. */
+export function llamaGpuLayers(): number {
+  const raw = process.env.OMNI_LLAMA_N_GPU_LAYERS?.trim();
+  if (!raw) return -1;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.trunc(n) : -1;
+}
+
+export function llamaServerArgs(modelPath: string, port: number): string[] {
+  return [
+    '-m',
+    modelPath,
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(port),
+    '--n-gpu-layers',
+    String(llamaGpuLayers()),
+  ];
+}
+
 export function healthTimeoutMs(filePath: string): number {
   try {
     const mb = fs.statSync(filePath).size / (1024 * 1024);
@@ -50,11 +71,9 @@ export async function spawnLlamaServer(modelPath: string): Promise<SpawnedLlama>
     throw new Error('llama-server is not on PATH');
   }
   const port = pickPort();
-  const child: ChildProcess = spawn(
-    bin,
-    ['-m', modelPath, '--host', '127.0.0.1', '--port', String(port)],
-    { stdio: 'ignore' },
-  );
+  const child: ChildProcess = spawn(bin, llamaServerArgs(modelPath, port), {
+    stdio: 'ignore',
+  });
   try {
     await waitForHttp(`http://127.0.0.1:${port}/health`, healthTimeoutMs(modelPath));
     return { child, port };

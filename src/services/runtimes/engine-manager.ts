@@ -11,7 +11,7 @@ import {
   proxyLlamaStream,
   spawnLlamaServer,
 } from './llama-server';
-import { spawnVllmServe, vllmBin } from './vllm';
+import { spawnVllmServe, vllmAvailable } from './vllm';
 import type { OpenAiChatCompletion } from '../../interfaces/open-ai-chat-completion.interface';
 
 export type LoadedEngine = {
@@ -153,9 +153,9 @@ export class EngineManager {
   async loadVllm(entry: RegistryEntry): Promise<LoadedEngine> {
     const existing = this.engines.get(entry.id);
     if (existing) return existing;
-    if (!vllmBin()) {
+    if (!vllmAvailable()) {
       throw ExceptionFactory.engineUnconfigured(
-        `vllm is not on PATH; install vLLM and retry load of ${entry.id}`,
+        `vllm is not on PATH (no vllm CLI and no python -m vllm.entrypoints.openai.api_server); install vLLM and retry load of ${entry.id}`,
       );
     }
     const plan = vramScheduler.load({

@@ -36,13 +36,13 @@ export async function cmdDoctor(opts: {
     const { loadRegistry } = await import('../../services/hf/registry');
     const { readEnginesState } = await import('../../services/runtimes/engine-manager');
     const { llamaServerBin } = await import('../../services/runtimes/llama-server');
-    const { vllmBin } = await import('../../services/runtimes/vllm');
+    const { describeVllmRuntime } = await import('../../services/runtimes/vllm');
     const { ECHO_MODEL_ID } = await import('../../services/runtimes/echo');
     const st = readEnginesState();
     const local = loadRegistry().models;
     ok(`Echo engine: ${ECHO_MODEL_ID}`);
     info(`llama-server: ${llamaServerBin() || 'not on PATH'}`);
-    info(`vllm: ${vllmBin() || 'not on PATH'}`);
+    info(`vllm: ${describeVllmRuntime()}`);
     if (!st.loaded.length) {
       info('Loaded engines: (none) — start the gateway and Load a model in Admin');
     } else {
