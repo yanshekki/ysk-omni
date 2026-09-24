@@ -13,6 +13,7 @@ import {
 import { parseHfSpec } from '../../services/hf/spec';
 import { pullModel } from '../../services/hf/client';
 import { vramScheduler } from '../../services/vram-scheduler';
+import { engineManager } from '../../services/runtimes/engine-manager';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
 import { ECHO_MODEL_ID } from '../../services/runtimes/echo';
 
@@ -25,7 +26,7 @@ export const adminCatalogHandlers = {
       packs,
       local,
       echo: ECHO_MODEL_ID,
-      loaded: snap.loaded,
+      loaded: engineManager.list(),
       usedMb: snap.usedMb,
       budgetMb: snap.budgetMb,
     });
@@ -66,19 +67,32 @@ export const adminCatalogHandlers = {
       Number((req.body as { vramMb?: number })?.vramMb) ||
       entry?.vramMb ||
       (id === ECHO_MODEL_ID ? 0 : 4096);
-    const plan = vramScheduler.load({ id, vramMb, exclusive });
-    if (!plan.accept) {
-      throw ExceptionFactory.validation(
-        `model ${id} needs ${vramMb} MB and does not fit (budget ${vramScheduler.budgetMb} MB)`,
-      );
+    if (exclusive) await engineManager.unloadAll();
+    if (id === ECHO_MODEL_ID) {
+      const plan = vramScheduler.load({ id, vramMb: 0, exclusive });
+      res.status(200).json({ ok: true, plan, ...vramScheduler.snapshot(), loaded: engineManager.list() });
+      return;
     }
-    res.status(200).json({ ok: true, plan, ...vramScheduler.snapshot() });
+    if (!entry) {
+      throw ExceptionFactory.notFound('Model');
+    }
+    const eng = await engineManager.loadGguf({ ...entry, vramMb: vramMb || entry.vramMb });
+    res.status(200).json({
+      ok: true,
+      engine: { id: eng.id, port: eng.port, kind: eng.kind },
+      ...vramScheduler.snapshot(),
+      loaded: engineManager.list(),
+    });
   }),
 
   unloadModel: asyncHandler(async (req: Request, res: Response) => {
     const id = String((req.body as { id?: string })?.id || req.params.id || '').trim();
     if (!id) throw ExceptionFactory.validation('id is required');
-    const removed = vramScheduler.unload(id);
-    res.status(200).json({ ok: removed, ...vramScheduler.snapshot() });
+    const removed = await engineManager.unload(id);
+    res.status(200).json({
+      ok: removed,
+      ...vramScheduler.snapshot(),
+      loaded: engineManager.list(),
+    });
   }),
 };

@@ -19,6 +19,21 @@ const server = http.createServer((req, res) => {
     const chunks = [];
     req.on('data', (c) => chunks.push(c));
     req.on('end', () => {
+      let stream = false;
+      try {
+        stream = Boolean(JSON.parse(Buffer.concat(chunks).toString('utf8')).stream);
+      } catch {
+        stream = false;
+      }
+      if (stream) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.write(
+          'data: {"id":"chatcmpl-llama-test","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"llama-proxy-ok"},"finish_reason":null}]}\n\n',
+        );
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
       res.setHeader('Content-Type', 'application/json');
       res.end(
         JSON.stringify({

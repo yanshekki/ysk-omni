@@ -48,7 +48,9 @@ import {
   echoCompletion,
   isEchoModel,
 } from './runtimes/echo';
-import { tryLlamaChat } from './runtimes/llama-server';
+import { engineManager } from './runtimes/engine-manager';
+import { llamaServerBin } from './runtimes/llama-server';
+import { findEntry } from './hf/registry';
 import { grokSessionMapService } from './grok-session-map.service';
 import { policyService } from './policy.service';
 import { settingsService } from './settings.service';
@@ -278,9 +280,21 @@ export class ChatService {
     if (isEchoModel(model)) {
       return this.executeEchoCompletion(dto, ctx, res, model, stream);
     }
-    const llama = await tryLlamaChat(model, dto.messages || []);
-    if (llama) {
-      return this.executeLocalCompletion(dto, ctx, res, model, stream, llama);
+    const gguf = findEntry(model);
+    const wantsLlama =
+      Boolean(gguf?.path?.toLowerCase().endsWith('.gguf')) ||
+      gguf?.runtime === 'llamacpp';
+    if (wantsLlama) {
+      if (!llamaServerBin()) {
+        throw ExceptionFactory.engineUnconfigured(
+          `llama-server is not on PATH; cannot serve ${model}. Install llama.cpp or use model=echo`,
+        );
+      }
+      if (stream && res) {
+        return this.executeLlamaStream(dto, ctx, res, model);
+      }
+      const completion = await engineManager.chatJson(model, dto.messages || []);
+      return this.executeLocalCompletion(dto, ctx, res, model, stream, completion);
     }
     // OTP sessions use synthetic ids — ChatRequest.apiKeyId requires a real key row
     const { toPersistentApiKeyId } = await import('../utils/api-key-id');
@@ -662,6 +676,63 @@ export class ChatService {
       return;
     }
     return completion;
+  }
+
+  private async executeLlamaStream(
+    dto: CreateChatCompletionDto,
+    ctx: ChatContext,
+    res: Response,
+    model: string,
+  ): Promise<void> {
+    const { toPersistentApiKeyId } = await import('../utils/api-key-id');
+    const ownerApiKeyId = await toPersistentApiKeyId(ctx.apiKey.id);
+    const chatRequestDbId = createId();
+    const promptEnc = encryptionService.encrypt(
+      JSON.stringify(dto.messages || []),
+    );
+    await prisma.chatRequest.create({
+      data: {
+        id: chatRequestDbId,
+        requestId: ctx.requestId,
+        apiKeyId: ownerApiKeyId,
+        model,
+        stream: true,
+        status: CHAT_STATUS.PENDING,
+        promptCiphertext: toBytes(promptEnc.ciphertext),
+        promptIv: toBytes(promptEnc.iv),
+        promptTag: toBytes(promptEnc.tag),
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+        policyMode: 'safe',
+      },
+    });
+    const upstream = await engineManager.chatStream(model, dto.messages || []);
+    initSse(res);
+    const reader = upstream.body?.getReader();
+    if (!reader) {
+      throw ExceptionFactory.engineUnconfigured('llama-server returned an empty stream');
+    }
+    const decoder = new TextDecoder();
+    let raw = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = typeof value === 'string' ? value : decoder.decode(value, { stream: true });
+      raw += chunk;
+      res.write(chunk);
+    }
+    if (!res.writableEnded) res.end();
+    const responseEnc = encryptionService.encrypt(raw.slice(0, 8000));
+    await prisma.chatRequest.update({
+      where: { id: chatRequestDbId },
+      data: {
+        status: CHAT_STATUS.SUCCESS,
+        durationMs: 0,
+        responseCiphertext: toBytes(responseEnc.ciphertext),
+        responseIv: toBytes(responseEnc.iv),
+        responseTag: toBytes(responseEnc.tag),
+      },
+    });
   }
 
   private async rememberGrokSession(

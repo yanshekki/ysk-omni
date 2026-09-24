@@ -5,6 +5,7 @@ import { toPersistentApiKeyId } from '../../utils/api-key-id';
 import { apiFeaturesService } from '../api-features.service';
 import { mediaStoreService } from './media-store.service';
 import { vramScheduler } from '../vram-scheduler';
+import { engineManager } from '../runtimes/engine-manager';
 import type { AuthenticatedApiKey } from '../../interfaces';
 
 /** Deterministic fixture bytes for completed video jobs without a GPU worker. */
@@ -139,6 +140,7 @@ export class MediaJobsService {
       data: { status: 'in_progress', startedAt: new Date() },
     });
 
+    await engineManager.unloadAll();
     const exclusiveId = `video:${jobId}`;
     const plan = vramScheduler.load({
       id: exclusiveId,

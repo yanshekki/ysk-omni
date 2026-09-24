@@ -5,9 +5,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   chatLlamaServer,
   llamaServerBin,
-  tryLlamaChat,
 } from '../../src/services/runtimes/llama-server';
-import { upsertEntry } from '../../src/services/hf/registry';
+import { engineManager } from '../../src/services/runtimes/engine-manager';
+import { findEntry, upsertEntry } from '../../src/services/hf/registry';
+import { vramScheduler } from '../../src/services/vram-scheduler';
 
 const helper = path.resolve(process.cwd(), 'tests/helpers/fake-llama-server.mjs');
 
@@ -23,7 +24,9 @@ describe('llama-server spawn/proxy', () => {
     prevOverride = process.env.OMNI_LLAMA_SERVER || '';
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await engineManager.unloadAll();
+    vramScheduler.reset();
     process.env.PATH = prevPath;
     if (prevHome) process.env.OMNI_HOME = prevHome;
     else delete process.env.OMNI_HOME;
@@ -66,7 +69,7 @@ describe('llama-server spawn/proxy', () => {
     expect(out?.choices[0]?.message?.content).toBe('llama-proxy-ok');
   });
 
-  it('tryLlamaChat uses a pulled GGUF from the registry', async () => {
+  it('engineManager keeps llama-server running across two chats', async () => {
     const { home, gguf } = installFakeBin();
     const id = 'test/tiny-gguf:Q4_K_M';
     upsertEntry(
@@ -84,7 +87,88 @@ describe('llama-server spawn/proxy', () => {
       },
       path.join(home, 'registry.json'),
     );
-    const out = await tryLlamaChat(id, [{ role: 'user', content: 'hi' }]);
-    expect(out?.choices[0]?.message?.content).toBe('llama-proxy-ok');
+    const first = await engineManager.chatJson(id, [{ role: 'user', content: 'hi' }]);
+    const port = engineManager.get(id)?.port;
+    const second = await engineManager.chatJson(id, [{ role: 'user', content: 'again' }]);
+    expect(first.choices[0]?.message?.content).toBe('llama-proxy-ok');
+    expect(second.choices[0]?.message?.content).toBe('llama-proxy-ok');
+    expect(engineManager.get(id)?.port).toBe(port);
+    expect(engineManager.list()).toHaveLength(1);
+  });
+
+  it('chatStream proxies SSE tokens from llama-server', async () => {
+    const { home, gguf } = installFakeBin();
+    const id = 'test/tiny-gguf:Q4_K_M';
+    upsertEntry(
+      {
+        id,
+        repoId: 'test/tiny-gguf',
+        filename: 'model.gguf',
+        path: gguf,
+        quant: 'Q4_K_M',
+        modality: 'text',
+        runtime: 'llamacpp',
+        vramMb: 256,
+        pulledAt: new Date().toISOString(),
+        sha256: '',
+      },
+      path.join(home, 'registry.json'),
+    );
+    const res = await engineManager.chatStream(id, [{ role: 'user', content: 'hi' }]);
+    const text = await res.text();
+    expect(text).toContain('llama-proxy-ok');
+    expect(text).toContain('chat.completion.chunk');
+  });
+
+  it('loadGguf errors when llama-server is missing', async () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-nollama-'));
+    dirs.push(home);
+    process.env.OMNI_HOME = home;
+    delete process.env.OMNI_LLAMA_SERVER;
+    process.env.PATH = '/usr/bin';
+    const gguf = path.join(home, 'model.gguf');
+    fs.writeFileSync(gguf, 'GGUF');
+    const id = 'test/missing-bin:Q4_K_M';
+    const entry = {
+      id,
+      repoId: 'test/missing-bin',
+      filename: 'model.gguf',
+      path: gguf,
+      quant: 'Q4_K_M',
+      modality: 'text' as const,
+      runtime: 'llamacpp' as const,
+      vramMb: 256,
+      pulledAt: new Date().toISOString(),
+      sha256: '',
+    };
+    upsertEntry(entry, path.join(home, 'registry.json'));
+    await expect(engineManager.loadGguf(entry)).rejects.toMatchObject({
+      code: 'engine_unconfigured',
+    });
+  });
+
+  it('engineManager.unload kills the process', async () => {
+    const { home, gguf } = installFakeBin();
+    const id = 'test/tiny-gguf:Q4_K_M';
+    upsertEntry(
+      {
+        id,
+        repoId: 'test/tiny-gguf',
+        filename: 'model.gguf',
+        path: gguf,
+        quant: 'Q4_K_M',
+        modality: 'text',
+        runtime: 'llamacpp',
+        vramMb: 256,
+        pulledAt: new Date().toISOString(),
+        sha256: '',
+      },
+      path.join(home, 'registry.json'),
+    );
+    await engineManager.loadGguf(findEntry(id)!);
+    expect(engineManager.list()).toHaveLength(1);
+    await engineManager.unload(id);
+    expect(engineManager.list()).toHaveLength(0);
   });
 });
+
