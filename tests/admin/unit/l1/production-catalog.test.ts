@@ -32,5 +32,7 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('catalog/sync');
     expect(boot).toContain('catalog/rm');
     expect(boot).toContain('cat-spec');
+    expect(boot).toContain('catalog-hub-stack');
+    expect(boot).toContain('cat-hub-go');
   });
 });

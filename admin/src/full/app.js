@@ -9926,34 +9926,45 @@ async function renderCatalog() {
         <strong>${escapeHtml(t('catalog.hubEmpty'))}</strong>
       </div>
     </td></tr>`;
-  const hubSearch = filterPanelHtml({
-    title: t('catalog.tabHub'),
-    hint: t('catalog.hubHint'),
-    meta: hubHits.length ? tf('common.pagerTotal', { n: hubHits.length }) : '',
-    searchHtml: `
-      <div class="data-filter-search">
-        <label for="cat-hub-q">${escapeHtml(t('catalog.hubSearch'))}</label>
-        <input type="search" id="cat-hub-q" value="${escapeHtml(state.catalogHubQ || '')}" placeholder="${escapeHtml(t('catalog.hubSearchPh'))}" />
-      </div>`,
-    gridHtml: `
-      <label>${escapeHtml(t('catalog.filterModality'))}
-        <select id="cat-hub-mod">
-          <option value="">${escapeHtml(t('catalog.filterAll'))}</option>
-          ${modalities
-            .map(
-              (m) =>
-                `<option value="${escapeHtml(m)}" ${modality === m ? 'selected' : ''}>${escapeHtml(catalogModalityLabel(m))}</option>`,
-            )
-            .join('')}
-        </select>
-      </label>
-      <label>${escapeHtml(t('catalog.pullSpec'))}
-        <input type="text" id="cat-spec" placeholder="${escapeHtml(t('catalog.pullSpecPh'))}" autocomplete="off" />
-      </label>
-      <div class="data-filter-actions-inline">
-        <button type="button" class="btn sm" id="cat-spec-pull">${escapeHtml(t('catalog.pullSpecBtn'))}</button>
-      </div>`,
-  });
+  const hubModChips = [
+    ['', t('catalog.filterAll')],
+    ...modalities.map((m) => [m, catalogModalityLabel(m)]),
+  ]
+    .map(
+      ([val, label]) =>
+        `<button type="button" class="catalog-mod-chip ${modality === val ? 'is-on' : ''}" data-hub-mod="${escapeHtml(val)}" aria-pressed="${modality === val}">${escapeHtml(label)}</button>`,
+    )
+    .join('');
+  const hubSearch = `
+    <div class="catalog-hub-stack">
+      <div class="panel catalog-hub-card">
+        <div class="panel-h">
+          <div class="panel-h-text">
+            <strong>${escapeHtml(t('catalog.hubBrowse'))}</strong>
+            <span class="muted">${escapeHtml(t('catalog.hubBrowseHint'))}</span>
+          </div>
+          ${hubHits.length ? `<span class="panel-h-meta muted">${escapeHtml(tf('common.pagerTotal', { n: hubHits.length }))}</span>` : ''}
+        </div>
+        <div class="catalog-hub-row">
+          <input type="search" id="cat-hub-q" value="${escapeHtml(state.catalogHubQ || '')}" placeholder="${escapeHtml(t('catalog.hubSearchPh'))}" aria-label="${escapeHtml(t('catalog.hubSearch'))}" />
+          <button type="button" class="btn sm" id="cat-hub-go">${escapeHtml(t('catalog.hubSearchBtn'))}</button>
+          <button type="button" class="btn secondary sm" id="cat-hub-reset">${escapeHtml(t('common.reset'))}</button>
+        </div>
+        <div class="catalog-mod-chips" role="group" aria-label="${escapeHtml(t('catalog.filterModality'))}">${hubModChips}</div>
+      </div>
+      <div class="panel catalog-hub-card catalog-hub-pull-card">
+        <div class="panel-h">
+          <div class="panel-h-text">
+            <strong>${escapeHtml(t('catalog.pullSpec'))}</strong>
+            <span class="muted">${escapeHtml(t('catalog.pullSpecHint'))}</span>
+          </div>
+        </div>
+        <div class="catalog-hub-row">
+          <input type="text" id="cat-spec" placeholder="${escapeHtml(t('catalog.pullSpecPh'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('catalog.pullSpec'))}" />
+          <button type="button" class="btn sm" id="cat-spec-pull">${escapeHtml(t('catalog.pullSpecBtn'))}</button>
+        </div>
+      </div>
+    </div>`;
   const hubTable = `
     <div class="panel data-table-panel">
       <div class="table-wrap">
@@ -10038,26 +10049,36 @@ async function renderCatalog() {
       state.catalogModality = '';
       renderCatalog().catch(onErr);
     });
-  document
-    .querySelector('#catalog-tab-hub [data-filter-apply]')
-    ?.addEventListener('click', () => {
+  const runHubSearch = () => {
+    state.catalogHubQ = document.getElementById('cat-hub-q')?.value.trim() || '';
+    state.catalogHubHits = null;
+    loadCatalogHub().catch(onErr);
+  };
+  document.getElementById('cat-hub-go')?.addEventListener('click', runHubSearch);
+  document.getElementById('cat-hub-reset')?.addEventListener('click', () => {
+    state.catalogHubQ = '';
+    state.catalogModality = '';
+    state.catalogHubHits = null;
+    loadCatalogHub().catch(onErr);
+  });
+  document.querySelectorAll('[data-hub-mod]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      state.catalogModality = chip.getAttribute('data-hub-mod') || '';
       state.catalogHubQ = document.getElementById('cat-hub-q')?.value.trim() || '';
-      state.catalogModality = document.getElementById('cat-hub-mod')?.value || '';
       state.catalogHubHits = null;
       loadCatalogHub().catch(onErr);
     });
-  document
-    .querySelector('#catalog-tab-hub [data-filter-reset]')
-    ?.addEventListener('click', () => {
-      state.catalogHubQ = '';
-      state.catalogModality = '';
-      state.catalogHubHits = null;
-      loadCatalogHub().catch(onErr);
-    });
+  });
   document.getElementById('cat-hub-q')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      document.querySelector('#catalog-tab-hub [data-filter-apply]')?.click();
+      runHubSearch();
+    }
+  });
+  document.getElementById('cat-spec')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('cat-spec-pull')?.click();
     }
   });
   document.getElementById('cat-hub-more')?.addEventListener('click', () => {

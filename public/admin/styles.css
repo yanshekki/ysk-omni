@@ -2707,7 +2707,8 @@ button.dash-kpi:hover {
 }
 .catalog-tabs-panel .catalog-tab-pane > .panel,
 .catalog-tabs-panel .catalog-tab-pane .data-table-panel,
-.catalog-tabs-panel .catalog-tab-pane .data-filter-panel {
+.catalog-tabs-panel .catalog-tab-pane .data-filter-panel,
+.catalog-tabs-panel .catalog-tab-pane .catalog-hub-card {
   margin: 0;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -2716,6 +2717,90 @@ button.dash-kpi:hover {
 }
 .catalog-tabs-panel .catalog-tab-pane .data-filter-panel {
   margin-bottom: 12px;
+}
+.catalog-hub-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.catalog-hub-card {
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  background: var(--bg-white, #fff);
+}
+.catalog-hub-card .panel-h {
+  border-bottom: 1px solid var(--border-color);
+}
+.catalog-hub-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 12px;
+}
+.catalog-hub-row input[type='search'],
+.catalog-hub-row input[type='text'] {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-h);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-size: var(--text-base);
+  font-family: inherit;
+  background: var(--bg-white, #fff);
+}
+.catalog-hub-row input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: var(--focus-ring);
+}
+.catalog-hub-row .btn {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+}
+.catalog-mod-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+.catalog-mod-chip {
+  border: 1.5px solid var(--border-color);
+  background: #fff;
+  color: var(--text-sub);
+  border-radius: 999px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.catalog-mod-chip:hover {
+  border-color: var(--brand-blue);
+  color: var(--brand-blue);
+}
+.catalog-mod-chip.is-on {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: #fff;
+}
+.catalog-hub-pull-card .catalog-hub-row {
+  padding-bottom: 16px;
+}
+@media (max-width: 720px) {
+  .catalog-hub-row {
+    flex-wrap: wrap;
+  }
+  .catalog-hub-row input {
+    flex: 1 1 100%;
+  }
+  .catalog-hub-row .btn {
+    flex: 1 1 auto;
+  }
 }
 .catalog-quant-select {
   min-width: 7.5rem;
