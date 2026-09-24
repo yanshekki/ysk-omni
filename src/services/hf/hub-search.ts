@@ -159,9 +159,13 @@ function getJsonWithLink(url: string): Promise<{ json: unknown; link: string | n
           return;
         }
         try {
+          const linkRaw = res.headers.link;
+          const link = Array.isArray(linkRaw)
+            ? linkRaw[0] || null
+            : linkRaw || null;
           resolve({
             json: JSON.parse(body),
-            link: res.headers.link || null,
+            link,
           });
         } catch (err) {
           reject(err);
