@@ -41,7 +41,7 @@
     "dev": "tsx watch src/server.ts",
     "dev:admin": "vite --config admin/vite.config.ts",
     "build:admin": "vite build --config admin/vite.config.ts",
-    "build": "node scripts/generate-allowed-extensions.cjs && npx prisma@6.5.0 generate && tsc -p tsconfig.json && node -e \"require('fs').chmodSync('dist/cli/index.js',0o755)\" && npm run build:admin",
+    "build": "rm -rf dist && node scripts/generate-allowed-extensions.cjs && npx prisma@6.5.0 generate && tsc -p tsconfig.json && node -e \"require('fs').chmodSync('dist/cli/index.js',0o755)\" && npm run build:admin",
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:admin": "vitest run --project admin-node --project admin-dom",
