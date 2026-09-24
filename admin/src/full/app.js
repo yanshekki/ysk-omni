@@ -219,6 +219,10 @@ const state = {
   catalogTab: 'packs',
   catalogModality: '',
   catalogPulling: '',
+  catalogHubQ: '',
+  catalogHubHits: null,
+  catalogHubNext: '',
+  catalogHubBusy: false,
   models: [],
   keys: [],
 };
@@ -9648,6 +9652,36 @@ function catalogDefaultQuant(quants) {
   return list[0] || '';
 }
 
+function fmtDownloads(n) {
+  const v = Number(n) || 0;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return String(v);
+}
+
+async function loadCatalogHub({ append = false } = {}) {
+  if (state.catalogHubBusy) return;
+  state.catalogHubBusy = true;
+  try {
+    const qs = new URLSearchParams();
+    if (state.catalogHubQ) qs.set('q', state.catalogHubQ);
+    if (state.catalogModality) qs.set('modality', state.catalogModality);
+    if (append && state.catalogHubNext) qs.set('cursor', state.catalogHubNext);
+    const data = await api(`/catalog/hub?${qs}`);
+    const hits = data.hits || [];
+    state.catalogHubHits = append
+      ? [...(state.catalogHubHits || []), ...hits]
+      : hits;
+    state.catalogHubNext = data.nextCursor || '';
+  } catch (e) {
+    if (!append) state.catalogHubHits = [];
+    onErr(e);
+  } finally {
+    state.catalogHubBusy = false;
+    await renderCatalog();
+  }
+}
+
 async function renderCatalog() {
   let data = {};
   try {
@@ -9665,7 +9699,9 @@ async function renderCatalog() {
     ? Math.min(100, Math.round((usedMb / budgetMb) * 100))
     : 0;
   const tab =
-    state.catalogTab === 'local' || state.catalogTab === 'packs'
+    state.catalogTab === 'local' ||
+    state.catalogTab === 'packs' ||
+    state.catalogTab === 'hub'
       ? state.catalogTab
       : 'packs';
   state.catalogTab = tab;
@@ -9840,6 +9876,90 @@ async function renderCatalog() {
       </div>
     </div>`;
 
+  const hubHits = Array.isArray(state.catalogHubHits) ? state.catalogHubHits : [];
+  const hubRows = hubHits
+    .map((h) => {
+      const onDisk = catalogLocalsForPack({ id: h.id }, local);
+      const isPulling = pulling === h.id;
+      const pullBtn = h.supported
+        ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
+        : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
+      return `
+      <tr>
+        <td>
+          <div class="cell-primary">${escapeHtml(catalogPackName(h))}</div>
+          <div class="cell-sub mono">${escapeHtml(h.id)}</div>
+        </td>
+        <td><span class="badge muted">${escapeHtml(catalogModalityLabel(h.modality))}</span></td>
+        <td><span class="badge muted">${escapeHtml(h.runtime || '—')}</span></td>
+        <td>${escapeHtml(fmtDownloads(h.downloads))}</td>
+        <td>${
+          onDisk.length
+            ? `<span class="badge success">${escapeHtml(t('catalog.onDisk'))}</span>`
+            : h.supported
+              ? `<span class="muted">—</span>`
+              : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
+        }</td>
+        <td>
+          <div class="row-actions">
+            ${pullBtn}
+            <span class="muted" data-pull-status="${escapeHtml(h.id)}"></span>
+          </div>
+        </td>
+      </tr>`;
+    })
+    .join('');
+  const hubEmpty = `
+    <tr class="empty-row"><td colspan="6">
+      <div class="data-empty">
+        <div class="data-empty-icon">∅</div>
+        <strong>${escapeHtml(t('catalog.hubEmpty'))}</strong>
+      </div>
+    </td></tr>`;
+  const hubSearch = filterPanelHtml({
+    title: t('catalog.tabHub'),
+    hint: t('catalog.hubHint'),
+    meta: hubHits.length ? tf('common.pagerTotal', { n: hubHits.length }) : '',
+    searchHtml: `
+      <div class="data-filter-search">
+        <label for="cat-hub-q">${escapeHtml(t('catalog.hubSearch'))}</label>
+        <input type="search" id="cat-hub-q" value="${escapeHtml(state.catalogHubQ || '')}" placeholder="${escapeHtml(t('catalog.hubSearchPh'))}" />
+      </div>`,
+    gridHtml: `
+      <label>${escapeHtml(t('catalog.filterModality'))}
+        <select id="cat-hub-mod">
+          <option value="">${escapeHtml(t('catalog.filterAll'))}</option>
+          ${modalities
+            .map(
+              (m) =>
+                `<option value="${escapeHtml(m)}" ${modality === m ? 'selected' : ''}>${escapeHtml(catalogModalityLabel(m))}</option>`,
+            )
+            .join('')}
+        </select>
+      </label>`,
+  });
+  const hubTable = `
+    <div class="panel data-table-panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>${escapeHtml(t('catalog.colName'))}</th>
+            <th>${escapeHtml(t('catalog.colModality'))}</th>
+            <th>${escapeHtml(t('catalog.colRuntime'))}</th>
+            <th>${escapeHtml(t('catalog.downloads'))}</th>
+            <th>${escapeHtml(t('catalog.colStatus'))}</th>
+            <th>${escapeHtml(t('common.actions'))}</th>
+          </tr></thead>
+          <tbody>${hubRows || hubEmpty}</tbody>
+        </table>
+      </div>
+      ${
+        state.catalogHubNext
+          ? `<div class="pager"><button type="button" class="btn secondary sm" id="cat-hub-more">${escapeHtml(t('catalog.hubMore'))}</button></div>`
+          : ''
+      }
+    </div>`;
+
   document.getElementById('app').innerHTML = shell(`
     <div class="topbar">
       <h2>${escapeHtml(t('catalog.title'))}</h2>
@@ -9856,6 +9976,9 @@ async function renderCatalog() {
           ${escapeHtml(t('catalog.tabLocal'))}
           <span class="seg-tab-count">${local.length}</span>
         </button>
+        <button type="button" role="tab" class="seg-tab ${tab === 'hub' ? 'is-active' : ''}" data-catalog-tab="hub" aria-selected="${tab === 'hub'}">
+          ${escapeHtml(t('catalog.tabHub'))}
+        </button>
       </div>
       <div class="usage-tab-body">
         <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-packs" ${tab === 'packs' ? '' : 'hidden'}>
@@ -9864,6 +9987,10 @@ async function renderCatalog() {
         </div>
         <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-local" ${tab === 'local' ? '' : 'hidden'}>
           ${localTable}
+        </div>
+        <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-hub" ${tab === 'hub' ? '' : 'hidden'}>
+          ${hubSearch}
+          ${hubTable}
         </div>
       </div>
     </div>
@@ -9882,14 +10009,46 @@ async function renderCatalog() {
       renderCatalog().catch(onErr);
     };
   }
-  document.querySelector('[data-filter-apply]')?.addEventListener('click', () => {
-    state.catalogModality = document.getElementById('cat-mod')?.value || '';
-    renderCatalog().catch(onErr);
+  document
+    .querySelector('#catalog-tab-packs [data-filter-apply]')
+    ?.addEventListener('click', () => {
+      state.catalogModality = document.getElementById('cat-mod')?.value || '';
+      renderCatalog().catch(onErr);
+    });
+  document
+    .querySelector('#catalog-tab-packs [data-filter-reset]')
+    ?.addEventListener('click', () => {
+      state.catalogModality = '';
+      renderCatalog().catch(onErr);
+    });
+  document
+    .querySelector('#catalog-tab-hub [data-filter-apply]')
+    ?.addEventListener('click', () => {
+      state.catalogHubQ = document.getElementById('cat-hub-q')?.value.trim() || '';
+      state.catalogModality = document.getElementById('cat-hub-mod')?.value || '';
+      state.catalogHubHits = null;
+      loadCatalogHub().catch(onErr);
+    });
+  document
+    .querySelector('#catalog-tab-hub [data-filter-reset]')
+    ?.addEventListener('click', () => {
+      state.catalogHubQ = '';
+      state.catalogModality = '';
+      state.catalogHubHits = null;
+      loadCatalogHub().catch(onErr);
+    });
+  document.getElementById('cat-hub-q')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.querySelector('#catalog-tab-hub [data-filter-apply]')?.click();
+    }
   });
-  document.querySelector('[data-filter-reset]')?.addEventListener('click', () => {
-    state.catalogModality = '';
-    renderCatalog().catch(onErr);
+  document.getElementById('cat-hub-more')?.addEventListener('click', () => {
+    loadCatalogHub({ append: true }).catch(onErr);
   });
+  if (tab === 'hub' && state.catalogHubHits == null && !state.catalogHubBusy) {
+    loadCatalogHub().catch(onErr);
+  }
   document.querySelectorAll('[data-pull]').forEach((btn) => {
     btn.onclick = async () => {
       const packId = btn.getAttribute('data-pull') || '';

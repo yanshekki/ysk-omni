@@ -10,6 +10,7 @@ import { vramScheduler } from '../../services/vram-scheduler';
 import { engineManager } from '../../services/runtimes/engine-manager';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
 import { ECHO_MODEL_ID } from '../../services/runtimes/echo';
+import { searchHub } from '../../services/hf/hub-search';
 
 export const adminCatalogHandlers = {
   catalog: asyncHandler(async (_req: Request, res: Response) => {
@@ -24,6 +25,25 @@ export const adminCatalogHandlers = {
       usedMb: snap.usedMb,
       budgetMb: snap.budgetMb,
     });
+  }),
+
+  hub: asyncHandler(async (req: Request, res: Response) => {
+    const q = String(req.query.q || '').trim();
+    const modality = String(req.query.modality || '').trim();
+    const cursor = String(req.query.cursor || '').trim();
+    const limit = Number(req.query.limit);
+    try {
+      const data = await searchHub({ q, modality, cursor, limit });
+      res.status(200).json(data);
+    } catch (err) {
+      res.status(502).json({
+        error: {
+          code: 'hub_unavailable',
+          message:
+            err instanceof Error ? err.message : 'Hugging Face Hub search failed',
+        },
+      });
+    }
   }),
 
   pull: asyncHandler(async (req: Request, res: Response) => {

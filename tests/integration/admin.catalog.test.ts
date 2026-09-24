@@ -1,0 +1,70 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import {
+  apiFetch,
+  startHarness,
+  stopHarness,
+  type Harness,
+} from '../helpers/api-harness';
+
+describe('admin catalog + Hub search', () => {
+  let h: Harness | null = null;
+
+  beforeAll(async () => {
+    h = await startHarness('cathub');
+  }, 60_000);
+
+  afterAll(async () => {
+    await stopHarness(h);
+  });
+
+  it('GET /admin/api/catalog returns curated packs', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/catalog', {
+      key: h.adminKey,
+    });
+    expect(res.status).toBe(200);
+    const body = res.json as { packs?: Array<{ id: string }> };
+    expect(Array.isArray(body.packs)).toBe(true);
+    expect(body.packs?.some((p) => p.id.includes('Qwen'))).toBe(true);
+  });
+
+  it('GET /admin/api/catalog/hub searches Hugging Face REST', async () => {
+    if (!h) return;
+    const res = await apiFetch(
+      h.baseUrl,
+      '/admin/api/catalog/hub?q=qwen2.5&modality=text&limit=3',
+      { key: h.adminKey },
+    );
+    expect([200, 502]).toContain(res.status);
+    if (res.status !== 200) return;
+    const body = res.json as { hits?: Array<{ id: string }>; source?: string };
+    expect(body.source).toContain('huggingface.co/api/models');
+    expect(Array.isArray(body.hits)).toBe(true);
+  });
+
+  it('POST load/unload validate id', async () => {
+    if (!h) return;
+    const load = await apiFetch(h.baseUrl, '/admin/api/models/load', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(load.status).toBe(400);
+    const unload = await apiFetch(h.baseUrl, '/admin/api/models/unload', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(unload.status).toBe(400);
+  });
+
+  it('POST /admin/api/catalog/pull requires model', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/catalog/pull', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(res.status).toBe(400);
+  });
+});

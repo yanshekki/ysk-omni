@@ -79,6 +79,7 @@ router.get('/stats', adminController.stats);
 router.get('/usage', adminController.usage);
 router.get('/models', adminController.models);
 router.get('/catalog', adminController.catalog);
+router.get('/catalog/hub', adminController.catalogHub);
 router.post('/catalog/pull', adminController.catalogPull);
 router.post('/models/load', adminController.loadModel);
 router.post('/models/unload', adminController.unloadModel);

@@ -26,6 +26,8 @@ Alias: `ysko` → same binary. Do not use `yo` (Yeoman).
 
 ## Local workers
 
+Admin Catalog **Hugging Face** tab searches the official Hub REST API (`GET https://huggingface.co/api/models`, Link-header cursors). There is no RSS/Atom feed for the model index. Curated packs stay the default; Hub search does not dump the whole Hub.
+
 Text chat with a pulled GGUF needs `llama-server` on `PATH` (or `OMNI_LLAMA_SERVER`). Load the model in Admin Catalog, then `POST /v1/chat/completions` with that model id. Offload layers with `OMNI_LLAMA_N_GPU_LAYERS` (default `-1` = all). Safetensors ids need `vllm` (`OMNI_VLLM`), or `python -m vllm.entrypoints.openai.api_server` when `OMNI_VLLM` is a Python interpreter / `OMNI_VLLM_MODULE=1`. Without those binaries, use `model=echo`.
 
 Image / speech / transcription / video workers are **OpenAI-shaped HTTP**, not ComfyUI native graphs. Point `OMNI_IMAGE_URL` / `OMNI_VIDEO_URL` at a process that already speaks `/v1/images/generations` and `/v1/videos`. A stock ComfyUI server (`/prompt`, `/history`) needs an OpenAI-compat adapter in front.

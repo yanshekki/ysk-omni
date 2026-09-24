@@ -25,6 +25,7 @@ export const adminController = {
   ...adminPm2Handlers,
   ...adminMediaHandlers,
   catalog: adminCatalogHandlers.catalog,
+  catalogHub: adminCatalogHandlers.hub,
   catalogPull: adminCatalogHandlers.pull,
   loadModel: adminCatalogHandlers.loadModel,
   unloadModel: adminCatalogHandlers.unloadModel,
