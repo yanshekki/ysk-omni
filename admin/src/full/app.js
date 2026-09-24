@@ -219,6 +219,7 @@ const state = {
   catalogTab: 'local',
   catalogModality: '',
   catalogPulling: '',
+  catalogPull: { id: '', bytes: 0, total: 0 },
   catalogHubQ: '',
   catalogHubHits: null,
   catalogHubNext: '',
@@ -9668,12 +9669,21 @@ function fmtMb(n) {
 }
 
 function catalogPullProgressHtml(id, active) {
+  const p = state.catalogPull || {};
+  const live = active || p.id === id;
+  const bytes = live ? p.bytes : 0;
+  const total = live ? p.total : 0;
+  const pct = total > 0 ? Math.min(100, Math.max(0, Math.round((bytes / total) * 100))) : 0;
+  const meta =
+    live && total > 0
+      ? `${pct}% · ${fmtMb(bytes / (1024 * 1024))} / ${fmtMb(total / (1024 * 1024))}`
+      : t('catalog.pulling');
   return `
-    <div class="catalog-pull-progress" data-pull-status="${escapeHtml(id)}" ${active ? '' : 'hidden'}>
-      <div class="catalog-pull-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <span style="width:0%"></span>
+    <div class="catalog-pull-progress${live && total <= 0 ? ' is-indeterminate' : ''}" data-pull-status="${escapeHtml(id)}" data-pull-live="${live ? '1' : ''}" ${live ? '' : 'hidden'}>
+      <div class="catalog-pull-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+        <span style="width:${live && total > 0 ? pct : 0}%"></span>
       </div>
-      <div class="catalog-pull-meta muted">${escapeHtml(t('catalog.pulling'))}</div>
+      <div class="catalog-pull-meta muted">${escapeHtml(meta)}</div>
     </div>`;
 }
 
@@ -9707,6 +9717,27 @@ function updatePullProgress(el, bytes, total) {
     if (fill) fill.style.width = '40%';
     if (meta) meta.textContent = t('catalog.pulling');
   }
+}
+
+function setCatalogPullProgress(id, bytes, total) {
+  state.catalogPulling = id || '';
+  state.catalogPull = {
+    id: id || '',
+    bytes: Number(bytes) || 0,
+    total: Number(total) || 0,
+  };
+  const banner = document.getElementById('cat-pull-banner');
+  if (banner) banner.hidden = !id;
+  document.querySelectorAll('[data-pull-live="1"]').forEach((el) => {
+    updatePullProgress(el, bytes, total);
+  });
+}
+
+function clearCatalogPull() {
+  state.catalogPulling = '';
+  state.catalogPull = { id: '', bytes: 0, total: 0 };
+  const banner = document.getElementById('cat-pull-banner');
+  if (banner) banner.hidden = true;
 }
 
 async function loadCatalogHub({ append = false } = {}) {
@@ -9766,7 +9797,7 @@ async function renderCatalog() {
   const visiblePacks = modality
     ? packs.filter((p) => p.modality === modality)
     : packs;
-  const pulling = state.catalogPulling || '';
+  const pulling = state.catalogPulling || state.catalogPull?.id || '';
 
   const packRows = visiblePacks
     .map((p) => {
@@ -9939,7 +9970,7 @@ async function renderCatalog() {
   const hubRows = hubHits
     .map((h) => {
       const onDisk = catalogLocalsForPack({ id: h.id }, local);
-      const isPulling = pulling === h.id;
+      const isPulling = pulling === h.id || pulling.startsWith(`${h.id}:`);
       const pullBtn = h.supported
         ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
         : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
@@ -10053,6 +10084,12 @@ async function renderCatalog() {
         <button type="button" class="btn sm" id="cat-sync">${escapeHtml(t('catalog.sync'))}</button>
       </div>
     </div>
+    <div id="cat-pull-banner" class="catalog-pull-banner" ${pulling ? '' : 'hidden'}>
+      <div class="catalog-pull-banner-copy">
+        <strong>${escapeHtml(tf('catalog.pullingBanner', { id: pulling || '—' }))}</strong>
+      </div>
+      ${catalogPullProgressHtml(pulling || 'banner', Boolean(pulling))}
+    </div>
     ${pageMetaHtml([
       t('catalog.intro'),
       t('catalog.syncHint'),
@@ -10085,8 +10122,16 @@ async function renderCatalog() {
   bindShell();
   document.querySelectorAll('[data-catalog-tab]').forEach((btn) => {
     btn.onclick = () => {
-      state.catalogTab = btn.getAttribute('data-catalog-tab') || 'packs';
-      renderCatalog().catch(onErr);
+      const next = btn.getAttribute('data-catalog-tab') || 'local';
+      state.catalogTab = next;
+      document.querySelectorAll('.catalog-tab-pane').forEach((pane) => {
+        pane.hidden = pane.id !== `catalog-tab-${next}`;
+      });
+      document.querySelectorAll('[data-catalog-tab]').forEach((tabBtn) => {
+        const on = tabBtn.getAttribute('data-catalog-tab') === next;
+        tabBtn.classList.toggle('is-active', on);
+        tabBtn.setAttribute('aria-selected', String(on));
+      });
     };
   });
   const modSel = document.getElementById('cat-mod');
@@ -10174,11 +10219,9 @@ async function renderCatalog() {
       const sel = document.querySelector(`[data-quant-for="${CSS.escape(packId)}"]`);
       const quant = sel && sel.value ? sel.value : '';
       const spec = quant ? `${packId}:${quant}` : packId;
-      const statusEl = document.querySelector(`[data-pull-status="${CSS.escape(packId)}"]`);
-      state.catalogPulling = packId;
       btn.disabled = true;
       btn.textContent = t('catalog.pulling');
-      updatePullProgress(statusEl, 0, 0);
+      setCatalogPullProgress(packId, 0, 0);
       try {
         const res = await fetch(`${API}/catalog/pull`, {
           method: 'POST',
@@ -10199,19 +10242,16 @@ async function renderCatalog() {
             text += chunk;
             const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
             const last = lines[lines.length - 1];
-            if (last && statusEl) {
-              try {
-                const ev = JSON.parse(last);
-                if (ev.status === 'downloading') {
-                  updatePullProgress(statusEl, ev.bytes, ev.total);
-                } else if (ev.status) {
-                  statusEl.hidden = false;
-                  const meta = statusEl.querySelector('.catalog-pull-meta');
-                  if (meta) meta.textContent = String(ev.status);
-                }
-              } catch {
-                /* partial line */
+            if (!last) continue;
+            try {
+              const ev = JSON.parse(last);
+              if (ev.status === 'downloading') {
+                setCatalogPullProgress(packId, ev.bytes, ev.total);
+              } else if (ev.status) {
+                setCatalogPullProgress(packId, state.catalogPull.bytes, state.catalogPull.total);
               }
+            } catch {
+              /* partial line */
             }
           }
         } else {
@@ -10223,11 +10263,11 @@ async function renderCatalog() {
           throw new Error(last.error?.message || last.reason || res.statusText);
         }
         assertPullRecorded(last);
-        state.catalogPulling = '';
+        clearCatalogPull();
         state.catalogTab = 'local';
         await renderCatalog();
       } catch (e) {
-        state.catalogPulling = '';
+        clearCatalogPull();
         btn.disabled = false;
         btn.textContent = t('catalog.pull');
         onErr(e);
@@ -10291,7 +10331,7 @@ async function renderCatalog() {
       btn.setAttribute('disabled', 'disabled');
       btn.textContent = t('catalog.pulling');
     }
-    state.catalogPulling = spec;
+    setCatalogPullProgress(spec, 0, 0);
     try {
       const res = await fetch(`${API}/catalog/pull`, {
         method: 'POST',
@@ -10301,18 +10341,41 @@ async function renderCatalog() {
         },
         body: JSON.stringify({ model: spec }),
       });
-      const text = await res.text();
+      const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+      let text = '';
+      if (reader) {
+        const dec = new TextDecoder();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          text += chunk;
+          const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+          const last = lines[lines.length - 1];
+          if (!last) continue;
+          try {
+            const ev = JSON.parse(last);
+            if (ev.status === 'downloading') {
+              setCatalogPullProgress(spec, ev.bytes, ev.total);
+            }
+          } catch {
+            /* partial line */
+          }
+        }
+      } else {
+        text = await res.text();
+      }
       const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
       const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
       if (!res.ok) {
         throw new Error(last.error?.message || last.reason || res.statusText);
       }
       assertPullRecorded(last);
-      state.catalogPulling = '';
+      clearCatalogPull();
       state.catalogTab = 'local';
       await renderCatalog();
     } catch (e) {
-      state.catalogPulling = '';
+      clearCatalogPull();
       if (btn) {
         btn.removeAttribute('disabled');
         btn.textContent = t('catalog.pullSpecBtn');

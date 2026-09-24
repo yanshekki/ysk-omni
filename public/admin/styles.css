@@ -2815,6 +2815,28 @@ button.dash-kpi:hover {
   min-width: 9.5rem;
   gap: 8px;
 }
+.catalog-pull-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #fff;
+  box-shadow: var(--shadow-xs);
+}
+.catalog-pull-banner[hidden] {
+  display: none;
+}
+.catalog-pull-banner-copy {
+  flex: 0 1 auto;
+  min-width: 8rem;
+}
+.catalog-pull-banner .catalog-pull-progress {
+  flex: 1;
+  min-width: 10rem;
+}
 .catalog-pull-progress {
   min-width: 8.5rem;
 }
