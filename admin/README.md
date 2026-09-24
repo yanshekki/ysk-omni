@@ -1,38 +1,39 @@
 # Admin Panel
 
-## Production (full features — current)
+Production SPA: `admin/src/full/app.js` → `public/admin/boot.js`.
+
+Product guide: [docs/en/admin.md](../docs/en/admin.md) · [docs/zh/admin.md](../docs/zh/admin.md)
+
+## Production
 
 | Entry | Content |
 |-------|---------|
-| `public/admin/boot.js` | **Full SPA** (Vite bundle of complete Admin) |
-| Source of truth | `admin/src/full/app.js` (+ `i18n.js`, `allowed-extensions.js`) |
-| Pages | Login, Dashboard, Chat playground, Chat logs, API Keys, Documents, Media, Audit, Safety, API features, Usage, DDoS, Queue, PM2, System |
+| `public/admin/boot.js` | Full SPA (Vite bundle) |
+| Source | `admin/src/full/app.js` + `i18n.js` |
+| Pages | Login, Dashboard, Chat, Chat logs, API Keys, Documents, Media, Catalog, Runtimes, Audit, Safety, API features, Usage, DDoS, Queue, PM2, System, Support |
 
 ```bash
-npm run build:admin    # → public/admin/boot.js (full features)
-npm run build          # server + full admin
+npm run build:admin    # → public/admin/boot.js
+npm run build          # server + Admin
 ```
 
-After deploy: hard-refresh `/admin` (Ctrl+Shift+R).
+After deploy: hard-refresh `/admin`.
 
-## Architecture
+## Layout
 
 ```
 admin/src/
-  boot.ts              # production entry → imports full/app.js
-  full/                # complete SPA (parity with all features)
-    app.js
-    i18n.js
-    allowed-extensions.js
-  pages/ services/ …   # incremental TS rewrite (not production entry yet)
+  boot.ts              # production entry → full/app.js
+  full/                # complete SPA
+  pages/ services/ …   # incremental TypeScript rewrite (not production yet)
 ```
 
-**Cutover rule for page-by-page TS:** only switch away from `full/app.js` when that page has **full** feature parity (no stubs).
+Only leave `full/app.js` for a page when that page has full feature parity.
 
 ## Dev
 
 ```bash
-npm run dev:admin      # Vite :5174, proxies API → :3850
+npm run dev:admin      # Vite :5174, proxy API → :3850
 npm run typecheck:admin
 npm run test:admin
 ```

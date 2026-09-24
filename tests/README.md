@@ -1,6 +1,6 @@
-# Test suite guide
+# Test suite
 
-Vitest multi-project layout for **Admin pages**, **Admin + V1 APIs**, and **CLI**.
+Vitest multi-project layout for Admin pages, Admin + v1 APIs, and CLI.
 
 ## Projects
 
@@ -14,7 +14,7 @@ Vitest multi-project layout for **Admin pages**, **Admin + V1 APIs**, and **CLI*
 
 ```bash
 npm test                 # full suite
-npm run test:admin       # admin L1–L3
+npm run test:admin       # Admin L1–L3
 npm run test:admin:l3    # page DOM only
 npm run test:api         # integration API subset
 npm run test:cli         # CLI unit + smoke
@@ -22,51 +22,41 @@ npm run test:registry    # fail if a route/page/command is unlisted
 npm run test:coverage    # coverage report
 ```
 
-## Adding a new surface (required)
+## Adding a surface
 
 ### New Admin page
 
-1. Add `PageId` + `PAGE_HASH` + `NAV_ITEMS` in `admin/src/config/constants.ts`
-2. Add `pagePrimaryGetPath` in `admin/src/pages/page-api.ts` (skip for static pages listed in `STATIC_NAV_PAGES`)
+1. `PageId` + `PAGE_HASH` + `NAV_ITEMS` in `admin/src/config/constants.ts`
+2. `pagePrimaryGetPath` in `admin/src/pages/page-api.ts`
 3. Register renderer in `admin/src/router.ts`
-4. Add L3: `tests/admin/unit/l3/<page>.page.test.ts`
-5. Ensure primary GET is covered in `tests/integration/admin/routes.registry.test.ts` `ADMIN_COVERAGE`
+4. L3: `tests/admin/unit/l3/<page>.page.test.ts`
+5. Primary GET in `tests/integration/admin/routes.registry.test.ts`
 
-### New Admin or V1 endpoint
+### New Admin or v1 endpoint
 
-1. Implement route in `src/routes/**`
-2. Add row to `ADMIN_COVERAGE` or `V1_COVERAGE` in the matching `routes.registry.test.ts`
-3. Add a real hit test (integration or unit) referenced by `coveredBy`
-4. Run `npm run test:registry`
+1. Route in `src/routes/**`
+2. Row in `ADMIN_COVERAGE` or `V1_COVERAGE`
+3. Real hit test referenced by `coveredBy`
+4. `npm run test:registry`
 
 ### New CLI command
 
 1. Register in `src/cli/index.ts`
-2. Add leaf to `CLI_EXPECTED_LEAVES` / top-level to `CLI_EXPECTED_TOP_LEVEL` in `tests/helpers/cli-registry.ts`
-3. Add behavior unit under `tests/unit/cli/` when non-trivial
-4. Run `npm run test:cli` (requires `npm run build` for dist CLI)
+2. Leaf in `CLI_EXPECTED_LEAVES` / top-level in `CLI_EXPECTED_TOP_LEVEL`
+3. Behaviour unit under `tests/unit/cli/` when non-trivial
+4. `npm run test:cli` (needs `npm run build` for `dist/cli`)
 
-## Layers (DoD)
+## Layers
 
-- **L1 pure** — URL builders, parsers, `formatApiError`, list helpers
-- **L2 services** — mock fetch HTTP contracts
-- **L3 pages** — happy-dom render + no raw i18n keys
-- **Registry** — every Express route / CLI leaf / page primary path enumerated
-- **Integration** — supertest + isolated DB via `tests/helpers/api-harness.ts`
+- **L1** — URL builders, parsers, `formatApiError`
+- **L2** — mock fetch contracts
+- **L3** — happy-dom render, no raw i18n keys
+- **Registry** — every Express route / CLI leaf / page path
+- **Integration** — isolated DB via `tests/helpers/api-harness.ts`
 
 ## Notes
 
-- Production Admin SPA entry is still `admin/src/full/app.js` → `boot.js`; modular `admin/src/pages/*` is the testable architecture path. Prefer implementing features in modules and wiring full SPA until unified.
-- Optional live Grok: `tests/integration/grok-live.optional.test.ts` (not required for CI green).
-- Dangerous ops (pm2 start/stop, system update) are hit in `routes.hit-matrix` with broad acceptable status codes.
-- **Hit matrices:** `tests/integration/admin/routes.hit-matrix.test.ts` and `tests/integration/v1/routes.hit-matrix.test.ts` exercise every registered endpoint over real HTTP.
-
-## Completion checklist (deep suite)
-
-| Surface | Mechanism | Status |
-|---------|-----------|--------|
-| Admin pages (15+login) | L3 happy-dom + page-route matrix | ✅ |
-| Admin `/admin/api/*` | registry + hit-matrix | ✅ |
-| Public `/v1/*` + health | registry + hit-matrix | ✅ |
-| CLI leaves | registry help + domain help + smoke | ✅ |
-| Error i18n | L1 formatApiError + ErrorCodes keys | ✅ |
+- Production Admin entry is `admin/src/full/app.js` → `boot.js`.
+- Optional live media: `OMNI_LIVE_TINY=1` or `OMNI_LIVE_BEST=1` with `OMNI_LIVE_KEY` (`tests/integration/v1.live-tiny-modalities.test.ts`, `v1.live-best-modalities.test.ts`).
+- Dangerous ops (PM2 start/stop, system update) use broad acceptable status codes in hit-matrix.
+- Hit matrices: `tests/integration/admin/routes.hit-matrix.test.ts`, `tests/integration/v1/routes.hit-matrix.test.ts`.
