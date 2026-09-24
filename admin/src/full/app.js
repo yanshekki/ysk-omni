@@ -232,6 +232,7 @@ const state = {
   runtimesReport: null,
   runtimesInstall: null,
   models: [],
+  catalogLocal: [],
   keys: [],
 };
 
@@ -7656,10 +7657,15 @@ async function compressChatHistory() {
         transcript;
     }
 
-    const model =
+    let model =
       document.getElementById('chat-model')?.value ||
       chatUi.model ||
       'echo';
+    if (classifyPlaygroundKind(model, state.catalogLocal) !== 'text') {
+      model =
+        (state.catalogLocal || []).find((m) => m.runtime === 'llamacpp')?.id ||
+        'echo';
+    }
     const asKeyId = playgroundKeyId();
     const body = {
       model,
@@ -8379,6 +8385,11 @@ function renderChatBubbles() {
         const spendHtml = spend
           ? `<div class="muted chat-spend">${escapeHtml(spend)}</div>`
           : '';
+        const media = m.media;
+        const mediaHtml = media?.assetId
+          ? `<div class="chat-media" data-chat-media="${escapeHtml(media.assetId)}" data-chat-media-kind="${escapeHtml(media.kind || 'image')}"></div>
+             <a class="chat-media-open" href="#/media">${escapeHtml(t('chat.openInLibrary'))}</a>`
+          : '';
         const toolsHtml =
           Array.isArray(m.tools) && m.tools.length
             ? `<div class="chat-tools">${m.tools
@@ -8400,6 +8411,7 @@ function renderChatBubbles() {
         ${docs}
         ${reasoning}
         ${toolsHtml}
+        ${mediaHtml}
         <div class="${contentCls}" data-content-idx="${idx}">${bodyHtml}${m.streaming ? '<span class="chat-cursor">▍</span>' : ''}</div>
         ${moreBtn}
         ${spendHtml}
@@ -8411,6 +8423,7 @@ function renderChatBubbles() {
     box.scrollTop = box.scrollHeight;
   }
   updateChatCompressButton();
+  hydrateChatMedia().catch(() => {});
 
   document.getElementById('chat-load-older')?.addEventListener('click', () => {
     const prevH = box.scrollHeight;
@@ -8994,6 +9007,165 @@ function chatKeySelectOptions() {
   return opts.join('');
 }
 
+const PIPER_CHAT_ID = 'piper/lessac-high';
+
+function classifyPlaygroundKind(id, local) {
+  const s = String(id || '');
+  if (!s || s === 'echo') return 'text';
+  if (s === PIPER_CHAT_ID || /^piper\//i.test(s)) return 'tts';
+  const row = (local || state.catalogLocal || []).find(
+    (m) => m.id === s || m.repoId === s,
+  );
+  const rt = String(row?.runtime || '');
+  const mod = String(row?.modality || '');
+  if (rt === 'whisper' || mod === 'stt') return 'stt';
+  if (rt === 'tts' || mod === 'tts') return 'tts';
+  if (
+    mod === 'video' ||
+    /zeroscope|ltx-video|text-to-video|cogvideox|wan2/i.test(s)
+  ) {
+    return 'video';
+  }
+  if (
+    rt === 'diffusion' ||
+    mod === 'image' ||
+    /sdxl|tiny-sd|stable-diffusion/i.test(s)
+  ) {
+    return 'image';
+  }
+  return 'text';
+}
+
+function playgroundModelLabel(id, local) {
+  const kind = classifyPlaygroundKind(id, local);
+  const tag = t(`chat.modelKind_${kind}`);
+  if (id === PIPER_CHAT_ID) return `Piper lessac-high · ${tag}`;
+  return `${id} · ${tag}`;
+}
+
+async function fetchAdminMediaBlob(id) {
+  const r = await fetch(`/admin/api/media/assets/${id}/download`, {
+    headers: { Authorization: `Bearer ${state.key}` },
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.blob();
+}
+
+async function hydrateChatMedia() {
+  const nodes = document.querySelectorAll('[data-chat-media]');
+  for (const el of nodes) {
+    if (el.getAttribute('data-hydrated') === '1') continue;
+    const id = el.getAttribute('data-chat-media');
+    const kind = el.getAttribute('data-chat-media-kind');
+    if (!id) continue;
+    try {
+      const blob = await fetchAdminMediaBlob(id);
+      const url = URL.createObjectURL(blob);
+      el.setAttribute('data-hydrated', '1');
+      if (kind === 'image') {
+        el.innerHTML = `<img src="${url}" alt="" />`;
+      } else if (kind === 'video') {
+        el.innerHTML = `<video controls src="${url}" playsinline></video>`;
+      } else if (kind === 'audio') {
+        el.innerHTML = `<audio controls src="${url}"></audio>`;
+      }
+    } catch {
+      el.textContent = t('chat.uploadFail');
+    }
+  }
+}
+
+async function pollAdminMediaJob(id) {
+  for (let i = 0; i < 90; i += 1) {
+    const res = await api('/media/jobs?limit=50&offset=0');
+    const row = (res.data || []).find((j) => j.id === id);
+    if (row && (row.status === 'completed' || row.status === 'failed')) {
+      return row;
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(t('chat.mediaBusy_video'));
+}
+
+async function runPlaygroundMedia(kind, { text, pending, model, apiKeyId }) {
+  const extra = apiKeyId ? { apiKeyId } : {};
+  if (kind === 'image') {
+    const res = await api('/media/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt: text,
+        model,
+        format: 'png',
+        n: 1,
+        ...extra,
+      }),
+    });
+    const assetId =
+      res.data?.grok?.asset_ids?.[0] || res.grok?.asset_ids?.[0];
+    if (!assetId) throw new Error(t('chat.emptyReply'));
+    return {
+      kind: 'image',
+      assetId,
+      mime: 'image/png',
+      caption: t('chat.mediaDone_image'),
+    };
+  }
+  if (kind === 'video') {
+    const created = await api('/media/videos', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: text, model, format: 'mp4', ...extra }),
+    });
+    const job = created.data || created;
+    const jobId = job.id;
+    if (!jobId) throw new Error(t('chat.emptyReply'));
+    const done = await pollAdminMediaJob(jobId);
+    if (done.status !== 'completed' || !done.result_asset_id) {
+      throw new Error(done.error || t('chat.emptyReply'));
+    }
+    return {
+      kind: 'video',
+      assetId: done.result_asset_id,
+      mime: 'video/mp4',
+      caption: t('chat.mediaDone_video'),
+    };
+  }
+  if (kind === 'tts') {
+    const res = await api('/media/speech', {
+      method: 'POST',
+      body: JSON.stringify({ input: text, format: 'wav', ...extra }),
+    });
+    const assetId = res.data?.asset_id;
+    if (!assetId) throw new Error(t('chat.emptyReply'));
+    return {
+      kind: 'audio',
+      assetId,
+      mime: res.data?.mime || 'audio/wav',
+      caption: t('chat.mediaDone_tts'),
+    };
+  }
+  if (kind === 'stt') {
+    const docId = pending?.[0]?.id;
+    if (!docId) throw new Error(t('chat.needAudioAttach'));
+    const fd = new FormData();
+    fd.append('sourceDocumentId', docId);
+    if (apiKeyId) fd.append('apiKeyId', apiKeyId);
+    const res = await parseApiResponse(
+      await fetch('/admin/api/media/transcribe', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${state.key}` },
+        body: fd,
+      }),
+    );
+    return {
+      kind: 'text',
+      assetId: res.data?.asset_id,
+      text: res.data?.text || '',
+      caption: res.data?.text || t('chat.mediaDone_stt'),
+    };
+  }
+  throw new Error(t('chat.emptyReply'));
+}
+
 function orderPlaygroundModels(apiModels, loaded, local) {
   const seen = new Set();
   const out = [];
@@ -9008,6 +9180,7 @@ function orderPlaygroundModels(apiModels, loaded, local) {
   for (const id of apiModels || []) {
     if (id !== 'echo') add(id);
   }
+  add(PIPER_CHAT_ID);
   add('echo');
   return out;
 }
@@ -9018,6 +9191,7 @@ async function renderChatPlayground() {
     loadKeys(),
     api('/catalog').catch(() => ({ loaded: [], local: [] })),
   ]);
+  state.catalogLocal = cat.local || [];
   const models = orderPlaygroundModels(
     state.models || [],
     cat.loaded || [],
@@ -9038,7 +9212,7 @@ async function renderChatPlayground() {
   const modelOpts = models
     .map(
       (m) =>
-        `<option value="${escapeHtml(m)}" ${chatUi.model === m ? 'selected' : ''}>${escapeHtml(m)}</option>`,
+        `<option value="${escapeHtml(m)}" ${chatUi.model === m ? 'selected' : ''}>${escapeHtml(playgroundModelLabel(m, state.catalogLocal))}</option>`,
     )
     .join('');
 
@@ -9461,6 +9635,11 @@ async function sendChatMessage() {
 
   const model =
     document.getElementById('chat-model')?.value || chatUi.model || 'echo';
+  const mediaKind = classifyPlaygroundKind(model, state.catalogLocal);
+  if (mediaKind === 'stt' && !pending.length) {
+    showError(t('chat.needAudioAttach'));
+    return;
+  }
   const includeReasoning =
     document.getElementById('chat-reasoning')?.checked !== false;
   const effort =
@@ -9506,6 +9685,21 @@ async function sendChatMessage() {
 
   chatAbort = new AbortController();
   try {
+    if (mediaKind !== 'text') {
+      assistant.content = t(`chat.mediaBusy_${mediaKind}`);
+      renderChatBubbles();
+      const media = await runPlaygroundMedia(mediaKind, {
+        text,
+        pending,
+        model,
+        apiKeyId: playgroundRealApiKeyId(),
+      });
+      assistant.streaming = false;
+      assistant.content = media.caption || '';
+      assistant.media = media;
+      renderChatBubbles();
+      return;
+    }
     const body = {
       model,
       stream: true,

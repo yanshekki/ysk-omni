@@ -49,6 +49,10 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('Download queue');
     expect(boot).toContain('data-mg-mode="speech"');
     expect(boot).toContain('data-mg-mode="transcribe"');
+    expect(boot).toContain('piper/lessac-high');
+    expect(boot).toContain('/media/speech');
+    expect(boot).toContain('/media/videos');
+    expect(boot).toContain('mediaBusy_image');
     expect(boot).toContain('whisper');
     expect(boot).toContain('diffusion');
     expect(boot).toContain('media/speech');

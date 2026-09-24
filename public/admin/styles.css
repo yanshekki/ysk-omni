@@ -4374,6 +4374,25 @@ button.dash-kpi:hover {
   color: var(--text-muted);
   margin-bottom: 6px;
 }
+.chat-media {
+  margin: 8px 0 4px;
+}
+.chat-media img,
+.chat-media video {
+  display: block;
+  max-width: min(100%, 520px);
+  max-height: 360px;
+  border-radius: var(--radius-sm);
+  background: #0f172a;
+}
+.chat-media audio {
+  width: min(100%, 420px);
+}
+.chat-media-open {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+}
 .chat-content {
   white-space: pre-wrap;
   word-break: break-word;
