@@ -146,6 +146,15 @@ export function inferRuntimeFromFilenames(
   if (n.some((x) => x.endsWith('.gguf'))) {
     return { runtime: 'llamacpp', modality: 'text' };
   }
+  if (
+    id.includes('zeroscope') ||
+    id.includes('text-to-video') ||
+    id.includes('cogvideox') ||
+    id.includes('ltx-video') ||
+    id.includes('wan2')
+  ) {
+    return { runtime: 'diffusion', modality: 'video' };
+  }
   if (n.some((x) => x.endsWith('model_index.json') || x.includes('/unet/'))) {
     return { runtime: 'diffusion', modality: 'image' };
   }
@@ -161,15 +170,6 @@ export function inferRuntimeFromFilenames(
   if (id.includes('whisper')) return { runtime: 'whisper', modality: 'stt' };
   if (id.includes('tts') || id.includes('piper') || id.includes('kokoro')) {
     return { runtime: 'tts', modality: 'tts' };
-  }
-  if (
-    id.includes('zeroscope') ||
-    id.includes('text-to-video') ||
-    id.includes('cogvideox') ||
-    id.includes('ltx-video') ||
-    id.includes('wan2')
-  ) {
-    return { runtime: 'diffusion', modality: 'video' };
   }
   if (id.includes('stable-diffusion') || id.includes('tiny-sd') || id.includes('flux')) {
     return { runtime: 'diffusion', modality: 'image' };
