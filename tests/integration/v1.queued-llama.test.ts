@@ -102,4 +102,22 @@ describe('v1 queued llama chat', () => {
     expect(body.object).toBe('chat.completion');
     expect(body.choices[0]?.message?.content).toBe('llama-proxy-ok');
   });
+
+  it('queued stream writes llama SSE after the queue event', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/v1/chat/completions', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {
+        model: 'test/queued-gguf:Q4_K_M',
+        stream: true,
+        messages: [{ role: 'user', content: 'hi' }],
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('gog.queue');
+    expect(res.text).not.toContain('queue_error');
+    expect(res.text).toContain('llama-proxy-ok');
+    expect(res.text).toContain('chat.completion.chunk');
+  });
 });

@@ -714,7 +714,7 @@ export class ChatService {
       },
     });
     const upstream = await engineManager.chatStream(model, dto.messages || []);
-    initSse(res);
+    if (!res.headersSent) initSse(res);
     const reader = upstream.body?.getReader();
     if (!reader) {
       throw ExceptionFactory.engineUnconfigured('llama-server returned an empty stream');
