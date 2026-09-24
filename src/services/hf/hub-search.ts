@@ -1,4 +1,9 @@
+import fs from 'node:fs';
 import https from 'node:https';
+import path from 'node:path';
+import { omniHome } from '../../config/omni-home';
+
+export const HUB_POPULAR_LIMIT = 50;
 
 export type HubModality = 'text' | 'image' | 'video' | 'tts' | 'stt';
 export type HubRuntime =
@@ -173,11 +178,51 @@ function getJsonWithLink(url: string): Promise<{ json: unknown; link: string | n
       });
     });
     req.on('error', reject);
-    req.setTimeout(20_000, () => {
+    req.setTimeout(30_000, () => {
       req.destroy();
       reject(new Error('Hugging Face search timed out'));
     });
   });
+}
+
+export type PopularCache = {
+  syncedAt: string;
+  source: string;
+  hits: HubSearchHit[];
+};
+
+export function popularCachePath(): string {
+  return path.join(omniHome(), 'hub-popular.json');
+}
+
+export function loadPopularCache(): PopularCache | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(popularCachePath(), 'utf8')) as PopularCache;
+    if (!raw || !Array.isArray(raw.hits)) return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+export function savePopularCache(hits: HubSearchHit[]): PopularCache {
+  const file = popularCachePath();
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const cache: PopularCache = {
+    syncedAt: new Date().toISOString(),
+    source: 'huggingface.co/api/models',
+    hits: hits.slice(0, HUB_POPULAR_LIMIT),
+  };
+  fs.writeFileSync(file, JSON.stringify(cache, null, 2) + '\n', 'utf8');
+  return cache;
+}
+
+export async function syncPopularGguf(): Promise<PopularCache> {
+  const result = await searchHub({
+    modality: 'text',
+    limit: HUB_POPULAR_LIMIT,
+  });
+  return savePopularCache(result.hits);
 }
 
 export async function searchHub(opts: {

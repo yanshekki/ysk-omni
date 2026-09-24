@@ -223,6 +223,7 @@ const state = {
   catalogHubHits: null,
   catalogHubNext: '',
   catalogHubBusy: false,
+  catalogPopularSyncedAt: '',
   models: [],
   keys: [],
 };
@@ -9692,6 +9693,14 @@ async function renderCatalog() {
   const packs = data.packs && data.packs.length ? data.packs : CURATED_PACKS;
   const local = data.local || [];
   const loaded = data.loaded || [];
+  if (data.popularSyncedAt) state.catalogPopularSyncedAt = data.popularSyncedAt;
+  if (
+    state.catalogHubHits == null &&
+    Array.isArray(data.popular) &&
+    data.popular.length
+  ) {
+    state.catalogHubHits = data.popular;
+  }
   const loadedIds = new Set(loaded.map((m) => m.id));
   const usedMb = data.usedMb ?? 0;
   const budgetMb = data.budgetMb ?? 0;
@@ -9963,8 +9972,17 @@ async function renderCatalog() {
   document.getElementById('app').innerHTML = shell(`
     <div class="topbar">
       <h2>${escapeHtml(t('catalog.title'))}</h2>
+      <div class="toolbar">
+        <button type="button" class="btn sm" id="cat-sync">${escapeHtml(t('catalog.sync'))}</button>
+      </div>
     </div>
-    ${pageMetaHtml([t('catalog.intro')])}
+    ${pageMetaHtml([
+      t('catalog.intro'),
+      t('catalog.syncHint'),
+      state.catalogPopularSyncedAt
+        ? tf('catalog.syncAt', { when: fmtTime(state.catalogPopularSyncedAt) })
+        : '',
+    ])}
     ${kpiGrid}
     <div class="usage-tabs-panel panel catalog-tabs-panel media-tabs-panel">
       <div class="seg-tabs" role="tablist" aria-label="${escapeHtml(t('catalog.title'))}">
@@ -10049,6 +10067,28 @@ async function renderCatalog() {
   if (tab === 'hub' && state.catalogHubHits == null && !state.catalogHubBusy) {
     loadCatalogHub().catch(onErr);
   }
+  document.getElementById('cat-sync')?.addEventListener('click', async () => {
+    const btn = document.getElementById('cat-sync');
+    if (!btn) return;
+    btn.setAttribute('disabled', 'disabled');
+    btn.textContent = t('catalog.syncing');
+    try {
+      const out = await api('/catalog/sync', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      state.catalogHubHits = out.hits || [];
+      state.catalogHubNext = '';
+      state.catalogHubQ = '';
+      state.catalogTab = 'hub';
+      state.catalogPopularSyncedAt = out.syncedAt || '';
+      await renderCatalog();
+    } catch (e) {
+      btn.removeAttribute('disabled');
+      btn.textContent = t('catalog.sync');
+      onErr(e);
+    }
+  });
   document.querySelectorAll('[data-pull]').forEach((btn) => {
     btn.onclick = async () => {
       const packId = btn.getAttribute('data-pull') || '';

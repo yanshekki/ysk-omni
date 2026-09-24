@@ -1,8 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildHubSearchUrl,
   classifyHubModel,
+  HUB_POPULAR_LIMIT,
+  loadPopularCache,
   parseLinkCursor,
+  savePopularCache,
 } from '../../src/services/hf/hub-search';
 
 describe('Hugging Face Hub search helpers', () => {
@@ -53,5 +59,40 @@ describe('Hugging Face Hub search helpers', () => {
       '<https://huggingface.co/api/models?limit=3&cursor=abc123>; rel="next"';
     expect(parseLinkCursor(link)).toBe('abc123');
     expect(parseLinkCursor(null)).toBeNull();
+  });
+
+  it('requests 50 GGUF by downloads for popular sync', () => {
+    const url = buildHubSearchUrl({ modality: 'text', limit: HUB_POPULAR_LIMIT });
+    expect(url).toContain('limit=50');
+    expect(url).toContain('filter=gguf');
+    expect(url).toContain('sort=downloads');
+  });
+
+  it('persists popular metadata without model files', () => {
+    const prev = process.env.OMNI_HOME;
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-pop-'));
+    process.env.OMNI_HOME = home;
+    try {
+      const cache = savePopularCache([
+        {
+          id: 'Qwen/demo-GGUF',
+          pipelineTag: 'text-generation',
+          downloads: 9,
+          likes: 1,
+          tags: ['gguf'],
+          modality: 'text',
+          runtime: 'llamacpp',
+          supported: true,
+          vramMb: 4096,
+        },
+      ]);
+      expect(cache.hits).toHaveLength(1);
+      expect(loadPopularCache()?.hits[0]?.id).toBe('Qwen/demo-GGUF');
+      expect(fs.existsSync(path.join(home, 'models'))).toBe(false);
+    } finally {
+      if (prev === undefined) delete process.env.OMNI_HOME;
+      else process.env.OMNI_HOME = prev;
+      fs.rmSync(home, { recursive: true, force: true });
+    }
   });
 });

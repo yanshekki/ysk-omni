@@ -10,13 +10,18 @@ import { vramScheduler } from '../../services/vram-scheduler';
 import { engineManager } from '../../services/runtimes/engine-manager';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
 import { ECHO_MODEL_ID } from '../../services/runtimes/echo';
-import { searchHub } from '../../services/hf/hub-search';
+import {
+  loadPopularCache,
+  searchHub,
+  syncPopularGguf,
+} from '../../services/hf/hub-search';
 
 export const adminCatalogHandlers = {
   catalog: asyncHandler(async (_req: Request, res: Response) => {
     const packs = loadCuratedPacks();
     const local = loadRegistry().models;
     const snap = vramScheduler.snapshot();
+    const popular = loadPopularCache();
     res.status(200).json({
       packs,
       local,
@@ -24,7 +29,30 @@ export const adminCatalogHandlers = {
       loaded: engineManager.list(),
       usedMb: snap.usedMb,
       budgetMb: snap.budgetMb,
+      popular: popular?.hits || [],
+      popularSyncedAt: popular?.syncedAt || null,
     });
+  }),
+
+  sync: asyncHandler(async (_req: Request, res: Response) => {
+    try {
+      const cache = await syncPopularGguf();
+      res.status(200).json({
+        ok: true,
+        count: cache.hits.length,
+        syncedAt: cache.syncedAt,
+        hits: cache.hits,
+        source: cache.source,
+      });
+    } catch (err) {
+      res.status(502).json({
+        error: {
+          code: 'hub_unavailable',
+          message:
+            err instanceof Error ? err.message : 'Hugging Face Hub sync failed',
+        },
+      });
+    }
   }),
 
   hub: asyncHandler(async (req: Request, res: Response) => {

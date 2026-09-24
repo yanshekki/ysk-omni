@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
@@ -56,6 +57,32 @@ describe('admin catalog + Hub search', () => {
       body: {},
     });
     expect(unload.status).toBe(400);
+  });
+
+  it('POST /admin/api/catalog/sync lists top GGUF without downloading weights', async () => {
+    if (!h) return;
+    const res = await apiFetch(h.baseUrl, '/admin/api/catalog/sync', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect([200, 502]).toContain(res.status);
+    if (res.status !== 200) return;
+    const body = res.json as { hits?: Array<{ id: string }>; count?: number };
+    expect(Array.isArray(body.hits)).toBe(true);
+    expect((body.hits || []).length).toBeGreaterThan(0);
+    expect((body.hits || []).length).toBeLessThanOrEqual(50);
+    const listed = await apiFetch(h.baseUrl, '/admin/api/catalog', {
+      key: h.adminKey,
+    });
+    const cat = listed.json as { popular?: Array<{ id: string }> };
+    expect((cat.popular || []).length).toBe((body.hits || []).length);
+    const home = process.env.OMNI_HOME || '';
+    const modelsDir = home ? `${home}/models` : '';
+    if (modelsDir && fs.existsSync(modelsDir)) {
+      const ggufs = fs.readdirSync(modelsDir).filter((f) => f.endsWith('.gguf'));
+      expect(ggufs).toEqual([]);
+    }
   });
 
   it('POST /admin/api/catalog/pull requires model', async () => {
