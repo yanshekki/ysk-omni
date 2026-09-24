@@ -42,6 +42,7 @@ export const createVideoSchema = z.object({
     .array(z.enum(GROK_VIDEO_VOICES as unknown as [string, ...string[]]))
     .max(3)
     .optional(),
+  format: z.enum(['mp4', 'webm', 'mov']).optional(),
 });
 
 export type CreateVideoDto = z.infer<typeof createVideoSchema>;

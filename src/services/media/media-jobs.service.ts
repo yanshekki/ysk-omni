@@ -9,6 +9,7 @@ import { engineManager } from '../runtimes/engine-manager';
 import type { AuthenticatedApiKey } from '../../interfaces';
 import { KEY_MODES, ROLES } from '../../config/constants';
 import { VIDEO_FIXTURE_B64 } from './video-fixture';
+import { convertVideo } from './format-convert';
 
 /** ffmpeg H.264 MP4 (32x32, 0.4s) with metadata comment ysk-omni-video-fixture. */
 export function videoFixtureBytes(): Buffer {
@@ -73,6 +74,7 @@ export class MediaJobsService {
     /** Uploaded frame bytes (admin SPA drag/drop) */
     sourceBytes?: Buffer;
     voices?: string[];
+    format?: string;
   }): Promise<MediaJobPublic> {
     const features = await apiFeaturesService.get();
     if (!features.videoApi) {
@@ -120,6 +122,7 @@ export class MediaJobsService {
       sourceDocumentId: input.sourceDocumentId,
       sourceBytes: input.sourceBytes,
       voices: input.voices,
+      format: input.format,
     }).catch(() => undefined);
 
     return toPublic(row);
@@ -138,6 +141,7 @@ export class MediaJobsService {
       sourceDocumentId?: string;
       sourceBytes?: Buffer;
       voices?: string[];
+      format?: string;
     },
   ): Promise<void> {
     await prisma.mediaJob.update({
@@ -188,12 +192,13 @@ export class MediaJobsService {
           }
         }
       }
+      const converted = convertVideo(bytes, opts.format);
       const stored = await mediaStoreService.save({
         apiKeyId,
         kind: 'video',
-        mime: 'video/mp4',
-        bytes,
-        originalName: `video-${jobId.slice(0, 8)}.mp4`,
+        mime: converted.mime,
+        bytes: converted.bytes,
+        originalName: `video-${jobId.slice(0, 8)}.${converted.format}`,
         source: 'generation',
         provider: 'fixture',
         prompt: opts.prompt,

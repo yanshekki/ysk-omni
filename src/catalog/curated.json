@@ -36,9 +36,17 @@
       "id": "Qwen/Qwen3-TTS",
       "repoId": "Qwen/Qwen3-TTS",
       "modality": "tts",
-      "runtime": "diffusion",
+      "runtime": "tts",
       "quants": [],
       "vramMb": 4000
+    },
+    {
+      "id": "Systran/faster-whisper-large-v3-turbo",
+      "repoId": "Systran/faster-whisper-large-v3-turbo",
+      "modality": "stt",
+      "runtime": "whisper",
+      "quants": [],
+      "vramMb": 1600
     },
     {
       "id": "Systran/faster-whisper-small",

@@ -175,7 +175,11 @@ export async function cmdLoad(opts: CliOpts & { id: string }): Promise<void> {
     return;
   }
   try {
-    if (entry.runtime === 'whisper' || entry.runtime === 'diffusion') {
+    if (
+      entry.runtime === 'whisper' ||
+      entry.runtime === 'diffusion' ||
+      entry.runtime === 'tts'
+    ) {
       if (opts.json) {
         emitJson({ id: entry.id, kind: entry.runtime, path: entry.path });
         return;

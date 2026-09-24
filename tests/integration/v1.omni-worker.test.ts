@@ -93,7 +93,7 @@ describe('gateway proxies the bundled OpenAI media worker', () => {
     const res = await apiFetch(h.baseUrl, '/v1/audio/speech', {
       method: 'POST',
       key: h.adminKey,
-      body: { input: 'hello', voice: 'alloy' },
+      body: { input: 'hello', voice: 'alloy', response_format: 'wav' },
     });
     expect(res.status).toBe(200);
     expect(res.text.includes('RIFF') || res.text.includes('WAVE')).toBe(true);

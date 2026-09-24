@@ -40,7 +40,14 @@ export function extForMime(mime: string): string {
     return '.wav';
   }
   if (m === 'audio/ogg' || m === 'audio/opus') return '.ogg';
+  if (m === 'audio/flac') return '.flac';
+  if (m === 'audio/aac' || m === 'audio/mp4') return '.aac';
+  if (m === 'video/webm') return '.webm';
+  if (m === 'video/quicktime') return '.mov';
   if (m === 'text/plain') return '.txt';
+  if (m === 'application/json') return '.json';
+  if (m === 'application/x-subrip') return '.srt';
+  if (m === 'text/vtt') return '.vtt';
   if (m.startsWith('audio/')) return '.bin';
   if (m.startsWith('image/')) return '.png';
   return '.bin';

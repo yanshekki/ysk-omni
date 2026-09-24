@@ -11,6 +11,7 @@ export type HubRuntime =
   | 'vllm'
   | 'diffusion'
   | 'whisper'
+  | 'tts'
   | 'unknown';
 
 export type HubSearchHit = {
@@ -88,6 +89,9 @@ export function estimateDiskVram(
   if (runtime === 'whisper') {
     return { sizeMb: 500, vramMb: 1000, paramsB, sizeLabel: 'weights est.' };
   }
+  if (runtime === 'tts') {
+    return { sizeMb: 80, vramMb: 512, paramsB, sizeLabel: 'voice est.' };
+  }
   if (runtime === 'diffusion') {
     const sizeMb = paramsB ? Math.round(paramsB * 2048) : 8000;
     return {
@@ -138,7 +142,7 @@ export function classifyHubModel(raw: {
     tagSet.has('text-to-speech')
   ) {
     modality = 'tts';
-    runtime = 'diffusion';
+    runtime = 'tts';
   } else if (
     pipeline === 'automatic-speech-recognition' ||
     tagSet.has('automatic-speech-recognition')

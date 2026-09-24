@@ -28,6 +28,7 @@ export const createImageGenerationSchema = z.object({
   /** Grok Imagine aspect_ratio — preferred over pixel sizes. */
   aspect_ratio: aspectRatioEnum.optional(),
   response_format: z.enum(['url', 'b64_json']).optional().default('b64_json'),
+  format: z.enum(['png', 'jpeg', 'jpg', 'webp']).optional(),
   user: z.string().max(128).optional(),
 });
 

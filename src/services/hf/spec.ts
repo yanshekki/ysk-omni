@@ -114,7 +114,11 @@ export function pickPullFiles(
 export function inferRuntimeFromFilenames(
   repoId: string,
   names: string[],
-): { runtime: 'llamacpp' | 'vllm' | 'diffusion' | 'whisper'; modality: 'text' | 'image' | 'stt' | 'tts' | 'video' } {
+): {
+  runtime: 'llamacpp' | 'vllm' | 'diffusion' | 'whisper' | 'tts';
+  modality: 'text' | 'image' | 'stt' | 'tts' | 'video';
+} {
+  const id = repoId.toLowerCase();
   const n = names.map((x) => x.replace(/\\/g, '/').toLowerCase());
   if (n.some((x) => x.endsWith('.gguf'))) {
     return { runtime: 'llamacpp', modality: 'text' };
@@ -128,8 +132,13 @@ export function inferRuntimeFromFilenames(
   ) {
     return { runtime: 'whisper', modality: 'stt' };
   }
-  const id = repoId.toLowerCase();
+  if (n.some((x) => x.endsWith('.onnx'))) {
+    return { runtime: 'tts', modality: 'tts' };
+  }
   if (id.includes('whisper')) return { runtime: 'whisper', modality: 'stt' };
+  if (id.includes('tts') || id.includes('piper') || id.includes('kokoro')) {
+    return { runtime: 'tts', modality: 'tts' };
+  }
   if (id.includes('stable-diffusion') || id.includes('tiny-sd') || id.includes('flux')) {
     return { runtime: 'diffusion', modality: 'image' };
   }

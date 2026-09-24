@@ -28,15 +28,15 @@ HOME = Path(os.environ.get("OMNI_HOME") or Path.home() / ".ysk-omni")
 CACHE = Path(os.environ.get("TINY_MEDIA_CACHE") or HOME / "models" / "tiny")
 CACHE.mkdir(parents=True, exist_ok=True)
 
-PIPER_ONNX = CACHE / "en_US-lessac-low.onnx"
-PIPER_JSON = CACHE / "en_US-lessac-low.onnx.json"
+PIPER_ONNX = CACHE / "en_US-lessac-high.onnx"
+PIPER_JSON = CACHE / "en_US-lessac-high.onnx.json"
 PIPER_ONNX_URL = (
     "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
-    "en/en_US/lessac/low/en_US-lessac-low.onnx"
+    "en/en_US/lessac/high/en_US-lessac-high.onnx"
 )
 PIPER_JSON_URL = (
     "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
-    "en/en_US/lessac/low/en_US-lessac-low.onnx.json"
+    "en/en_US/lessac/high/en_US-lessac-high.onnx.json"
 )
 
 _lock = threading.Lock()
@@ -57,9 +57,12 @@ def local_whisper_src() -> str:
         return env
     root = _models_root()
     if root.is_dir():
-        for p in sorted(root.iterdir()):
-            if p.is_dir() and (p / "model.bin").exists():
+        dirs = [p for p in root.iterdir() if p.is_dir() and (p / "model.bin").exists()]
+        for p in dirs:
+            if "large-v3-turbo" in p.name.lower() or "large-v3" in p.name.lower():
                 return str(p)
+        if dirs:
+            return str(sorted(dirs)[-1])
     return "tiny"
 
 
@@ -69,10 +72,13 @@ def local_sd_src() -> str:
         return env
     root = _models_root()
     if root.is_dir():
-        for p in sorted(root.iterdir()):
-            if p.is_dir() and (p / "model_index.json").exists():
+        dirs = [p for p in root.iterdir() if p.is_dir() and (p / "model_index.json").exists()]
+        for p in dirs:
+            if "sdxl" in p.name.lower():
                 return str(p)
-    return "segmind/tiny-sd"
+        if dirs:
+            return str(sorted(dirs, key=lambda x: x.name)[-1])
+    return "stabilityai/sdxl-turbo"
 
 
 def _png(w: int, h: int, rgb: tuple[int, int, int] = (200, 40, 40)) -> bytes:
@@ -205,16 +211,15 @@ def sd_pipe():
         if _sd is not None and _sd_src == src:
             return _sd
         import torch
-        from diffusers import StableDiffusionPipeline
+        from diffusers import AutoPipelineForText2Image
 
         dtype = torch.float16 if torch.backends.mps.is_available() else torch.float32
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         local = Path(src).is_dir()
-        _sd = StableDiffusionPipeline.from_pretrained(
+        _sd = AutoPipelineForText2Image.from_pretrained(
             src,
             torch_dtype=dtype,
             cache_dir=None if local else str(CACHE / "hf"),
-            safety_checker=None,
             local_files_only=local,
         )
         _sd = _sd.to(device)
@@ -250,10 +255,10 @@ def image_png(prompt: str) -> bytes:
     pipe = sd_pipe()
     out = pipe(
         prompt or "a red apple",
-        num_inference_steps=8,
-        height=128,
-        width=128,
-        guidance_scale=1.0,
+        num_inference_steps=4 if "sdxl" in str(local_sd_src()).lower() or "turbo" in str(local_sd_src()).lower() else 8,
+        height=512 if "sdxl" in str(local_sd_src()).lower() else 128,
+        width=512 if "sdxl" in str(local_sd_src()).lower() else 128,
+        guidance_scale=0.0 if "turbo" in str(local_sd_src()).lower() else 1.0,
     )
     img = out.images[0]
     buf = io.BytesIO()

@@ -3855,6 +3855,10 @@ async function renderMedia() {
             <input type="number" id="mg-n" min="1" max="4" value="1" />
             <span class="hint">${escapeHtml(t('media.nHint'))}</span>
           </label>
+          <label id="mg-format-wrap">${escapeHtml(t('media.outputFormat'))}
+            <select id="mg-format"></select>
+            <span class="hint">${escapeHtml(t('media.outputFormatHint'))}</span>
+          </label>
           <label id="mg-voice-wrap" hidden>${escapeHtml(t('media.videoVoice'))}
             <select id="mg-voice">
               <option value="">${escapeHtml(t('media.videoVoiceNone'))}</option>
@@ -4042,6 +4046,27 @@ async function renderMedia() {
         aspectWrap.hidden = mediaMode === 'speech' || mediaMode === 'transcribe';
       }
       if (promptWrap) promptWrap.hidden = mediaMode === 'transcribe';
+      const fmtSel = document.getElementById('mg-format');
+      const fmtWrap = document.getElementById('mg-format-wrap');
+      if (fmtWrap) fmtWrap.hidden = false;
+      if (fmtSel) {
+        const opts =
+          mediaMode === 'speech'
+            ? ['wav', 'mp3', 'opus', 'flac', 'aac']
+            : mediaMode === 'transcribe'
+              ? ['txt', 'json', 'srt', 'vtt']
+              : mediaMode === 'video'
+                ? ['mp4', 'webm', 'mov']
+                : ['png', 'jpeg', 'webp'];
+        const cur = fmtSel.value;
+        fmtSel.innerHTML = opts
+          .map(
+            (o) =>
+              `<option value="${o}" ${o === cur ? 'selected' : ''}>${o}</option>`,
+          )
+          .join('');
+        if (!opts.includes(fmtSel.value)) fmtSel.value = opts[0];
+      }
       const fileEl = document.getElementById('mg-file');
       if (fileEl) {
         fileEl.accept = mediaMode === 'transcribe' ? 'audio/*' : 'image/*';
@@ -4253,6 +4278,7 @@ async function renderMedia() {
       }
       const apiKeyId = document.getElementById('mg-key')?.value || '';
       const model = document.getElementById('mg-model')?.value || undefined;
+      const format = document.getElementById('mg-format')?.value || undefined;
       const aspect = document.getElementById('mg-aspect')?.value || '1:1';
       const n = Math.min(
         4,
@@ -4322,6 +4348,7 @@ async function renderMedia() {
               input: prompt,
               ...(model ? { model } : {}),
               ...(apiKeyId ? { apiKeyId } : {}),
+              ...(format ? { format } : {}),
             }),
           });
           const id = res?.data?.asset_id;
@@ -4356,6 +4383,7 @@ async function renderMedia() {
           }
           const fd = new FormData();
           if (apiKeyId) fd.append('apiKeyId', apiKeyId);
+          if (format) fd.append('format', format);
           if (mediaSource.kind === 'file' && mediaSource.file) {
             fd.append('file', mediaSource.file);
           } else if (mediaSource.kind === 'asset' && mediaSource.id) {
@@ -4411,6 +4439,7 @@ async function renderMedia() {
           );
           if (model) fd.append('model', model);
           if (apiKeyId) fd.append('apiKeyId', apiKeyId);
+          if (format) fd.append('format', format);
           const voice = document.getElementById('mg-voice')?.value || '';
           if (voice) fd.append('voices', voice);
           if (mediaSource?.kind === 'file' && mediaSource.file) {
@@ -4441,6 +4470,7 @@ async function renderMedia() {
         };
         if (model) body.model = model;
         if (apiKeyId) body.apiKeyId = apiKeyId;
+        if (format) body.format = format;
         const res = await api('/media/generate', {
           method: 'POST',
           body: JSON.stringify(body),
@@ -10055,7 +10085,8 @@ function catalogHubRowHtml(h, local) {
   const canPull =
     h.runtime === 'llamacpp' ||
     h.runtime === 'whisper' ||
-    h.runtime === 'diffusion';
+    h.runtime === 'diffusion' ||
+    h.runtime === 'tts';
   const pullBtn = canPull
     ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
     : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;

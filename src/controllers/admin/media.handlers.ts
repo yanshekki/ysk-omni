@@ -20,6 +20,7 @@ import {
   synthesizeSpeech,
   transcribeAudio,
 } from '../../services/media/audio-worker';
+import { formatTranscript } from '../../services/media/format-convert';
 import { requestIp } from '../../utils/client-ip';
 import type { AuthenticatedApiKey } from '../../interfaces';
 import { resolveScalarOrderBy } from '../../utils/list-sort';
@@ -276,6 +277,7 @@ export const adminMediaHandlers = {
       size: body.size,
       aspectRatio: body.aspect_ratio,
       responseFormat: body.response_format || 'url',
+      format: (body as { format?: string }).format,
       baseUrl,
       ip: requestIp(req),
     });
@@ -467,6 +469,7 @@ export const adminMediaHandlers = {
       sourceDocumentId: sourceBytes ? undefined : sourceDocumentId || undefined,
       sourceBytes,
       voices,
+      format: typeof raw.format === 'string' ? raw.format : undefined,
     });
 
     await auditService.log({
@@ -499,6 +502,8 @@ export const adminMediaHandlers = {
       voice?: string;
       model?: string;
       apiKeyId?: string;
+      format?: string;
+      response_format?: string;
     };
     const input = String(raw.input || raw.prompt || '').trim();
     if (!input) throw ExceptionFactory.validation('input is required');
@@ -507,13 +512,14 @@ export const adminMediaHandlers = {
       input,
       voice: raw.voice,
       model: raw.model,
+      response_format: raw.format || raw.response_format || 'wav',
     });
     const stored = await mediaStoreService.save({
       apiKeyId: actor.id,
       kind: 'audio',
       mime,
       bytes,
-      originalName: `speech-${Date.now()}.${mime.includes('mpeg') ? 'mp3' : 'wav'}`,
+      originalName: `speech-${Date.now()}${mime.includes('mpeg') ? '.mp3' : mime.includes('ogg') ? '.opus' : mime.includes('flac') ? '.flac' : mime.includes('aac') ? '.aac' : '.wav'}`,
       source: 'generation',
       provider: 'tts',
       prompt: input,
@@ -569,12 +575,13 @@ export const adminMediaHandlers = {
       filename: src.name || 'audio.wav',
       mime: src.mime,
     });
+    const formatted = formatTranscript(text, String(raw.format || 'txt'));
     const stored = await mediaStoreService.save({
       apiKeyId: actor.id,
       kind: 'file',
-      mime: 'text/plain',
-      bytes: Buffer.from(text || ' ', 'utf8'),
-      originalName: `transcript-${Date.now()}.txt`,
+      mime: formatted.mime,
+      bytes: formatted.bytes,
+      originalName: `transcript-${Date.now()}.${formatted.format}`,
       source: 'transcription',
       provider: 'stt',
       prompt: src.name || src.id || 'audio',

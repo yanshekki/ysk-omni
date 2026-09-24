@@ -28,6 +28,7 @@ export class ImagesController {
       size: dto.size,
       aspectRatio: dto.aspect_ratio,
       responseFormat: dto.response_format,
+      format: dto.format,
       baseUrl: requestBaseUrl(req),
       ip: requestIp(req),
     });

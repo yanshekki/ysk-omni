@@ -21,6 +21,7 @@ import { grokToolsMediaProvider } from './providers/grok-tools.provider';
 import { mockMediaProvider } from './providers/mock.provider';
 import { stubMediaProvider } from './providers/stub.provider';
 import { HttpWorkerMediaProvider } from './providers/http-worker.provider';
+import { convertImage } from './format-convert';
 
 /** Test / forced provider override */
 let providerOverride: MediaProvider | null = null;
@@ -210,6 +211,7 @@ export class MediaOrchestratorService {
     size?: string;
     aspectRatio?: string;
     responseFormat?: 'b64_json' | 'url';
+    format?: string;
     baseUrl?: string;
     ip?: string;
   }): Promise<ImageGenerationResult> {
@@ -231,10 +233,14 @@ export class MediaOrchestratorService {
     if (!artifacts.length) {
       throw ExceptionFactory.mediaGenerationFailed('Provider returned no images');
     }
+    const converted = artifacts.map((a) => {
+      const c = convertImage(a.bytes, input.format);
+      return { ...a, bytes: c.bytes, mime: c.mime };
+    });
 
     return persistArtifacts({
       apiKey: input.apiKey,
-      artifacts,
+      artifacts: converted,
       prompt: input.prompt,
       size: aspectRatio,
       responseFormat: input.responseFormat,

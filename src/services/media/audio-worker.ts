@@ -1,5 +1,6 @@
 import { ExceptionFactory } from '../../exceptions/exception.factory';
 import { apiFeaturesService } from '../api-features.service';
+import { convertAudio } from './format-convert';
 
 export async function assertAudioApi(): Promise<void> {
   const features = await apiFeaturesService.get();
@@ -38,8 +39,8 @@ export async function synthesizeSpeech(dto: {
         `TTS worker HTTP ${upstream.status}`,
       );
     }
-    const mime = upstream.headers.get('content-type') || 'audio/wav';
-    return { bytes: buf, mime: mime.split(';')[0].trim() };
+    const converted = convertAudio(buf, dto.response_format);
+    return { bytes: converted.bytes, mime: converted.mime };
   }
   const provider = (
     process.env.AUDIO_TTS_PROVIDER ||

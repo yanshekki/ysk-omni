@@ -18,6 +18,7 @@ export class VideosController {
       sourceAssetIds: dto.source_asset_ids,
       sourceDocumentId: dto.source_document_id,
       voices: dto.voices,
+      format: dto.format,
     });
     res.status(200).json(job);
   });

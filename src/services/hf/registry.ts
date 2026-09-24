@@ -3,7 +3,13 @@ import path from 'node:path';
 import { omniHome } from '../../config/omni-home';
 
 export type ModelModality = 'text' | 'image' | 'video' | 'tts' | 'stt';
-export type ModelRuntime = 'llamacpp' | 'vllm' | 'echo' | 'diffusion' | 'whisper';
+export type ModelRuntime =
+  | 'llamacpp'
+  | 'vllm'
+  | 'echo'
+  | 'diffusion'
+  | 'whisper'
+  | 'tts';
 
 export type RegistryEntry = {
   id: string;
