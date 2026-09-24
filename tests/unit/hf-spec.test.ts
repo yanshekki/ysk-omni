@@ -116,4 +116,16 @@ describe('pickPullFiles / inferRuntimeFromFilenames', () => {
     expect(picked.some((f) => f.path.startsWith('sd_xl'))).toBe(false);
     expect(picked.some((f) => f.path.startsWith('unet/'))).toBe(true);
   });
+
+  it('skips zeroscope zs2_576w dumps and pth files', () => {
+    const picked = pickPullFiles([
+      { path: 'model_index.json', size: 100 },
+      { path: 'unet/diffusion_pytorch_model.bin', size: 2_800_000_000 },
+      { path: 'zs2_576w/text2video_pytorch_model.pth', size: 2_800_000_000 },
+      { path: 'text_encoder/pytorch_model.bin', size: 680_000_000 },
+    ]);
+    expect(picked.some((f) => f.path.includes('zs2_576w'))).toBe(false);
+    expect(picked.some((f) => f.path.endsWith('.pth'))).toBe(false);
+    expect(picked.some((f) => f.path.startsWith('unet/'))).toBe(true);
+  });
 });

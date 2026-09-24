@@ -141,14 +141,14 @@ describe.skipIf(!go)('live best modalities (on-device weights)', () => {
   );
 
   it(
-    'video job is a real mp4, not the fixture',
+    'video job is temporal T2V (16 frames), not stills',
     async () => {
       const created = await api('/v1/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: 'a red apple rotating on a table',
-          seconds: 1,
+          prompt: 'a red apple rolling on a wooden table',
+          seconds: 2,
           format: 'mp4',
         }),
       });
@@ -164,11 +164,43 @@ describe.skipIf(!go)('live best modalities (on-device weights)', () => {
       expect(status).toBe('completed');
       const content = await api(`/v1/videos/${job.id}/content`);
       expect(content.status).toBe(200);
-      expect(content.buf.length).toBeGreaterThan(1000);
+      expect(content.buf.length).toBeGreaterThan(20_000);
       expect(content.buf.includes(Buffer.from('ysk-omni-video-fixture'))).toBe(
         false,
       );
       expect(content.buf.subarray(4, 8).toString('ascii')).toBe('ftyp');
+      const { writeFileSync, unlinkSync } = await import('node:fs');
+      const { spawnSync } = await import('node:child_process');
+      const tmp = `/tmp/ysk-t2v-${Date.now()}.mp4`;
+      writeFileSync(tmp, content.buf);
+      const probe = spawnSync(
+        'ffprobe',
+        [
+          '-v',
+          'error',
+          '-select_streams',
+          'v:0',
+          '-show_entries',
+          'stream=nb_frames,duration,width,height',
+          '-of',
+          'json',
+          tmp,
+        ],
+        { encoding: 'utf8' },
+      );
+      unlinkSync(tmp);
+      const info = JSON.parse(probe.stdout || '{}') as {
+        streams?: Array<{
+          nb_frames?: string;
+          duration?: string;
+          width?: number;
+          height?: number;
+        }>;
+      };
+      const st = info.streams?.[0] || {};
+      expect(Number(st.nb_frames || 0)).toBeGreaterThanOrEqual(12);
+      expect(Number(st.duration || 0)).toBeGreaterThanOrEqual(1.2);
+      expect(Number(st.width || 0)).toBeGreaterThanOrEqual(320);
     },
     400_000,
   );

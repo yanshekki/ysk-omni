@@ -88,7 +88,7 @@ export function pickGgufFile(
 const SKIP_PULL_NAME =
   /(^|\/)(README(\.[a-z]+)?|LICENSE.*|\.gitattributes)$/i;
 const SKIP_PULL_EXT =
-  /\.(h5|msgpack|ot|pkl|png|jpg|jpeg|gif|webp|md|onnx|onnx_data)$/i;
+  /\.(h5|msgpack|ot|pkl|png|jpg|jpeg|gif|webp|md|onnx|onnx_data|pth)$/i;
 const MAX_PULL_FILE_BYTES = 8 * 1024 * 1024 * 1024;
 
 /** GGUF first; else snapshot weights for whisper / diffusion repos. */
@@ -104,6 +104,7 @@ export function pickPullFiles(
   const raw = files.filter((f) => {
     if (!f.path || f.path.endsWith('/')) return false;
     if (SKIP_PULL_NAME.test(f.path) || SKIP_PULL_EXT.test(f.path)) return false;
+    if (/(^|\/)zs2_576w\//i.test(f.path)) return false;
     if ((f.size || 0) > MAX_PULL_FILE_BYTES) return false;
     return (
       /\.(bin|safetensors|json|txt|model)$/i.test(f.path) ||
@@ -160,6 +161,15 @@ export function inferRuntimeFromFilenames(
   if (id.includes('whisper')) return { runtime: 'whisper', modality: 'stt' };
   if (id.includes('tts') || id.includes('piper') || id.includes('kokoro')) {
     return { runtime: 'tts', modality: 'tts' };
+  }
+  if (
+    id.includes('zeroscope') ||
+    id.includes('text-to-video') ||
+    id.includes('cogvideox') ||
+    id.includes('ltx-video') ||
+    id.includes('wan2')
+  ) {
+    return { runtime: 'diffusion', modality: 'video' };
   }
   if (id.includes('stable-diffusion') || id.includes('tiny-sd') || id.includes('flux')) {
     return { runtime: 'diffusion', modality: 'image' };

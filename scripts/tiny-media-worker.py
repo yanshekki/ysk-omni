@@ -45,6 +45,8 @@ _whisper_src = None
 _piper = None
 _sd = None
 _sd_src = None
+_t2v = None
+_t2v_src = None
 
 
 def _models_root() -> Path:
@@ -85,6 +87,35 @@ def local_sd_src() -> str:
         if dirs:
             return str(sorted(dirs, key=lambda x: x.name)[-1])
     return "stabilityai/sdxl-turbo"
+
+
+def local_t2v_src() -> str | None:
+    env = (os.environ.get("T2V_MODEL") or "").strip()
+    if env:
+        return env
+    root = _models_root()
+    if not root.is_dir():
+        return None
+    for p in sorted(root.iterdir()):
+        idx = p / "model_index.json"
+        unet = p / "unet"
+        if not p.is_dir() or not idx.exists() or not unet.is_dir():
+            continue
+        name = p.name.lower()
+        cls = ""
+        try:
+            cls = str(json.loads(idx.read_text()).get("_class_name") or "")
+        except Exception:
+            pass
+        if (
+            "Video" in cls
+            or "LTX" in cls
+            or "zeroscope" in name
+            or "text-to-video" in name
+            or "cogvideo" in name
+        ):
+            return str(p)
+    return None
 
 
 def _png(w: int, h: int, rgb: tuple[int, int, int] = (200, 40, 40)) -> bytes:
@@ -278,12 +309,70 @@ def image_png(prompt: str) -> bytes:
     return buf.getvalue()
 
 
+def t2v_pipe():
+    global _t2v, _t2v_src
+    src = local_t2v_src()
+    if not src:
+        raise RuntimeError(
+            "No text-to-video weights on disk. Pull cerspense/zeroscope_v2_576w.",
+        )
+    if _t2v is not None and _t2v_src == src:
+        return _t2v
+    with _lock:
+        src = local_t2v_src()
+        if _t2v is not None and _t2v_src == src:
+            return _t2v
+        import torch
+        from diffusers import TextToVideoSDPipeline
+
+        dtype = torch.float16 if torch.backends.mps.is_available() else torch.float32
+        device = "mps" if torch.backends.mps.is_available() else "cpu"
+        _t2v = TextToVideoSDPipeline.from_pretrained(
+            src,
+            torch_dtype=dtype,
+            local_files_only=Path(src).is_dir(),
+        )
+        _t2v = _t2v.to(device)
+        _t2v.set_progress_bar_config(disable=True)
+        _t2v_src = src
+        return _t2v
+
+
 def video_mp4(prompt: str) -> bytes:
-    base = prompt or "a red square on a table"
-    frames = 4
-    pngs = []
-    for i in range(frames):
-        pngs.append(image_png(f"{base}, frame {i + 1}, cinematic lighting"))
+    if FAKE:
+        return _ffmpeg_mp4_from_pngs(
+            [_png(64, 64, (200, 40, 40)), _png(64, 64, (40, 40, 200))],
+            fps=8,
+        )
+    pipe = t2v_pipe()
+    out = pipe(
+        prompt or "a red apple rolling on a wooden table",
+        num_inference_steps=20,
+        num_frames=16,
+        height=320,
+        width=576,
+        guidance_scale=9.0,
+    )
+    frames = out.frames[0]
+    pngs: list[bytes] = []
+    for fr in frames:
+        if hasattr(fr, "save"):
+            buf = io.BytesIO()
+            fr.save(buf, format="PNG")
+            pngs.append(buf.getvalue())
+        else:
+            from PIL import Image
+            import numpy as np
+
+            arr = np.asarray(fr)
+            if arr.dtype != np.uint8:
+                arr = (arr.clip(0, 1) * 255).astype("uint8")
+            im = Image.fromarray(arr)
+            buf = io.BytesIO()
+            im.save(buf, format="PNG")
+            pngs.append(buf.getvalue())
+    if len(pngs) < 8:
+        raise RuntimeError(f"T2V returned {len(pngs)} frames; need a temporal model")
     return _ffmpeg_mp4_from_pngs(pngs, fps=8)
 
 
@@ -341,6 +430,7 @@ class Handler(BaseHTTPRequestHandler):
                     "fake": FAKE,
                     "whisper": local_whisper_src(),
                     "diffusion": local_sd_src(),
+                    "t2v": local_t2v_src(),
                 },
             )
             return
