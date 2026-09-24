@@ -63,6 +63,7 @@ export function sessionActor(sessionId: string): AuthenticatedApiKey {
     maxTurns: null,
     timeoutMs: null,
     ipWhitelist: [],
+    allowedModels: [],
   };
 }
 

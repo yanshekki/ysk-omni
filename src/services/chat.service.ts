@@ -16,6 +16,7 @@ import type { GrokResponseMeta } from '../interfaces/grok-response-meta.interfac
 import type { OpenAiChatCompletion } from '../interfaces/open-ai-chat-completion.interface';
 import type { ResolvedPolicy } from '../interfaces/resolved-policy.interface';
 import { ExceptionFactory } from '../exceptions/exception.factory';
+import { assertModelAllowed } from '../utils/model-allowlist';
 import { HttpException } from '../exceptions/http.exception';
 import {
   createChatCompletionId,
@@ -277,6 +278,7 @@ export class ChatService {
     const settings = await settingsService.getAll();
     const features = await apiFeaturesService.get();
     const model = dto.model || settings.defaultModel || ECHO_MODEL_ID;
+    assertModelAllowed(ctx.apiKey, model);
     const stream = Boolean(dto.stream);
     if (isEchoModel(model)) {
       return this.executeEchoCompletion(dto, ctx, res, model, stream);

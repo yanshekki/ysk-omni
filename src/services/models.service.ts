@@ -2,6 +2,10 @@ import { env } from '../config/env';
 import type { OpenAiModel, OpenAiModelList } from '../interfaces';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 import { mapModelsList } from '../utils/openai-mapper';
+import {
+  assertModelAllowed,
+  filterAllowedModels,
+} from '../utils/model-allowlist';
 import { ECHO_MODEL_ID } from './runtimes/echo';
 import { loadRegistry } from './hf/registry';
 import { engineManager } from './runtimes/engine-manager';
@@ -36,8 +40,11 @@ export class ModelsService {
     null;
   private readonly ttlMs = 5 * 60 * 1000;
 
-  async list(): Promise<OpenAiModelList> {
-    const models = await this.getModelIds();
+  async list(allowedModels?: string[] | null): Promise<OpenAiModelList> {
+    const models = filterAllowedModels(
+      await this.getModelIds(),
+      allowedModels,
+    );
     const body = mapModelsList(models);
     body.data = body.data.map((m) => ({
       ...m,
@@ -46,11 +53,15 @@ export class ModelsService {
     return body;
   }
 
-  async get(modelId: string): Promise<OpenAiModel> {
+  async get(
+    modelId: string,
+    allowedModels?: string[] | null,
+  ): Promise<OpenAiModel> {
     const models = await this.getModelIds();
     if (!models.includes(modelId)) {
       throw ExceptionFactory.notFound('Model');
     }
+    assertModelAllowed({ allowedModels: allowedModels ?? [] }, modelId);
     return {
       id: modelId,
       object: 'model',

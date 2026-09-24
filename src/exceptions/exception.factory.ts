@@ -128,6 +128,18 @@ export const ExceptionFactory = {
     return new HttpException(403, message, ErrorCodes.MEDIA_FORBIDDEN, details);
   },
 
+  modelNotAllowed(model?: string | null): HttpException {
+    const id = (model || '').trim();
+    return new HttpException(
+      403,
+      id
+        ? `Model "${id}" is not allowed for this API key`
+        : 'Model is not allowed for this API key',
+      ErrorCodes.MODEL_NOT_ALLOWED,
+      { reason: 'model_not_allowed', model: id || null },
+    );
+  },
+
   /**
    * Admin API feature flag is off.
    * `feature` is a stable id for Admin i18n (imagesApi, videoApi, audioApi, tools, …).

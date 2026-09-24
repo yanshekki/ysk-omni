@@ -60,6 +60,12 @@ export async function renderKeysPage(ctx: RenderCtx): Promise<void> {
       const wlLabel = wl.length
         ? tf('keys.ipCount', { n: wl.length })
         : t('keys.ipAll');
+      const models = k.allowedModels || [];
+      const modelsLabel = !models.length
+        ? t('keys.modelsAll')
+        : models.length <= 2
+          ? models.join(', ')
+          : tf('keys.modelsCount', { n: models.length });
       return `
     <tr>
       <td><div class="cell-primary">${escapeHtml(k.name)}</div><div class="cell-sub">${escapeHtml(k.keyPrefix)}…</div></td>
@@ -67,6 +73,7 @@ export async function renderKeysPage(ctx: RenderCtx): Promise<void> {
       <td>${badgeMode(k.mode)}</td>
       <td>${fmtPerMin(k.rateLimit)}</td>
       <td title="${escapeHtml(wl.join(', '))}">${escapeHtml(wlLabel)}</td>
+      <td title="${escapeHtml(models.join(', '))}">${escapeHtml(modelsLabel)}</td>
       <td>
         <div>${reqs} <span class="muted">(${escapeHtml(t('keys.usage24'))})</span></div>
         <div class="usage-bar ${util > 80 ? 'warn' : ''}"><span style="width:${util}%"></span></div>
@@ -119,10 +126,11 @@ export async function renderKeysPage(ctx: RenderCtx): Promise<void> {
       <th>${escapeHtml(t('keys.name'))}</th><th>${escapeHtml(t('keys.role'))}</th>
       <th>${escapeHtml(t('keys.mode'))}</th><th>${escapeHtml(t('keys.rate'))}</th>
       <th>${escapeHtml(t('keys.ipWhitelistCol'))}</th>
+      <th>${escapeHtml(t('keys.allowedModelsCol'))}</th>
       <th>${escapeHtml(t('keys.usage24'))}</th><th>${escapeHtml(t('keys.status'))}</th>
       <th>${escapeHtml(t('keys.created'))}</th><th>${escapeHtml(t('common.actions'))}</th>`,
     bodyHtml,
-    colSpan: 9,
+    colSpan: 10,
     emptyText: tx('keys.empty', t('common.empty')),
     pagerHtml: pagerHtml({
       total,
@@ -167,11 +175,12 @@ export async function renderKeysPage(ctx: RenderCtx): Promise<void> {
   };
 
   document.getElementById('btn-new-key')!.onclick = () =>
-    showKeyForm(ctx, null);
+    showKeyForm(ctx, null).catch(onErr);
 
   document.querySelectorAll('[data-edit]').forEach((b) => {
     const key = data.find((x) => x.id === (b as HTMLElement).dataset.edit);
-    (b as HTMLElement).onclick = () => showKeyForm(ctx, key || null);
+    (b as HTMLElement).onclick = () =>
+      showKeyForm(ctx, key || null).catch(onErr);
   });
 
   document.querySelectorAll('[data-revoke]').forEach((b) => {
@@ -190,15 +199,43 @@ export async function renderKeysPage(ctx: RenderCtx): Promise<void> {
   });
 }
 
-function showKeyForm(ctx: RenderCtx, existing: ApiKeyRow | null): void {
+async function showKeyForm(
+  ctx: RenderCtx,
+  existing: ApiKeyRow | null,
+): Promise<void> {
   const isEdit = Boolean(existing);
   const wlText = (existing?.ipWhitelist || []).join('\n');
+  const selectedModels = new Set(existing?.allowedModels || []);
+  let preset = ['piper/lessac-high', 'echo'];
+  try {
+    const cat = await apiGet<{
+      local?: Array<{ id?: string }>;
+      loaded?: Array<{ id?: string } | string>;
+    }>(endpoints.catalog);
+    const local = (cat.local || []).map((m) => m.id).filter(Boolean) as string[];
+    const loaded = (cat.loaded || [])
+      .map((e) => (typeof e === 'string' ? e : e.id))
+      .filter(Boolean) as string[];
+    preset = [...new Set([...loaded, ...local, ...preset])];
+  } catch {
+    /* keep builtin ids */
+  }
+  const extraIds = [...selectedModels].filter((id) => !preset.includes(id));
+  const modelBoxes = preset
+    .map(
+      (id) => `
+        <label class="key-model-item">
+          <input type="checkbox" data-k-model value="${escapeHtml(id)}" ${selectedModels.has(id) ? 'checked' : ''} />
+          <span>${escapeHtml(id)}</span>
+        </label>`,
+    )
+    .join('');
   openAppModal({
     title: isEdit ? t('keys.edit') : t('keys.new'),
     subtitle: isEdit
       ? `${escapeHtml(existing?.name || '')} · ${escapeHtml(existing?.keyPrefix || '')}…`
       : '',
-    size: 'md',
+    size: 'lg',
     bodyHtml: `
       <div class="form-grid">
         <label class="full">${escapeHtml(t('keys.name'))}<input id="k-name" value="${escapeHtml(existing?.name || '')}" /></label>
@@ -220,6 +257,15 @@ function showKeyForm(ctx: RenderCtx, existing: ApiKeyRow | null): void {
         <label class="full">${escapeHtml(t('keys.ipWhitelist'))}
           <textarea id="k-ip" rows="4" placeholder="${escapeHtml(t('keys.ipPlaceholder'))}">${escapeHtml(wlText)}</textarea>
           <span class="field-hint">${escapeHtml(t('keys.ipWhitelistHint'))}</span>
+        </label>
+        <div class="full key-models-field">
+          <span>${escapeHtml(t('keys.allowedModels'))}</span>
+          <div class="key-model-list" id="k-models">${modelBoxes}</div>
+          <span class="field-hint">${escapeHtml(t('keys.allowedModelsHint'))}</span>
+        </div>
+        <label class="full">${escapeHtml(t('keys.modelsExtra'))}
+          <textarea id="k-models-extra" rows="3" placeholder="${escapeHtml(t('keys.modelsPlaceholder'))}">${escapeHtml(extraIds.join('\n'))}</textarea>
+          <span class="field-hint">${escapeHtml(t('keys.modelsExtraHint'))}</span>
         </label>
         ${
           isEdit
@@ -269,6 +315,17 @@ function showKeyForm(ctx: RenderCtx, existing: ApiKeyRow | null): void {
           )
         : null,
       ipWhitelist,
+      allowedModels: [
+        ...new Set([
+          ...[...document.querySelectorAll('[data-k-model]:checked')].map(
+            (el) => (el as HTMLInputElement).value,
+          ),
+          ...(document.getElementById('k-models-extra') as HTMLTextAreaElement)
+            .value.split(/[\n,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+        ]),
+      ],
     };
     try {
       if (isEdit && existing) {

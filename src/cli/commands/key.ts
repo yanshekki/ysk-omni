@@ -15,6 +15,12 @@ import type { ApiKeyMode } from '../../interfaces';
 import { normalizeApiKeyRole } from '../../utils/role-normalize';
 import { fail, info, ok, warn } from '../lib/print';
 import { emitJson, parseOnOff } from '../lib/runtime-context';
+import { parseModelList } from '../../utils/model-allowlist';
+
+function parseModelsFlag(raw?: string): string[] | undefined {
+  if (raw === undefined) return undefined;
+  return parseModelList(raw);
+}
 
 function printCreatedKey(
   key: {
@@ -51,6 +57,7 @@ export async function cmdKeyCreate(opts: {
   role?: string;
   mode?: string;
   rateLimit?: number;
+  models?: string;
 }): Promise<void> {
   const paths = resolveRuntimePaths({
     home: opts.home,
@@ -70,6 +77,7 @@ export async function cmdKeyCreate(opts: {
     role,
     mode,
     rateLimit: opts.rateLimit,
+    allowedModels: parseModelsFlag(opts.models),
   });
 
   printCreatedKey(key, port);
@@ -156,6 +164,9 @@ export async function cmdKeyShow(opts: {
   info(`  mode:       ${key.mode}`);
   info(`  active:     ${key.isActive}`);
   info(`  rateLimit:  ${key.rateLimit}`);
+  info(
+    `  models:     ${key.allowedModels.length ? key.allowedModels.join(', ') : '(all)'}`,
+  );
   info(`  prefix:     ${key.keyPrefix}`);
   info(`  createdAt:  ${key.createdAt.toISOString()}`);
   info(`  lastUsedAt: ${key.lastUsedAt?.toISOString() ?? '—'}`);
@@ -170,6 +181,7 @@ export async function cmdKeyUpdate(opts: {
   mode?: string;
   rateLimit?: number;
   active?: string;
+  models?: string;
   json?: boolean;
 }): Promise<void> {
   const paths = resolveRuntimePaths({
@@ -196,14 +208,19 @@ export async function cmdKeyUpdate(opts: {
         ? 'agent'
         : 'safe';
 
+  const allowedModels = parseModelsFlag(opts.models);
+
   if (
     opts.name === undefined &&
     opts.role === undefined &&
     mode === undefined &&
     opts.rateLimit === undefined &&
-    isActive === undefined
+    isActive === undefined &&
+    allowedModels === undefined
   ) {
-    fail('No fields to update. Use --name/--role/--mode/--rate-limit/--active');
+    fail(
+      'No fields to update. Use --name/--role/--mode/--rate-limit/--active/--models',
+    );
     process.exitCode = 1;
     return;
   }
@@ -214,6 +231,7 @@ export async function cmdKeyUpdate(opts: {
     mode,
     rateLimit: opts.rateLimit,
     isActive,
+    allowedModels,
   });
   if (!key) {
     fail(`Key not found: ${opts.id}`);

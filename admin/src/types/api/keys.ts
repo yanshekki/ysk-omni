@@ -8,6 +8,7 @@ export type ApiKeyRow = {
   maxTurns?: number | null;
   timeoutMs?: number | null;
   ipWhitelist?: string[];
+  allowedModels?: string[];
   isActive: boolean;
   createdAt: string;
   /** Present only once on create */
@@ -30,6 +31,7 @@ export type CreateKeyBody = {
   maxTurns?: number | null;
   timeoutMs?: number | null;
   ipWhitelist?: string[];
+  allowedModels?: string[];
 };
 
 export type UpdateKeyBody = CreateKeyBody & {

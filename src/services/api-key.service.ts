@@ -22,6 +22,10 @@ import {
   normalizeApiKeyRole,
 } from '../utils/role-normalize';
 import { parseIpList, serializeIpList } from '../utils/ip-match';
+import {
+  parseModelList,
+  serializeModelList,
+} from '../utils/model-allowlist';
 import { auditService } from './audit.service';
 import { resolveScalarOrderBy } from '../utils/list-sort';
 
@@ -54,6 +58,7 @@ function mapPublic(r: {
   maxTurns: number | null;
   timeoutMs: number | null;
   ipWhitelist?: string | null;
+  allowedModels?: string | null;
   createdAt: Date;
   lastUsedAt: Date | null;
 }): ApiKeyPublicEntity {
@@ -68,6 +73,7 @@ function mapPublic(r: {
     maxTurns: r.maxTurns,
     timeoutMs: r.timeoutMs,
     ipWhitelist: parseIpList(r.ipWhitelist),
+    allowedModels: parseModelList(r.allowedModels),
     createdAt: r.createdAt,
     lastUsedAt: r.lastUsedAt,
   };
@@ -130,6 +136,7 @@ export class ApiKeyService {
       maxTurns: record.maxTurns,
       timeoutMs: record.timeoutMs,
       ipWhitelist: parseIpList(record.ipWhitelist),
+      allowedModels: parseModelList(record.allowedModels),
     };
   }
 
@@ -141,6 +148,7 @@ export class ApiKeyService {
     maxTurns?: number | null;
     timeoutMs?: number | null;
     ipWhitelist?: string[];
+    allowedModels?: string[];
     actorApiKeyId?: string;
     ip?: string;
     rawKey?: string;
@@ -159,6 +167,9 @@ export class ApiKeyService {
     const mode = normalizeApiKeyMode(role, input.mode);
 
     const wl = input.ipWhitelist ? parseIpList(input.ipWhitelist) : [];
+    const models = input.allowedModels
+      ? parseModelList(input.allowedModels)
+      : [];
 
     const created = await prisma.apiKey.create({
       data: {
@@ -172,6 +183,7 @@ export class ApiKeyService {
         maxTurns: input.maxTurns ?? null,
         timeoutMs: input.timeoutMs ?? null,
         ipWhitelist: serializeIpList(wl),
+        allowedModels: serializeModelList(models),
       },
     });
 
@@ -186,6 +198,7 @@ export class ApiKeyService {
         mode: created.mode,
         keyPrefix: prefix,
         ipWhitelist: wl,
+        allowedModels: models,
       },
       ip: input.ip,
     });
@@ -275,6 +288,7 @@ export class ApiKeyService {
       maxTurns: record.maxTurns,
       timeoutMs: record.timeoutMs,
       ipWhitelist: parseIpList(record.ipWhitelist),
+      allowedModels: parseModelList(record.allowedModels),
     };
   }
 
@@ -289,6 +303,7 @@ export class ApiKeyService {
       maxTurns?: number | null;
       timeoutMs?: number | null;
       ipWhitelist?: string[] | null;
+      allowedModels?: string[] | null;
     },
     actorApiKeyId: string,
     ip?: string,
@@ -328,6 +343,11 @@ export class ApiKeyService {
     if (input.ipWhitelist !== undefined) {
       data.ipWhitelist = serializeIpList(
         input.ipWhitelist === null ? [] : parseIpList(input.ipWhitelist),
+      );
+    }
+    if (input.allowedModels !== undefined) {
+      data.allowedModels = serializeModelList(
+        input.allowedModels === null ? [] : parseModelList(input.allowedModels),
       );
     }
 

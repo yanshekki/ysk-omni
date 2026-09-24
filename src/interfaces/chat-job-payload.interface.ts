@@ -19,6 +19,7 @@ export interface ChatJobPayload {
     maxTurns: number | null;
     timeoutMs: number | null;
     ipWhitelist: string[];
+    allowedModels: string[];
   };
   ip?: string;
   userAgent?: string;

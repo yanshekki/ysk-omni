@@ -16,4 +16,13 @@ describe('ExceptionFactory', () => {
     expect(err.statusCode).toBe(429);
     expect(toOpenAiErrorBody(err).error.type).toBe('rate_limit_error');
   });
+
+  it('modelNotAllowed is 403 model_not_allowed', () => {
+    const err = ExceptionFactory.modelNotAllowed('echo');
+    expect(err.statusCode).toBe(403);
+    const body = toOpenAiErrorBody(err);
+    expect(body.error.code).toBe('model_not_allowed');
+    expect(body.error.message).toContain('echo');
+  });
 });
+

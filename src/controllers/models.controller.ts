@@ -8,13 +8,16 @@ import { recordPullIfOk } from '../services/hf/record-pull';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 
 export class ModelsController {
-  list = asyncHandler(async (_req: Request, res: Response) => {
-    const body = await modelsService.list();
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const body = await modelsService.list(req.apiKey?.allowedModels);
     res.status(200).json(body);
   });
 
   get = asyncHandler(async (req: Request, res: Response) => {
-    const model = await modelsService.get(String(req.params.model));
+    const model = await modelsService.get(
+      String(req.params.model),
+      req.apiKey?.allowedModels,
+    );
     res.status(200).json(model);
   });
 

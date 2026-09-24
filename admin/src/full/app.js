@@ -2312,6 +2312,12 @@ async function renderKeys() {
       const wlLabel = wl.length
         ? tf('keys.ipCount', { n: wl.length })
         : t('keys.ipAll');
+      const models = k.allowedModels || [];
+      const modelsLabel = !models.length
+        ? t('keys.modelsAll')
+        : models.length <= 2
+          ? models.join(', ')
+          : tf('keys.modelsCount', { n: models.length });
       return `
     <tr>
       <td><div class="cell-primary">${escapeHtml(k.name)}</div><div class="cell-sub">${escapeHtml(k.keyPrefix)}…</div></td>
@@ -2319,6 +2325,7 @@ async function renderKeys() {
       <td>${badgeMode(k.mode)}</td>
       <td>${fmtPerMin(k.rateLimit)}</td>
       <td title="${escapeHtml(wl.join(', '))}">${escapeHtml(wlLabel)}</td>
+      <td title="${escapeHtml(models.join(', '))}">${escapeHtml(modelsLabel)}</td>
       <td>
         <div>${reqs} <span class="muted">(${escapeHtml(t('keys.usage24'))})</span></div>
         <div class="usage-bar ${util > 80 ? 'warn' : ''}"><span style="width:${util}%"></span></div>
@@ -2373,12 +2380,13 @@ async function renderKeys() {
       ${sortThHtml({ field: 'mode', label: t('keys.mode'), filterRef: f })}
       ${sortThHtml({ field: 'rateLimit', label: t('keys.rate'), filterRef: f })}
       <th>${escapeHtml(t('keys.ipWhitelistCol'))}</th>
+      <th>${escapeHtml(t('keys.allowedModelsCol'))}</th>
       <th>${escapeHtml(t('keys.usage24'))}</th>
       ${sortThHtml({ field: 'isActive', label: t('keys.status'), filterRef: f })}
       ${sortThHtml({ field: 'createdAt', label: t('keys.created'), filterRef: f })}
       <th>${escapeHtml(t('common.actions'))}</th>`,
     bodyHtml,
-    colSpan: 9,
+    colSpan: 10,
     emptyText: t('keys.empty'),
     pagerHtml: pagerHtml({
       total,
@@ -2422,10 +2430,11 @@ async function renderKeys() {
     };
     renderKeys().catch(onErr);
   };
-  document.getElementById('btn-new-key').onclick = () => showKeyForm();
+  document.getElementById('btn-new-key').onclick = () =>
+    showKeyForm().catch(onErr);
   document.querySelectorAll('[data-edit]').forEach((b) => {
     const key = data.find((x) => x.id === b.dataset.edit);
-    b.onclick = () => showKeyForm(key);
+    b.onclick = () => showKeyForm(key).catch(onErr);
   });
   document.querySelectorAll('[data-revoke]').forEach((b) => {
     b.onclick = async () => {
@@ -2443,15 +2452,37 @@ async function renderKeys() {
   });
 }
 
-function showKeyForm(existing) {
+async function showKeyForm(existing) {
   const isEdit = Boolean(existing);
   const wlText = (existing?.ipWhitelist || []).join('\n');
+  const selectedModels = new Set(existing?.allowedModels || []);
+  let preset = ['piper/lessac-high', 'echo'];
+  try {
+    const cat = await api('/catalog');
+    const local = (cat.local || []).map((m) => m.id).filter(Boolean);
+    const loaded = (cat.loaded || [])
+      .map((e) => e.id || e)
+      .filter(Boolean);
+    preset = [...new Set([...loaded, ...local, ...preset])];
+  } catch {
+    /* keep builtin ids */
+  }
+  const extraIds = [...selectedModels].filter((id) => !preset.includes(id));
+  const modelBoxes = preset
+    .map(
+      (id) => `
+        <label class="key-model-item">
+          <input type="checkbox" data-k-model value="${escapeHtml(id)}" ${selectedModels.has(id) ? 'checked' : ''} />
+          <span>${escapeHtml(id)}</span>
+        </label>`,
+    )
+    .join('');
   openAppModal({
     title: isEdit ? t('keys.edit') : t('keys.new'),
     subtitle: isEdit
       ? `${escapeHtml(existing?.name || '')} · ${escapeHtml(existing?.keyPrefix || '')}…`
       : '',
-    size: 'md',
+    size: 'lg',
     bodyHtml: `
       <div class="form-grid">
         <label class="full">${escapeHtml(t('keys.name'))}<input id="k-name" value="${escapeHtml(existing?.name || '')}" /></label>
@@ -2473,6 +2504,15 @@ function showKeyForm(existing) {
         <label class="full">${escapeHtml(t('keys.ipWhitelist'))}
           <textarea id="k-ip" rows="4" placeholder="${escapeHtml(t('keys.ipPlaceholder'))}">${escapeHtml(wlText)}</textarea>
           <span class="field-hint">${escapeHtml(t('keys.ipWhitelistHint'))}</span>
+        </label>
+        <div class="full key-models-field">
+          <span>${escapeHtml(t('keys.allowedModels'))}</span>
+          <div class="key-model-list" id="k-models">${modelBoxes}</div>
+          <span class="field-hint">${escapeHtml(t('keys.allowedModelsHint'))}</span>
+        </div>
+        <label class="full">${escapeHtml(t('keys.modelsExtra'))}
+          <textarea id="k-models-extra" rows="3" placeholder="${escapeHtml(t('keys.modelsPlaceholder'))}">${escapeHtml(extraIds.join('\n'))}</textarea>
+          <span class="field-hint">${escapeHtml(t('keys.modelsExtraHint'))}</span>
         </label>
         ${
           isEdit
@@ -2497,6 +2537,15 @@ function showKeyForm(existing) {
       .value.split(/[\n,]+/)
       .map((s) => s.trim())
       .filter(Boolean);
+    const checked = [
+      ...document.querySelectorAll('[data-k-model]:checked'),
+    ].map((el) => el.value);
+    const extra = document
+      .getElementById('k-models-extra')
+      .value.split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const allowedModels = [...new Set([...checked, ...extra])];
     const body = {
       name: document.getElementById('k-name').value.trim(),
       role: document.getElementById('k-role').value,
@@ -2509,6 +2558,7 @@ function showKeyForm(existing) {
         ? Number(document.getElementById('k-timeout').value)
         : null,
       ipWhitelist,
+      allowedModels,
     };
     try {
       if (isEdit) {
@@ -9166,6 +9216,39 @@ async function runPlaygroundMedia(kind, { text, pending, model, apiKeyId }) {
   throw new Error(t('chat.emptyReply'));
 }
 
+function allowedModelsForKeyId(keyId) {
+  if (!keyId || keyId === 'session') return null;
+  const k = (state.keys || []).find((x) => x.id === keyId);
+  const list = k?.allowedModels;
+  if (!list || !list.length) return null;
+  return list;
+}
+
+function filterIdsByAllowlist(ids, keyId) {
+  const allow = allowedModelsForKeyId(keyId);
+  if (!allow) return ids;
+  const set = new Set(allow);
+  return ids.filter((id) => set.has(id));
+}
+
+function fillPlaygroundModelSelect() {
+  const el = document.getElementById('chat-model');
+  if (!el) return;
+  const all = state.playgroundAllModels || state.models || [];
+  const models = filterIdsByAllowlist(all, chatUi.keyId);
+  if (models.length && chatUi.model && !models.includes(chatUi.model)) {
+    chatUi.model = models[0];
+  }
+  el.innerHTML = models.length
+    ? models
+        .map(
+          (m) =>
+            `<option value="${escapeHtml(m)}" ${chatUi.model === m ? 'selected' : ''}>${escapeHtml(playgroundModelLabel(m, state.catalogLocal))}</option>`,
+        )
+        .join('')
+    : `<option value="echo">echo</option>`;
+}
+
 function orderPlaygroundModels(apiModels, loaded, local) {
   const seen = new Set();
   const out = [];
@@ -9192,11 +9275,13 @@ async function renderChatPlayground() {
     api('/catalog').catch(() => ({ loaded: [], local: [] })),
   ]);
   state.catalogLocal = cat.local || [];
-  const models = orderPlaygroundModels(
+  const allModels = orderPlaygroundModels(
     state.models || [],
     cat.loaded || [],
     cat.local || [],
   );
+  state.playgroundAllModels = allModels;
+  const models = filterIdsByAllowlist(allModels, chatUi.keyId);
   state.models = models;
   const preferred =
     (cat.loaded && cat.loaded[0] && cat.loaded[0].id) ||
@@ -9377,7 +9462,10 @@ async function renderChatPlayground() {
     paintChatSettingsBar();
   });
 
-  document.getElementById('chat-key-select').onchange = () => captureChatUi();
+  document.getElementById('chat-key-select').onchange = () => {
+    captureChatUi();
+    fillPlaygroundModelSelect();
+  };
   const ctxMode = document.getElementById('chat-ctx-mode');
   const ctxN = document.getElementById('chat-ctx-n');
   if (ctxMode) {

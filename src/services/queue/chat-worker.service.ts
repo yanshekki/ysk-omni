@@ -22,6 +22,7 @@ function snapshotToApiKey(
     maxTurns: number | null;
     timeoutMs: number | null;
     ipWhitelist: string[];
+    allowedModels?: string[];
   },
 ): AuthenticatedApiKey {
   const role = normalizeApiKeyRole(s.role);
@@ -36,6 +37,7 @@ function snapshotToApiKey(
     maxTurns: s.maxTurns,
     timeoutMs: s.timeoutMs,
     ipWhitelist: s.ipWhitelist || [],
+    allowedModels: s.allowedModels || [],
   };
 }
 

@@ -221,12 +221,17 @@ keyCmd
     'safe',
   )
   .option('--rate-limit <n>', 'Per-key rate limit', (v) => Number(v))
+  .option(
+    '--models <ids>',
+    'Comma-separated model ids this key may use (empty = all)',
+  )
   .action(
     async (opts: {
       name?: string;
       role?: string;
       mode?: string;
       rateLimit?: number;
+      models?: string;
     }) => {
       await cmdKeyCreate({
         ...globalOpts(),
@@ -234,6 +239,7 @@ keyCmd
         role: opts.role,
         mode: opts.mode,
         rateLimit: opts.rateLimit,
+        models: opts.models,
       });
     },
   );
@@ -271,13 +277,17 @@ keyCmd
 
 keyCmd
   .command('update')
-  .description('Update API key fields (name, role, mode, rate, active)')
+  .description('Update API key fields (name, role, mode, rate, active, models)')
   .argument('<id>', 'API key id')
   .option('-n, --name <name>', 'Key name')
   .option('-r, --role <role>', 'admin | client')
   .option('-m, --mode <mode>', 'safe | agent')
   .option('--rate-limit <n>', 'Per-key rate limit', (v) => Number(v))
   .option('--active <on|off>', 'Active flag')
+  .option(
+    '--models <ids>',
+    'Comma-separated model ids this key may use (empty = all)',
+  )
   .action(
     async (
       id: string,
@@ -287,6 +297,7 @@ keyCmd
         mode?: string;
         rateLimit?: number;
         active?: string;
+        models?: string;
       },
     ) => {
       await cmdKeyUpdate({
@@ -297,6 +308,7 @@ keyCmd
         mode: opts.mode,
         rateLimit: opts.rateLimit,
         active: opts.active,
+        models: opts.models,
       });
     },
   );

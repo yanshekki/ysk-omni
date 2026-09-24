@@ -13,4 +13,6 @@ export interface AuthenticatedApiKey {
   maxTurns: number | null;
   timeoutMs: number | null;
   ipWhitelist: string[];
+  /** Empty = all models */
+  allowedModels: string[];
 }

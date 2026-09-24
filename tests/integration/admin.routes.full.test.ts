@@ -159,9 +159,14 @@ describe('admin API full matrix (read + safe write)', () => {
         role: 'client',
         mode: 'safe',
         rateLimit: 30,
+        allowedModels: ['echo'],
       },
     });
     expect(created.status).toBe(201);
+    expect(
+      (created.json as { data: { allowedModels?: string[] } }).data
+        .allowedModels,
+    ).toEqual(['echo']);
     const id = (created.json as { data: { id: string } }).data.id;
 
     const patch = await apiFetch(h.baseUrl, `/admin/api/keys/${id}`, {

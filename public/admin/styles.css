@@ -1559,6 +1559,42 @@ body.ui-dialog-open {
 .form-grid .full {
   grid-column: 1 / -1;
 }
+.key-model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  background: var(--bg-white);
+}
+.form-grid .key-models-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-sub);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.form-grid .key-model-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+}
+.key-model-item input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+}
 .form-grid label .hint,
 .field-hint {
   font-weight: 500;

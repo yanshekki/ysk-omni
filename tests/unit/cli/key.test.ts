@@ -30,7 +30,9 @@ describe.skipIf(!built)('cli key commands help', () => {
   });
 
   it('key create help shows options', () => {
-    const out = help(['help', 'key', 'create']);
+    const out = help(['key', 'create', '--help']);
     expect(out.toLowerCase()).toMatch(/name|role|mode|rate/);
+    expect(out).toContain('--models');
   });
 });
+

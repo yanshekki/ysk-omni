@@ -513,6 +513,7 @@ export const adminMediaHandlers = {
       voice: raw.voice,
       model: raw.model,
       response_format: raw.format || raw.response_format || 'wav',
+      apiKey: actor,
     });
     const stored = await mediaStoreService.save({
       apiKeyId: actor.id,
@@ -570,10 +571,16 @@ export const adminMediaHandlers = {
       requireAudio: true,
     });
     const actor = await resolveMediaActor(req, apiKeyId);
+    const model =
+      typeof raw.model === 'string' && raw.model.trim()
+        ? raw.model.trim()
+        : undefined;
     const { text } = await transcribeAudio({
       bytes: src.bytes,
       filename: src.name || 'audio.wav',
       mime: src.mime,
+      model,
+      apiKey: actor,
     });
     const formatted = formatTranscript(text, String(raw.format || 'txt'));
     const stored = await mediaStoreService.save({

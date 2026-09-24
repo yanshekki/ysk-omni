@@ -22,6 +22,7 @@ import { mockMediaProvider } from './providers/mock.provider';
 import { stubMediaProvider } from './providers/stub.provider';
 import { HttpWorkerMediaProvider } from './providers/http-worker.provider';
 import { convertImage } from './format-convert';
+import { assertModelAllowed } from '../../utils/model-allowlist';
 
 /** Test / forced provider override */
 let providerOverride: MediaProvider | null = null;
@@ -228,6 +229,7 @@ export class MediaOrchestratorService {
       size: input.size,
       aspectRatio,
     });
+    assertModelAllowed(input.apiKey, req.model);
 
     const artifacts = await provider.generateImage(req);
     if (!artifacts.length) {
@@ -287,6 +289,7 @@ export class MediaOrchestratorService {
       size: input.size,
       aspectRatio,
     });
+    assertModelAllowed(input.apiKey, base.model);
     const req: ImageEditRequest = {
       ...base,
       imageBytes: input.imageBytes,

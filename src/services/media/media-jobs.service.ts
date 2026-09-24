@@ -10,6 +10,7 @@ import type { AuthenticatedApiKey } from '../../interfaces';
 import { KEY_MODES, ROLES } from '../../config/constants';
 import { VIDEO_FIXTURE_B64 } from './video-fixture';
 import { convertVideo } from './format-convert';
+import { assertModelAllowed } from '../../utils/model-allowlist';
 
 /** ffmpeg H.264 MP4 (32x32, 0.4s) with metadata comment ysk-omni-video-fixture. */
 export function videoFixtureBytes(): Buffer {
@@ -90,6 +91,7 @@ export class MediaJobsService {
         'Video generation requires agent-mode or admin API key',
       );
     }
+    assertModelAllowed(input.apiKey, input.model);
 
     const owner = await toPersistentApiKeyId(input.apiKey.id);
     const id = createId();

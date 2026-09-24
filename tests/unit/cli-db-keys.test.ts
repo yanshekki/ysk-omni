@@ -79,9 +79,11 @@ describe('cli db-keys', () => {
     const updated = await updateKey(databaseUrl, created.id, {
       name: 'renamed',
       rateLimit: 99,
+      allowedModels: ['echo'],
     });
     expect(updated?.name).toBe('renamed');
     expect(updated?.rateLimit).toBe(99);
+    expect(updated?.allowedModels).toEqual(['echo']);
 
     expect(await revokeKey(databaseUrl, created.id)).toBe(true);
     const afterRevoke = await getKey(databaseUrl, created.id);

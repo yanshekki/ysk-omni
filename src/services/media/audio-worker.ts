@@ -1,4 +1,6 @@
 import { ExceptionFactory } from '../../exceptions/exception.factory';
+import type { AuthenticatedApiKey } from '../../interfaces';
+import { assertModelAllowed } from '../../utils/model-allowlist';
 import { apiFeaturesService } from '../api-features.service';
 import { convertAudio } from './format-convert';
 
@@ -18,8 +20,12 @@ export async function synthesizeSpeech(dto: {
   voice?: string;
   response_format?: string;
   speed?: number;
+  apiKey?: AuthenticatedApiKey;
 }): Promise<{ bytes: Buffer; mime: string }> {
   await assertAudioApi();
+  if (dto.apiKey) {
+    assertModelAllowed(dto.apiKey, dto.model || 'tts-1');
+  }
   const ttsUrl = (process.env.OMNI_TTS_URL || '').trim();
   if (ttsUrl) {
     const upstream = await fetch(ttsUrl.replace(/\/$/, '') + '/v1/audio/speech', {
@@ -61,8 +67,13 @@ export async function transcribeAudio(input: {
   bytes: Buffer;
   filename?: string;
   mime?: string;
+  model?: string;
+  apiKey?: AuthenticatedApiKey;
 }): Promise<{ text: string }> {
   await assertAudioApi();
+  if (input.apiKey && input.model) {
+    assertModelAllowed(input.apiKey, input.model);
+  }
   const sttUrl = (process.env.OMNI_STT_URL || '').trim();
   if (sttUrl) {
     const form = new FormData();

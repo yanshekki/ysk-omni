@@ -159,6 +159,7 @@ export class ChatQueueService implements ChatQueueBackend {
         maxTurns: input.ctx.apiKey.maxTurns,
         timeoutMs: input.ctx.apiKey.timeoutMs,
         ipWhitelist: input.ctx.apiKey.ipWhitelist,
+        allowedModels: input.ctx.apiKey.allowedModels || [],
       },
       ip: input.ctx.ip,
       userAgent: input.ctx.userAgent,

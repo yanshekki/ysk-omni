@@ -10,6 +10,10 @@ import {
   normalizeApiKeyMode,
   normalizeApiKeyRole,
 } from '../../utils/role-normalize';
+import {
+  parseModelList,
+  serializeModelList,
+} from '../../utils/model-allowlist';
 
 /** @deprecated Use normalizeApiKeyRole from utils/role-normalize */
 export const normalizeKeyRole = normalizeApiKeyRole;
@@ -24,6 +28,7 @@ export interface CreatedKey {
   keyPrefix: string;
   rawKey: string;
   rateLimit: number;
+  allowedModels: string[];
 }
 
 export interface ListedKey {
@@ -36,6 +41,7 @@ export interface ListedKey {
   rateLimit: number;
   createdAt: Date;
   lastUsedAt: Date | null;
+  allowedModels: string[];
 }
 
 function openPrisma(databaseUrl: string): PrismaClient {
@@ -51,6 +57,7 @@ export async function createKey(options: {
   mode?: ApiKeyMode;
   rateLimit?: number;
   rawKey?: string;
+  allowedModels?: string[];
 }): Promise<CreatedKey> {
   const role = normalizeApiKeyRole(options.role);
   const mode = normalizeApiKeyMode(role, options.mode);
@@ -86,6 +93,7 @@ export async function createKey(options: {
         mode,
         rateLimit,
         isActive: true,
+        allowedModels: serializeModelList(options.allowedModels),
       },
     });
 
@@ -97,29 +105,60 @@ export async function createKey(options: {
       keyPrefix: created.keyPrefix,
       rawKey,
       rateLimit: created.rateLimit,
+      allowedModels: parseModelList(created.allowedModels),
     };
   } finally {
     await prisma.$disconnect();
   }
 }
 
+function mapListed(row: {
+  id: string;
+  name: string;
+  role: string;
+  mode: string;
+  keyPrefix: string;
+  isActive: boolean;
+  rateLimit: number;
+  createdAt: Date;
+  lastUsedAt: Date | null;
+  allowedModels?: string | null;
+}): ListedKey {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    mode: row.mode,
+    keyPrefix: row.keyPrefix,
+    isActive: row.isActive,
+    rateLimit: row.rateLimit,
+    createdAt: row.createdAt,
+    lastUsedAt: row.lastUsedAt,
+    allowedModels: parseModelList(row.allowedModels),
+  };
+}
+
+const listedSelect = {
+  id: true,
+  name: true,
+  role: true,
+  mode: true,
+  keyPrefix: true,
+  isActive: true,
+  rateLimit: true,
+  createdAt: true,
+  lastUsedAt: true,
+  allowedModels: true,
+} as const;
+
 export async function listKeys(databaseUrl: string): Promise<ListedKey[]> {
   const prisma = openPrisma(databaseUrl);
   try {
-    return await prisma.apiKey.findMany({
+    const rows = await prisma.apiKey.findMany({
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        mode: true,
-        keyPrefix: true,
-        isActive: true,
-        rateLimit: true,
-        createdAt: true,
-        lastUsedAt: true,
-      },
+      select: listedSelect,
     });
+    return rows.map(mapListed);
   } finally {
     await prisma.$disconnect();
   }
@@ -157,20 +196,11 @@ export async function getKey(
 ): Promise<ListedKey | null> {
   const prisma = openPrisma(databaseUrl);
   try {
-    return await prisma.apiKey.findUnique({
+    const row = await prisma.apiKey.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        mode: true,
-        keyPrefix: true,
-        isActive: true,
-        rateLimit: true,
-        createdAt: true,
-        lastUsedAt: true,
-      },
+      select: listedSelect,
     });
+    return row ? mapListed(row) : null;
   } finally {
     await prisma.$disconnect();
   }
@@ -187,6 +217,7 @@ export async function updateKey(
     isActive?: boolean;
     maxTurns?: number | null;
     timeoutMs?: number | null;
+    allowedModels?: string[] | null;
   },
 ): Promise<ListedKey | null> {
   const prisma = openPrisma(databaseUrl);
@@ -210,36 +241,22 @@ export async function updateKey(
     if (input.isActive !== undefined) data.isActive = input.isActive;
     if (input.maxTurns !== undefined) data.maxTurns = input.maxTurns;
     if (input.timeoutMs !== undefined) data.timeoutMs = input.timeoutMs;
-
-    if (!Object.keys(data).length) {
-      return {
-        id: existing.id,
-        name: existing.name,
-        role: existing.role,
-        mode: existing.mode,
-        keyPrefix: existing.keyPrefix,
-        isActive: existing.isActive,
-        rateLimit: existing.rateLimit,
-        createdAt: existing.createdAt,
-        lastUsedAt: existing.lastUsedAt,
-      };
+    if (input.allowedModels !== undefined) {
+      data.allowedModels = serializeModelList(
+        input.allowedModels === null ? [] : input.allowedModels,
+      );
     }
 
-    return await prisma.apiKey.update({
+    if (!Object.keys(data).length) {
+      return mapListed(existing);
+    }
+
+    const updated = await prisma.apiKey.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        mode: true,
-        keyPrefix: true,
-        isActive: true,
-        rateLimit: true,
-        createdAt: true,
-        lastUsedAt: true,
-      },
+      select: listedSelect,
     });
+    return mapListed(updated);
   } finally {
     await prisma.$disconnect();
   }

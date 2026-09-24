@@ -58,6 +58,7 @@ export const adminKeysHandlers = {
       maxTurns: body.maxTurns,
       timeoutMs: body.timeoutMs,
       ipWhitelist: body.ipWhitelist,
+      allowedModels: body.allowedModels,
       actorApiKeyId: req.apiKey.id,
       ip: requestIp(req),
     });
@@ -81,6 +82,7 @@ export const adminKeysHandlers = {
         maxTurns: body.maxTurns,
         timeoutMs: body.timeoutMs,
         ipWhitelist: body.ipWhitelist,
+        allowedModels: body.allowedModels,
       },
       req.apiKey.id,
       requestIp(req),

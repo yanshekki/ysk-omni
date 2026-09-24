@@ -21,6 +21,8 @@ model ApiKey {
   timeoutMs  Int?
   /// JSON string array of IPs/CIDRs; empty/null = allow all
   ipWhitelist String?
+  /// JSON string array of model ids; empty/null = allow all models
+  allowedModels String?
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
 

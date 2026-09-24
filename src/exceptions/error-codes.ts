@@ -22,6 +22,7 @@ export const ErrorCodes = {
   MEDIA_PROVIDER_UNAVAILABLE: 'media_provider_unavailable',
   MEDIA_GENERATION_FAILED: 'media_generation_failed',
   MEDIA_FORBIDDEN: 'media_forbidden',
+  MODEL_NOT_ALLOWED: 'model_not_allowed',
   /** API feature flag off — details.feature e.g. imagesApi | videoApi | tools */
   FEATURE_DISABLED: 'feature_disabled',
 } as const;

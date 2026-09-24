@@ -58,5 +58,9 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('media/speech');
     expect(boot).toContain('media/transcribe');
     expect(boot).toContain('catalog.colSize');
+    expect(boot).toContain('keys.allowedModels');
+    expect(boot).toContain('data-k-model');
+    expect(boot).toContain('Allowed models');
+    expect(boot).toContain('可用模型');
   });
 });

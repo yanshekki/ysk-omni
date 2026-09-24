@@ -15,6 +15,8 @@ export interface ApiKeyEntity {
   rateLimit: number;
   maxTurns: number | null;
   timeoutMs: number | null;
+  ipWhitelist?: string | null;
+  allowedModels?: string | null;
   createdAt: Date;
   lastUsedAt: Date | null;
 }

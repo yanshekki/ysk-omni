@@ -15,7 +15,10 @@ export class AudioController {
   speech = asyncHandler(async (req: Request, res: Response) => {
     if (!req.apiKey) throw ExceptionFactory.unauthorized();
     const dto = req.body as CreateSpeechDto;
-    const { bytes, mime } = await synthesizeSpeech(dto);
+    const { bytes, mime } = await synthesizeSpeech({
+      ...dto,
+      apiKey: req.apiKey,
+    });
     res.setHeader('Content-Type', mime);
     res.setHeader('Content-Length', String(bytes.length));
     res.status(200).send(bytes);
@@ -26,10 +29,13 @@ export class AudioController {
     if (!req.file) {
       throw ExceptionFactory.validation('Multipart field "file" is required');
     }
+    const body = (req.body || {}) as { model?: string };
     const { text } = await transcribeAudio({
       bytes: req.file.buffer,
       filename: req.file.originalname,
       mime: req.file.mimetype,
+      model: typeof body.model === 'string' ? body.model : undefined,
+      apiKey: req.apiKey,
     });
     res.status(200).json({ text });
   });

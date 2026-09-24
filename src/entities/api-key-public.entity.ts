@@ -13,6 +13,8 @@ export interface ApiKeyPublicEntity {
   timeoutMs: number | null;
   /** Empty = allow all IPs */
   ipWhitelist: string[];
+  /** Empty = allow all models */
+  allowedModels: string[];
   createdAt: Date;
   lastUsedAt: Date | null;
 }
