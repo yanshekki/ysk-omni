@@ -28,7 +28,7 @@ const fixtures = {
       {
         id: 'chat-1',
         requestId: 'req_abc',
-        model: 'grok-4.5',
+        model: 'echo',
         status: 'success',
         policyMode: 'safe',
         createdAt: '2026-07-16T10:00:00.000Z',
@@ -86,8 +86,8 @@ const fixtures = {
     object: 'admin.stats',
     data: {
       totals: { chats24h: 20, successRate24h: 95, activeKeys: 1, totalKeys: 2 },
-      recentChats: [{ id: 'c1', requestId: 'r1', model: 'grok-4.5', status: 'success', createdAt: '2026-07-16T00:00:00.000Z' }],
-      models24h: [{ model: 'grok-4.5', requests: 20 }],
+      recentChats: [{ id: 'c1', requestId: 'r1', model: 'echo', status: 'success', createdAt: '2026-07-16T00:00:00.000Z' }],
+      models24h: [{ model: 'echo', requests: 20 }],
       queue: { enabled: true, depth: 0, running: 0 },
       safety: { globalSafeMode: true },
       concurrency: { active: 0, max: 4 },
@@ -98,7 +98,7 @@ const fixtures = {
     object: 'admin.usage',
     data: {
       totals: { requests: 100 },
-      byModel: [{ model: 'grok-4.5', requests: 100 }],
+      byModel: [{ model: 'echo', requests: 100 }],
       perKey: [{ apiKeyId: 'k1', requests: 100, utilization: 0.1 }],
     },
   },
@@ -160,7 +160,7 @@ describe('page: chats (對話記錄)', () => {
     expect(parsed.rows).toHaveLength(1);
     expect(parsed.rows[0]).toMatchObject({
       requestId: 'req_abc',
-      model: 'grok-4.5',
+      model: 'echo',
     });
 
     // Must NOT treat as empty when only items is present
@@ -214,7 +214,7 @@ describe('page: usage', () => {
     expect(pagePrimaryGetPath.usage).toBe('/usage');
     const u = parseUsage(fixtures.usage);
     expect(u.perKey).toHaveLength(1);
-    expect(u.byModel[0]).toMatchObject({ model: 'grok-4.5' });
+    expect(u.byModel[0]).toMatchObject({ model: 'echo' });
   });
 });
 

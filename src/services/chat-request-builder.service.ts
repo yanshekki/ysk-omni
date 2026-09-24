@@ -1,7 +1,7 @@
 import type { CreateChatCompletionDto } from '../dto/chat.dto';
 import type { ApiFeatures } from '../interfaces/api-features.type';
-import type { BuiltGrokRequest } from '../interfaces/built-grok-request.interface';
-import type { GrokRunOptions } from '../interfaces/grok-run-options.interface';
+import type { BuiltEngineRequest } from '../interfaces/built-engine-request.interface';
+import type { EngineRunOptions } from '../interfaces/engine-run-options.interface';
 import type { ResolvedPolicy } from '../interfaces/resolved-policy.interface';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 import {
@@ -32,7 +32,7 @@ function toolsToSystemHint(tools: unknown[] | undefined): string {
   if (!tools?.length) return '';
   try {
     return (
-      `You have access to the following tools (execute via Grok built-in tools when applicable):\n` +
+      `You have access to the following tools (execute via available tools when applicable):\n` +
       JSON.stringify(tools, null, 2)
     );
   } catch {
@@ -43,7 +43,7 @@ function toolsToSystemHint(tools: unknown[] | undefined): string {
 /** Keep --prompt-json off argv when it would blow ARG_MAX. */
 export const PROMPT_JSON_ARGV_MAX = 32_000;
 
-export type GrokVisionBuild = {
+export type EngineVisionBuild = {
   promptJson: string;
   files: Array<{ filename: string; mimeType: string; bytes: Buffer }>;
   tooLargeForArgv: boolean;
@@ -155,9 +155,9 @@ function visionFromPart(
 /** Build ACP `--prompt-json` blocks from OpenAI / Anthropic image parts. */
 export function buildVisionPromptJson(
   messages: CreateChatCompletionDto['messages'],
-): GrokVisionBuild {
+): EngineVisionBuild {
   const blocks: unknown[] = [];
-  const files: GrokVisionBuild['files'] = [];
+  const files: EngineVisionBuild['files'] = [];
   let fileIndex = 0;
   for (const m of messages) {
     const role = m.role || 'user';
@@ -187,14 +187,14 @@ export function buildVisionPromptJson(
 }
 
 /**
- * Validate feature gates and build Grok CLI request pieces from a chat DTO.
+ * Validate feature gates and build local engine request pieces from a chat DTO.
  */
-export function buildGrokRequestFromChatDto(
+export function buildEngineRequestFromChatDto(
   dto: CreateChatCompletionDto,
   policy: ResolvedPolicy,
   features: ApiFeatures,
-): BuiltGrokRequest {
-  // Strict sampling: reject params Grok cannot honor
+): BuiltEngineRequest {
+  // Strict sampling: reject unsupported sampling params
   if (features.strictSampling) {
     if (
       dto.temperature != null ||
@@ -202,7 +202,7 @@ export function buildGrokRequestFromChatDto(
       dto.stop != null
     ) {
       throw ExceptionFactory.validation(
-        'Sampling parameters (temperature/top_p/stop) are not supported by Grok CLI. Disable strictSampling in Admin → API features, or omit these fields.',
+        'Sampling parameters (temperature/top_p/stop) are not supported by local engine. Disable strictSampling in Admin → API features, or omit these fields.',
       );
     }
   }
@@ -311,7 +311,7 @@ export function buildGrokRequestFromChatDto(
   const estimatedPromptTokens = Math.max(1, Math.ceil(prompt.length / 4));
 
   let promptJson: string | undefined;
-  let visionFiles: BuiltGrokRequest['visionFiles'];
+  let visionFiles: BuiltEngineRequest['visionFiles'];
   if (hasImages && features.vision) {
     const vision = buildVisionPromptJson(dto.messages);
     visionFiles = vision.files;
@@ -366,7 +366,7 @@ export function buildGrokRequestFromChatDto(
     toolsDenylist = [...deny].join(',');
   }
 
-  const extra: Partial<GrokRunOptions> = {
+  const extra: Partial<EngineRunOptions> = {
     reasoningEffort: effort || null,
     systemPromptOverride: safeLocked ? null : dto.system_prompt_override || null,
     rules: safeLocked ? null : dto.rules || null,

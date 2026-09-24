@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -13,7 +13,7 @@ describe('v1 assistants-lite + threads', () => {
 
   beforeAll(async () => {
     h = await startHarness('v1a');
-    mockGrokStream('assistant-run-ok');
+    mockEngineStream('assistant-run-ok');
     await apiFeaturesService.update({ assistantsEmulation: true });
   }, 60_000);
 
@@ -29,7 +29,7 @@ describe('v1 assistants-lite + threads', () => {
       key: h.clientKey,
       body: {
         name: 'test-asst',
-        model: 'grok-4.5',
+        model: 'echo',
         instructions: 'Be brief',
       },
     });

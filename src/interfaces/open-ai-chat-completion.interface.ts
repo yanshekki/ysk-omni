@@ -1,4 +1,4 @@
-import type { GrokResponseMeta } from './grok-response-meta.interface';
+import type { EngineResponseMeta } from './engine-response-meta.interface';
 import type { OpenAiChatCompletionChoice } from './open-ai-chat-completion-choice.interface';
 
 export interface OpenAiChatCompletion {
@@ -16,6 +16,6 @@ export interface OpenAiChatCompletion {
       cache_creation_tokens?: number;
     };
   };
-  /** Grok-native extension block */
-  grok?: GrokResponseMeta;
+  /** Gateway extension block */
+  omni?: EngineResponseMeta;
 }

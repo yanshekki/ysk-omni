@@ -130,7 +130,7 @@ describe('page-api response parsers', () => {
       data: {
         totals: { chats24h: 5, successRate24h: 100 },
         recentChats: [{ id: '1', requestId: 'x' }],
-        models24h: [{ model: 'grok-4.5', requests: 3 }],
+        models24h: [{ model: 'echo', requests: 3 }],
         queue: { enabled: true, depth: 0 },
         safety: { globalSafeMode: true },
         generatedAt: '2026-07-16T00:00:00.000Z',
@@ -148,7 +148,7 @@ describe('page-api response parsers', () => {
       object: 'admin.usage',
       data: {
         totals: { requests: 10 },
-        byModel: [{ model: 'grok-4.5', requests: 10 }],
+        byModel: [{ model: 'echo', requests: 10 }],
         perKey: [{ apiKeyId: 'k1', requests: 10, utilization: 0.2 }],
       },
     });
@@ -179,8 +179,8 @@ describe('page-api response parsers', () => {
   it('parseModelsList normalizes string | {id}', () => {
     expect(
       parseModelsList({
-        data: { models: ['grok-4.5', { id: 'grok-3' }] },
+        data: { models: ['echo', { id: 'echo' }] },
       }),
-    ).toEqual(['grok-4.5', 'grok-3']);
+    ).toEqual(['echo', 'echo']);
   });
 });

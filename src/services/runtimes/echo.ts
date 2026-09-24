@@ -1,5 +1,5 @@
 import { flattenMessageContent } from '../../utils/message-content';
-import { mapGrokToChatCompletion, mapTextDeltaChunk, mapRoleChunk, mapFinishChunk } from '../../utils/openai-mapper';
+import { mapEngineToChatCompletion, mapTextDeltaChunk, mapRoleChunk, mapFinishChunk } from '../../utils/openai-mapper';
 import type { OpenAiChatCompletion } from '../../interfaces/open-ai-chat-completion.interface';
 import type { OpenAiChatCompletionChunk } from '../../interfaces/open-ai-chat-completion-chunk.interface';
 import { createChatCompletionId } from '../../utils/id';
@@ -28,7 +28,7 @@ export function echoCompletion(
   messages: Array<{ role?: string; content?: unknown }>,
 ): OpenAiChatCompletion {
   const text = echoReplyFromMessages(messages);
-  return mapGrokToChatCompletion(model || ECHO_MODEL_ID, { text }, {
+  return mapEngineToChatCompletion(model || ECHO_MODEL_ID, { text }, {
     includeReasoning: false,
   });
 }

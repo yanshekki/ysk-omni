@@ -56,7 +56,7 @@ export const anthropicMessagesSchema = z.object({
       budget_tokens: z.number().int().optional(),
     })
     .optional(),
-  /** Extension: include Grok reasoning (default false for Anthropic shape) */
+  /** Extension: include reasoning (default false for Anthropic shape) */
   include_reasoning: z.boolean().optional().default(false),
 });
 

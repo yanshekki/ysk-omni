@@ -19,6 +19,7 @@ const V1_COVERAGE: Array<{
   { method: 'post', path: '/v1/chat/completions', coveredBy: 'v1.routes / tools-vision' },
   { method: 'get', path: '/v1/models', coveredBy: 'v1.routes' },
   { method: 'get', path: '/v1/models/:model', coveredBy: 'v1.routes' },
+  { method: 'post', path: '/v1/models/pull', coveredBy: 'v1.echo' },
   { method: 'post', path: '/v1/documents', coveredBy: 'v1.routes' },
   { method: 'get', path: '/v1/documents', coveredBy: 'v1.routes' },
   { method: 'get', path: '/v1/documents/:id', coveredBy: 'v1.routes' },

@@ -26,16 +26,16 @@ export const ExceptionFactory = {
     return new HttpException(429, message, ErrorCodes.CONCURRENCY_LIMIT);
   },
 
-  grokError(message: string, details?: unknown): HttpException {
-    return new HttpException(502, message, ErrorCodes.GROK_ERROR, details);
+  engineError(message: string, details?: unknown): HttpException {
+    return new HttpException(502, message, ErrorCodes.ENGINE_ERROR, details);
   },
 
-  grokTimeout(message = 'The local engine timed out'): HttpException {
-    return new HttpException(504, message, ErrorCodes.GROK_TIMEOUT);
+  engineTimeout(message = 'The local engine timed out'): HttpException {
+    return new HttpException(504, message, ErrorCodes.ENGINE_TIMEOUT);
   },
 
-  grokNotAvailable(message = 'The local engine is not available'): HttpException {
-    return new HttpException(503, message, ErrorCodes.GROK_NOT_AVAILABLE);
+  engineNotAvailable(message = 'The local engine is not available'): HttpException {
+    return new HttpException(503, message, ErrorCodes.ENGINE_NOT_AVAILABLE);
   },
 
   engineUnconfigured(

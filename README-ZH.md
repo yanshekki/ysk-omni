@@ -431,7 +431,7 @@ const b64 = img.data[0].b64_json;
 |-----------|------------------------|------|
 | `thought` | `reasoning_content` / `delta.reasoning_content` | `thought` 別名 |
 | `text` | `content` / `delta.content` | — |
-| `tool_call` / `tool_call_update` / `plan` | chunk 上的 `grok_event` | OpenAI SDK 會忽略未知欄位 |
+| `tool_call` / `tool_call_update` / `plan` | chunk 上的 `omni_event` | OpenAI SDK 會忽略未知欄位 |
 | `usage` / `cost` | `usage`（Grok 有回 cache／cost 就帶上） | — |
 | `end` | `finish_reason` | `grok.sessionId`、`grok.stopReason` |
 
@@ -455,7 +455,7 @@ Stream 預覽：
 ```text
 data: {"object":"gog.queue","status":"queued","job_id":"…","position":2}
 data: {"object":"gog.queue","status":"queued","job_id":"…","position":1}
-data: {"id":"chatcmpl-…","object":"chat.completion.chunk","grok_event":{"type":"tool_call",…},…}
+data: {"id":"chatcmpl-…","object":"chat.completion.chunk","omni_event":{"type":"tool_call",…},…}
 ```
 
 Admin 操作（OTP **session** token 或 admin API key）：
@@ -505,7 +505,7 @@ POST /admin/api/queue/purge-dead
 | **`safe`**（client 預設） | 對外應用 | Sandbox cwd、不 always-approve、限制 tools、較短 timeout |
 | **`agent`** | 受信 / 內網 | 完整 CLI tools（可 always-approve）；cwd 仍受 allowlist 限制 |
 
-- 全域強制 safe：`GROK_SAFE_MODE=true` 或 Admin → **安全設定**  
+- 全域強制 safe：`OMNI_SAFE_MODE=true` 或 Admin → **安全設定**  
 - Client **無法** 靠 request body 提權  
 - **不要** 將 `agent` key 暴露於公網  
 
@@ -606,13 +606,13 @@ proxy_set_header X-Forwarded-Proto $scheme;
 | `ENCRYPTION_KEY` | 32-byte key：`openssl rand -base64 32` |
 | `ADMIN_BOOTSTRAP_KEY` | 可選；首次 setup 用此字串作 admin key |
 | `GROK_BIN` | 預設 `grok` |
-| `GROK_DEFAULT_MODEL` | 預設模型（`grok-4.6`） |
-| `GROK_DEFAULT_CWD` / `GROK_CWD_ALLOWLIST` | Agent 工作目錄（空白預設為 `<STORAGE_DIR>/workspaces/default`，不會使用 gateway 原始碼目錄） |
-| `GROK_TIMEOUT_MS` | Agent 預設 timeout（ms） |
-| `GROK_ALWAYS_APPROVE` | 只對 agent；safe 一律關閉 |
-| `GROK_SAFE_MODE` | 強制全部 key 用 safe |
-| `GROK_SAFE_MAX_TURNS` / `GROK_SAFE_TIMEOUT_MS` | Safe 模式預設（亦可在 Admin → 安全設定改） |
-| `GROK_MAX_CONCURRENT` | 最多並行 Grok 進程（亦作佇列全域併發預設種子） |
+| `OMNI_DEFAULT_MODEL` | 預設模型（`grok-4.6`） |
+| `OMNI_DEFAULT_CWD` / `OMNI_CWD_ALLOWLIST` | Agent 工作目錄（空白預設為 `<STORAGE_DIR>/workspaces/default`，不會使用 gateway 原始碼目錄） |
+| `OMNI_TIMEOUT_MS` | Agent 預設 timeout（ms） |
+| `OMNI_ALWAYS_APPROVE` | 只對 agent；safe 一律關閉 |
+| `OMNI_SAFE_MODE` | 強制全部 key 用 safe |
+| `OMNI_SAFE_MAX_TURNS` / `OMNI_SAFE_TIMEOUT_MS` | Safe 模式預設（亦可在 Admin → 安全設定改） |
+| `OMNI_MAX_CONCURRENT` | 最多並行 Grok 進程（亦作佇列全域併發預設種子） |
 | `QUEUE_BACKEND` | 對話佇列後端：**`sqlite`**（預設）。`redis`／`kafka` 預留（尚未實作） |
 | `ADMIN_PANEL_ENABLED` | 硬關 `/admin`（env，需重啟）。運行時：`ysk-omni admin on\|off` |
 | `PM2_ADMIN_ENABLED` | 允許 Admin 控制 PM2 |

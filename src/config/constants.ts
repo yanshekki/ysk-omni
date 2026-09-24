@@ -181,7 +181,7 @@ export const AUDIT_ACTIONS = {
   MEDIA_GENERATE: 'media.generate',
   MEDIA_READ: 'media.read',
   MEDIA_DELETE: 'media.delete',
-  GROK_SESSION_DELETE: 'grok.session_delete',
+  ENGINE_SESSION_DELETE: 'engine.session_delete',
 } as const;
 
 export const ROLES = {
@@ -199,7 +199,7 @@ export type { KeyMode, ApiKeyMode } from '../interfaces/api-key-mode.type';
 
 /**
  * Tools stripped in safe mode (denylist). Prefer SAFE_READONLY_TOOLS allowlist
- * when safeToolsMode=readonly (stronger). Names cover common Grok CLI aliases.
+ * when safeToolsMode=readonly (stronger). Names cover common local engine aliases.
  */
 export const SAFE_DISALLOWED_TOOLS = [
   'run_terminal_cmd',
@@ -241,7 +241,7 @@ export const SETTING_KEYS = {
   DDOS_POLICY: 'ddos_policy',
   /** JSON blob: chat work-queue policy */
   QUEUE_POLICY: 'queue_policy',
-  /** JSON blob: API protocol + Grok capability feature flags */
+  /** JSON blob: API protocol + capability feature flags */
   API_FEATURES: 'api_features',
 } as const;
 
@@ -290,10 +290,10 @@ export const STORAGE_TYPES = {
 export const DEFAULT_MODELS: readonly string[] = [];
 
 /**
- * Grok Imagine `aspect_ratio` values (image_gen / image_edit multi-ref).
- * Prefer these over OpenAI pixel sizes when calling Grok tools.
+ * image generation `aspect_ratio` values (image_gen / image_edit multi-ref).
+ * Prefer these over OpenAI pixel sizes when calling media tools.
  */
-export const GROK_ASPECT_RATIOS = [
+export const ASPECT_RATIOS = [
   'auto',
   '1:1',
   '16:9',
@@ -306,7 +306,7 @@ export const GROK_ASPECT_RATIOS = [
   '1:2',
 ] as const;
 
-/** OpenAI Images API size strings (compat); mapped to Grok aspect ratios. */
+/** OpenAI Images API size strings (compat); mapped to aspect ratios. */
 export const OPENAI_IMAGE_SIZES = [
   '256x256',
   '512x512',
@@ -315,13 +315,13 @@ export const OPENAI_IMAGE_SIZES = [
   '1024x1792',
 ] as const;
 
-/** Grok image_to_video / reference_to_video duration (seconds). 1.0.1+ allows 1–15. */
-export const GROK_VIDEO_MIN_SECONDS = 1;
-export const GROK_VIDEO_MAX_SECONDS = 15;
-export const GROK_VIDEO_DURATIONS = [6, 10] as const;
+/** image-to-video / reference_to_video duration (seconds). 1.0.1+ allows 1–15. */
+export const VIDEO_MIN_SECONDS = 1;
+export const VIDEO_MAX_SECONDS = 15;
+export const VIDEO_DURATIONS = [6, 10] as const;
 
-/** Preset voices for Grok reference_to_video (Imagine). Unknown ids are rejected. */
-export const GROK_VIDEO_VOICES = [
+/** Preset voices for reference-to-video. Unknown ids are rejected. */
+export const VIDEO_VOICES = [
   'ara',
   'eve',
   'leo',
@@ -331,18 +331,18 @@ export const GROK_VIDEO_VOICES = [
 ] as const;
 
 /**
- * Map OpenAI-style `size` or Grok `aspect_ratio` → canonical aspect ratio string.
+ * Map OpenAI-style `size` or `aspect_ratio` → canonical aspect ratio string.
  */
-export function resolveGrokAspectRatio(
+export function resolveAspectRatio(
   sizeOrAspect?: string | null,
   aspectRatio?: string | null,
 ): string {
   const ar = (aspectRatio || '').trim();
-  if (ar && (GROK_ASPECT_RATIOS as readonly string[]).includes(ar)) return ar;
+  if (ar && (ASPECT_RATIOS as readonly string[]).includes(ar)) return ar;
 
   const s = (sizeOrAspect || '').trim();
   if (!s) return '1:1';
-  if ((GROK_ASPECT_RATIOS as readonly string[]).includes(s)) return s;
+  if ((ASPECT_RATIOS as readonly string[]).includes(s)) return s;
 
   switch (s) {
     case '256x256':

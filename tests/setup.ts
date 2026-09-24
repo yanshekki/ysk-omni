@@ -25,13 +25,12 @@ process.env.DATABASE_URL =
 process.env.ENCRYPTION_KEY = isValidEncryptionKey(process.env.ENCRYPTION_KEY)
   ? process.env.ENCRYPTION_KEY!.trim()
   : randomBytes(32).toString('base64');
-process.env.GROK_BIN = process.env.GROK_BIN || 'grok';
-process.env.GROK_DEFAULT_MODEL = 'grok-4.5';
-process.env.GROK_DEFAULT_CWD = workspace;
-process.env.GROK_CWD_ALLOWLIST = workspace;
-process.env.GROK_TIMEOUT_MS = '60000';
-process.env.GROK_MAX_CONCURRENT = '2';
-process.env.GROK_ALWAYS_APPROVE = 'true';
+process.env.OMNI_DEFAULT_MODEL = process.env.OMNI_DEFAULT_MODEL || '';
+process.env.OMNI_DEFAULT_CWD = workspace;
+process.env.OMNI_CWD_ALLOWLIST = workspace;
+process.env.OMNI_TIMEOUT_MS = '60000';
+process.env.OMNI_MAX_CONCURRENT = '2';
+process.env.OMNI_ALWAYS_APPROVE = 'true';
 process.env.CORS_ORIGINS = 'http://localhost:3000';
 process.env.RATE_LIMIT_WINDOW_MS = '60000';
 process.env.RATE_LIMIT_MAX = '1000';

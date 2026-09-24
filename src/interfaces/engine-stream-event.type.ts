@@ -1,4 +1,4 @@
-export type GrokStreamEvent =
+export type EngineStreamEvent =
   | { type: 'text'; data: string }
   | { type: 'thought'; data: string }
   | {

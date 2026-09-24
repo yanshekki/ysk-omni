@@ -4,6 +4,23 @@ import path from 'node:path';
 
 loadDotenv();
 
+/** Map legacy GROK_* names onto OMNI_* so existing home env files still load. */
+for (const [omni, legacy] of [
+  ['OMNI_DEFAULT_MODEL', 'GROK_DEFAULT_MODEL'],
+  ['OMNI_DEFAULT_CWD', 'GROK_DEFAULT_CWD'],
+  ['OMNI_CWD_ALLOWLIST', 'GROK_CWD_ALLOWLIST'],
+  ['OMNI_TIMEOUT_MS', 'GROK_TIMEOUT_MS'],
+  ['OMNI_MAX_CONCURRENT', 'GROK_MAX_CONCURRENT'],
+  ['OMNI_ALWAYS_APPROVE', 'GROK_ALWAYS_APPROVE'],
+  ['OMNI_SAFE_MODE', 'GROK_SAFE_MODE'],
+  ['OMNI_SAFE_MAX_TURNS', 'GROK_SAFE_MAX_TURNS'],
+  ['OMNI_SAFE_TIMEOUT_MS', 'GROK_SAFE_TIMEOUT_MS'],
+] as const) {
+  if (process.env[omni] == null && process.env[legacy] != null) {
+    process.env[omni] = process.env[legacy];
+  }
+}
+
 const envSchema = z.object({
   // Default production for installable gateway; set development only for local coding
   NODE_ENV: z.enum(['development', 'test', 'production']).default('production'),
@@ -15,22 +32,22 @@ const envSchema = z.object({
   OMNI_HOME: z.string().optional(),
 
   // Leftover policy knobs from GCTOAC. They no longer spawn a CLI.
-  GROK_DEFAULT_MODEL: z.string().default(''),
-  GROK_DEFAULT_CWD: z.string().default(''),
-  GROK_CWD_ALLOWLIST: z.string().default(''),
-  GROK_TIMEOUT_MS: z.coerce.number().int().positive().default(600_000),
-  GROK_MAX_CONCURRENT: z.coerce.number().int().positive().default(4),
-  GROK_ALWAYS_APPROVE: z
+  OMNI_DEFAULT_MODEL: z.string().default(''),
+  OMNI_DEFAULT_CWD: z.string().default(''),
+  OMNI_CWD_ALLOWLIST: z.string().default(''),
+  OMNI_TIMEOUT_MS: z.coerce.number().int().positive().default(600_000),
+  OMNI_MAX_CONCURRENT: z.coerce.number().int().positive().default(4),
+  OMNI_ALWAYS_APPROVE: z
     .string()
     .default('true')
     .transform((v) => v === 'true' || v === '1'),
   /** Force all keys into safe mode when true (overrides per-key agent). */
-  GROK_SAFE_MODE: z
+  OMNI_SAFE_MODE: z
     .string()
     .default('false')
     .transform((v) => v === 'true' || v === '1'),
-  GROK_SAFE_MAX_TURNS: z.coerce.number().int().positive().default(4),
-  GROK_SAFE_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
+  OMNI_SAFE_MAX_TURNS: z.coerce.number().int().positive().default(4),
+  OMNI_SAFE_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   ADMIN_PANEL_ENABLED: z
     .string()
     .default('true')
@@ -119,12 +136,12 @@ const data = parsed.data;
 const encryptionKey = parseEncryptionKey(data.ENCRYPTION_KEY);
 
 const storageDir = path.resolve(data.STORAGE_DIR);
-const defaultCwd = data.GROK_DEFAULT_CWD.trim()
-  ? path.resolve(data.GROK_DEFAULT_CWD)
+const defaultCwd = data.OMNI_DEFAULT_CWD.trim()
+  ? path.resolve(data.OMNI_DEFAULT_CWD)
   : path.join(storageDir, 'workspaces', 'default');
 
-const cwdAllowlist = data.GROK_CWD_ALLOWLIST
-  ? data.GROK_CWD_ALLOWLIST.split(',')
+const cwdAllowlist = data.OMNI_CWD_ALLOWLIST
+  ? data.OMNI_CWD_ALLOWLIST.split(',')
       .map((s) => s.trim())
       .filter(Boolean)
       .map((p) => path.resolve(p))

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { GrokCliService } from '../../src/services/grok-cli.service';
+import { EngineSlotService } from '../../src/services/engine-slot.service';
 
-describe.skip('GrokCliService parsers (Grok CLI spawn removed in Phase 0)', () => {
-  const service = new GrokCliService();
+describe.skip('EngineSlotService parsers (local engine spawn removed in Phase 0)', () => {
+  const service = new EngineSlotService();
 
   it('buildArgs includes required flags for short -p prompt', () => {
     const args = service.buildArgs({
       prompt: 'hello',
-      model: 'grok-4.5',
+      model: 'echo',
       cwd: '/tmp/ws',
       stream: true,
       sessionId: '8f3c2e10-9c4a-5d6b-8e1f-2a7b6c5d4e3f',
@@ -18,7 +18,7 @@ describe.skip('GrokCliService parsers (Grok CLI spawn removed in Phase 0)', () =
     expect(args).toContain('-p');
     expect(args).toContain('hello');
     expect(args).toContain('-m');
-    expect(args).toContain('grok-4.5');
+    expect(args).toContain('echo');
     expect(args).toContain('--output-format');
     expect(args).toContain('streaming-json');
     expect(args).toContain('-s');
@@ -76,7 +76,7 @@ describe.skip('GrokCliService parsers (Grok CLI spawn removed in Phase 0)', () =
   it('buildArgs uses --resume instead of -s when resumeSessionId is set', () => {
     const args = service.buildArgs({
       prompt: 'again',
-      model: 'grok-4.6',
+      model: 'echo',
       cwd: '/tmp',
       stream: false,
       resumeSessionId: '8f3c2e10-9c4a-5d6b-8e1f-2a7b6c5d4e3f',
@@ -119,15 +119,15 @@ describe.skip('GrokCliService parsers (Grok CLI spawn removed in Phase 0)', () =
     const stdout = `
 You are logged in.
 
-Default model: grok-4.5
+Default model: echo
 
 Available models:
-  * grok-4.5 (default)
-  - grok-composer-2.5-fast
+  * echo (default)
+  - echo
 `;
     expect(service.parseModelsOutput(stdout)).toEqual([
-      'grok-4.5',
-      'grok-composer-2.5-fast',
+      'echo',
+      'echo',
     ]);
   });
 

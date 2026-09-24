@@ -80,7 +80,7 @@ export async function cmdChatsShow(
         stream: true,
         durationMs: true,
         policyMode: true,
-        grokSessionId: true,
+        engineSessionId: true,
         createdAt: true,
         apiKeyId: true,
         apiKey: { select: { name: true, keyPrefix: true } },
@@ -103,7 +103,7 @@ export async function cmdChatsShow(
     info(`  durationMs:   ${chat.durationMs ?? '—'}`);
     info(`  stream:       ${chat.stream}`);
     info(`  apiKey:       ${chat.apiKey?.name ?? chat.apiKeyId}`);
-    info(`  grokSession:  ${chat.grokSessionId ?? '—'}`);
+    info(`  session:      ${chat.engineSessionId ?? '—'}`);
     info(`  ip:           ${chat.ip ?? '—'}`);
     info(`  createdAt:    ${chat.createdAt.toISOString()}`);
     info('');

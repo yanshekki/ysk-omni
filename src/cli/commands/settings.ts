@@ -82,7 +82,7 @@ async function readSettings(
       safeToolsMode: map.get(SETTING_KEYS.SAFE_TOOLS_MODE) || 'readonly',
       safeMaxTurns: parseIntOr(map.get(SETTING_KEYS.SAFE_MAX_TURNS), 4),
       safeTimeoutMs: parseIntOr(map.get(SETTING_KEYS.SAFE_TIMEOUT_MS), 120_000),
-      defaultModel: map.get(SETTING_KEYS.DEFAULT_MODEL) || envDefaultModel || 'grok-4.6',
+      defaultModel: map.get(SETTING_KEYS.DEFAULT_MODEL) || envDefaultModel || 'echo',
       adminPanelEnabled: parseBool(map.get(SETTING_KEYS.ADMIN_PANEL_ENABLED), true),
     };
   });
@@ -137,7 +137,7 @@ function printSettings(s: SettingsRow): void {
 
 export async function cmdSettingsGet(opts: CliOpts): Promise<void> {
   const rt = initCliRuntime(opts);
-  const s = await readSettings(rt.databaseUrl, rt.env.GROK_DEFAULT_MODEL || '');
+  const s = await readSettings(rt.databaseUrl, rt.env.OMNI_DEFAULT_MODEL || '');
   if (rt.json) emitJson(s);
   else printSettings(s);
 }
@@ -182,7 +182,7 @@ export async function cmdSettingsSet(
   }
 
   await writeSettings(rt.databaseUrl, partial);
-  const s = await readSettings(rt.databaseUrl, rt.env.GROK_DEFAULT_MODEL || '');
+  const s = await readSettings(rt.databaseUrl, rt.env.OMNI_DEFAULT_MODEL || '');
   ok('Settings updated (gateway reloads policy within ~2s)');
   if (rt.json) emitJson(s);
   else printSettings(s);
@@ -201,7 +201,7 @@ export async function cmdSettingsPreset(
     return;
   }
   await writeSettings(rt.databaseUrl, preset);
-  const s = await readSettings(rt.databaseUrl, rt.env.GROK_DEFAULT_MODEL || '');
+  const s = await readSettings(rt.databaseUrl, rt.env.OMNI_DEFAULT_MODEL || '');
   ok(`Applied safety preset: ${name}`);
   if (rt.json) emitJson({ preset: name, ...s });
   else printSettings(s);

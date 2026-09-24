@@ -1,17 +1,14 @@
 import type {
-  GrokJsonResult,
-  GrokRunOptions,
-  GrokRunResult,
-  GrokStreamEvent,
+  EngineJsonResult,
+  EngineRunOptions,
+  EngineRunResult,
+  EngineStreamEvent,
 } from '../interfaces';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 import { env } from '../config/env';
 
-/**
- * Grok CLI spawn is removed. Callers still go through this service so chat,
- * media, and health keep compiling until local engines attach (Phase 1+).
- */
-export class GrokCliService {
+/** In-flight chat job slot (global concurrency). */
+export class EngineSlotService {
   private active = 0;
 
   get activeCount(): number {
@@ -19,11 +16,11 @@ export class GrokCliService {
   }
 
   get maxConcurrent(): number {
-    return env.GROK_MAX_CONCURRENT;
+    return env.OMNI_MAX_CONCURRENT;
   }
 
   tryAcquire(): boolean {
-    if (this.active >= env.GROK_MAX_CONCURRENT) {
+    if (this.active >= env.OMNI_MAX_CONCURRENT) {
       return false;
     }
     this.active += 1;
@@ -34,17 +31,17 @@ export class GrokCliService {
     this.active = Math.max(0, this.active - 1);
   }
 
-  buildArgs(_options: GrokRunOptions & { promptFile?: string }): string[] {
+  buildArgs(_options: EngineRunOptions & { promptFile?: string }): string[] {
     throw ExceptionFactory.engineUnconfigured();
   }
 
-  async runOnce(_options: GrokRunOptions): Promise<GrokRunResult> {
+  async runOnce(_options: EngineRunOptions): Promise<EngineRunResult> {
     throw ExceptionFactory.engineUnconfigured();
   }
 
   async *stream(
-    _options: GrokRunOptions,
-  ): AsyncGenerator<GrokStreamEvent, void, unknown> {
+    _options: EngineRunOptions,
+  ): AsyncGenerator<EngineStreamEvent, void, unknown> {
     throw ExceptionFactory.engineUnconfigured();
   }
 
@@ -60,7 +57,7 @@ export class GrokCliService {
     return [];
   }
 
-  parseJsonResult(_stdout: string): GrokJsonResult {
+  parseJsonResult(_stdout: string): EngineJsonResult {
     return { text: '' };
   }
 
@@ -72,4 +69,4 @@ export class GrokCliService {
   }
 }
 
-export const grokCliService = new GrokCliService();
+export const engineSlotService = new EngineSlotService();

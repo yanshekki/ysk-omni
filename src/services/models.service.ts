@@ -172,7 +172,7 @@ export class ModelsService {
     fetchedAt: number;
   }> {
     const models = await this.getModelIds(forceRefresh);
-    const envDefault = env.GROK_DEFAULT_MODEL?.trim();
+    const envDefault = env.OMNI_DEFAULT_MODEL?.trim();
     const defaultModel =
       envDefault && envDefault !== ECHO_MODEL_ID && models.includes(envDefault)
         ? envDefault

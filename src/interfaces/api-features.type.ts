@@ -1,5 +1,5 @@
 /**
- * Admin-controlled API / Grok capability gates.
+ * Admin-controlled API / capability gates.
  * When a capability is false, related request fields return 400/403.
  */
 export type ApiFeatures = {
@@ -8,7 +8,7 @@ export type ApiFeatures = {
   openaiResponses: boolean;
   anthropicMessages: boolean;
 
-  /** Grok-backed capabilities */
+  /** engine capabilities */
   tools: boolean;
   structuredOutput: boolean;
   vision: boolean;
@@ -73,7 +73,7 @@ export const DEFAULT_API_FEATURES: ApiFeatures = {
 
   forceDisableToolsInSafe: true,
 
-  // Media: images on by default (provider may still 503 if Grok tools fail)
+  // Media: images on by default (provider may still 503 if media tools fail)
   imagesApi: true,
   audioApi: true,
   videoApi: true,

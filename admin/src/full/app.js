@@ -210,7 +210,7 @@ const state = {
   },
   /** System page tab: 'software' | 'package' | 'env' | 'sessions' */
   systemTab: 'software',
-  grokSessionQ: '',
+  sessionQ: '',
   /** PM2 page tab: 'runner' | 'port' | 'config' | 'logs' */
   pm2Tab: 'runner',
   /** API features tab: 'protocols' | 'media' | 'caps' | 'emu' */
@@ -4526,7 +4526,7 @@ async function renderMedia() {
           method: 'POST',
           body: JSON.stringify(body),
         });
-        const ids = res?.data?.grok?.asset_ids || [];
+        const ids = res?.data?.omni?.asset_ids || [];
         if (st) st.textContent = t('media.generateOk');
         state.mediaFilter.tab = 'assets';
         state.mediaFilter.offset = 0;
@@ -5001,7 +5001,7 @@ async function renderUsage() {
           <div class="card"><div class="label">${escapeHtml(t('usage.ipMax'))}</div><div class="value value-sm">${limits.ipMax}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('usage.burst'))}</div><div class="value value-sm">${limits.chatBurstMax}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('usage.block'))}</div><div class="value value-sm">${limits.blockFailedAuthThreshold}</div></div>
-          <div class="card"><div class="label">${escapeHtml(t('usage.concurrent'))}</div><div class="value value-sm">${limits.grokMaxConcurrent}</div></div>
+          <div class="card"><div class="label">${escapeHtml(t('usage.concurrent'))}</div><div class="value value-sm">${limits.engineMaxConcurrent}</div></div>
         </div>
       </div>
     </div>
@@ -8423,12 +8423,12 @@ function formatChatSpend(m) {
       `${t('chat.tokens')}: ${u.prompt_tokens || 0}+${u.completion_tokens || 0}=${u.total_tokens || 0}${cacheBit}`,
     );
   }
-  const usd = m.grok?.cost?.total_cost_usd;
+  const usd = m.omni?.cost?.total_cost_usd;
   if (typeof usd === 'number') {
     parts.push(`${t('chat.cost')}: $${usd.toFixed(6)}`);
   }
-  if (m.grok?.sessionId) {
-    parts.push(`${t('chat.resume')}: ${m.grok.sessionId}`);
+  if (m.omni?.sessionId) {
+    parts.push(`${t('chat.resume')}: ${m.omni.sessionId}`);
   }
   return parts.join(' · ');
 }
@@ -8464,17 +8464,17 @@ function applyStreamDelta(assistant, json) {
     assistant.usage = json.usage;
     changed = true;
   }
-  if (json.grok && typeof json.grok === 'object') {
-    assistant.grok = { ...(assistant.grok || {}), ...json.grok };
-    if (assistant.grok.sessionId) {
-      chatUi.resumeId = assistant.grok.sessionId;
+  if (json.omni && typeof json.omni === 'object') {
+    assistant.omni = { ...(assistant.omni || {}), ...json.omni };
+    if (assistant.omni.sessionId) {
+      chatUi.resumeId = assistant.omni.sessionId;
       const resumeEl = document.getElementById('chat-resume');
-      if (resumeEl) resumeEl.value = assistant.grok.sessionId;
+      if (resumeEl) resumeEl.value = assistant.omni.sessionId;
     }
     changed = true;
   }
-  if (json.grok_event && typeof json.grok_event === 'object') {
-    const ge = json.grok_event;
+  if (json.omni_event && typeof json.omni_event === 'object') {
+    const ge = json.omni_event;
     if (!Array.isArray(assistant.tools)) assistant.tools = [];
     if (ge.type === 'tool_call' || ge.type === 'tool_call_update') {
       const id = ge.toolCallId;
@@ -9022,7 +9022,7 @@ async function runPlaygroundMedia(kind, { text, pending, model, apiKeyId }) {
       }),
     });
     const assetId =
-      res.data?.grok?.asset_ids?.[0] || res.grok?.asset_ids?.[0];
+      res.data?.omni?.asset_ids?.[0] || res.omni?.asset_ids?.[0];
     if (!assetId) throw new Error(t('chat.emptyReply'));
     return {
       kind: 'image',

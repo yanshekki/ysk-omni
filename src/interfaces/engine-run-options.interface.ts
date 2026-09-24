@@ -1,5 +1,5 @@
-/** Options passed to Grok CLI headless invocation. */
-export interface GrokRunOptions {
+/** Options passed to local engine headless invocation. */
+export interface EngineRunOptions {
   prompt: string;
   model: string;
   cwd: string;
@@ -40,11 +40,11 @@ export interface GrokRunOptions {
   /** --experimental-memory */
   experimentalMemory?: boolean;
   /**
-   * @deprecated Removed in Grok Build 1.0+. Ignored by the CLI runner.
+   * @deprecated Removed in 1.0+. Ignored by the CLI runner.
    */
   bestOfN?: number | null;
   /**
-   * @deprecated Removed in Grok Build 1.0+. Ignored by the CLI runner.
+   * @deprecated Removed in 1.0+. Ignored by the CLI runner.
    */
   check?: boolean;
   /** --verbatim */

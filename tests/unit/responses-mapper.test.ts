@@ -7,7 +7,7 @@ import {
 describe('responses-mapper', () => {
   it('maps CreateResponseDto-like to chat DTO', () => {
     const dto = responsesDtoToChatDto({
-      model: 'grok-4.5',
+      model: 'echo',
       messages: [{ role: 'user', content: 'hi' }],
       stream: false,
       include_reasoning: true,
@@ -25,7 +25,7 @@ describe('responses-mapper', () => {
         id: 'chatcmpl_1',
         object: 'chat.completion',
         created: 100,
-        model: 'grok-4.5',
+        model: 'echo',
         choices: [
           {
             index: 0,

@@ -11,7 +11,7 @@ export interface ChatRequestEntity {
   stream: boolean;
   status: ChatRequestStatus;
   durationMs: number | null;
-  grokSessionId: string | null;
+  engineSessionId: string | null;
   errorMessage: string | null;
   ip: string | null;
   userAgent: string | null;

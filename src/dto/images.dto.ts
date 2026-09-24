@@ -1,31 +1,31 @@
 import { z } from 'zod';
 import {
-  GROK_ASPECT_RATIOS,
+  ASPECT_RATIOS,
   MAX_MESSAGE_CHARS,
   OPENAI_IMAGE_SIZES,
 } from '../config/constants';
 
-/** Accept OpenAI pixel sizes or Grok aspect ratios in `size`. */
+/** Accept OpenAI pixel sizes or aspect ratios in `size`. */
 const sizeOrAspectEnum = z.enum([
   ...OPENAI_IMAGE_SIZES,
-  ...GROK_ASPECT_RATIOS,
+  ...ASPECT_RATIOS,
 ] as unknown as [string, ...string[]]);
 
 const aspectRatioEnum = z.enum(
-  GROK_ASPECT_RATIOS as unknown as [string, ...string[]],
+  ASPECT_RATIOS as unknown as [string, ...string[]],
 );
 
 export const createImageGenerationSchema = z.object({
   prompt: z.string().min(1).max(MAX_MESSAGE_CHARS),
   model: z.string().min(1).max(128).optional(),
-  /** Grok image_gen has no batch `n`; gateway may loop (1–4). */
+  /** image generation has no batch `n`; gateway may loop (1–4). */
   n: z.number().int().min(1).max(4).optional().default(1),
   /**
-   * OpenAI-compat size (`1024x1024`) **or** Grok aspect (`16:9`).
-   * Prefer `aspect_ratio` when calling Grok Imagine.
+   * OpenAI-compat size (`1024x1024`) **or** aspect (`16:9`).
+   * Prefer `aspect_ratio` when calling image generation.
    */
   size: sizeOrAspectEnum.optional(),
-  /** Grok Imagine aspect_ratio — preferred over pixel sizes. */
+  /** image generation aspect_ratio — preferred over pixel sizes. */
   aspect_ratio: aspectRatioEnum.optional(),
   response_format: z.enum(['url', 'b64_json']).optional().default('b64_json'),
   format: z.enum(['png', 'jpeg', 'jpg', 'webp']).optional(),

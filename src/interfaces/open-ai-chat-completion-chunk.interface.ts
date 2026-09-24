@@ -1,4 +1,4 @@
-import type { GrokResponseMeta } from './grok-response-meta.interface';
+import type { EngineResponseMeta } from './engine-response-meta.interface';
 
 export interface OpenAiChatCompletionChunk {
   id: string;
@@ -12,7 +12,7 @@ export interface OpenAiChatCompletionChunk {
       content?: string;
       /** DeepSeek-compatible streaming CoT */
       reasoning_content?: string;
-      /** Grok alias of reasoning_content */
+      /** legacy alias of reasoning_content */
       thought?: string;
       tool_calls?: Array<{
         index?: number;
@@ -24,9 +24,9 @@ export interface OpenAiChatCompletionChunk {
     finish_reason: 'stop' | 'length' | 'content_filter' | 'tool_calls' | null;
   }>;
   /** Present on final chunk when available */
-  grok?: GrokResponseMeta;
-  /** Live Grok ACP session update (tool_call / tool_call_update / plan). */
-  grok_event?: {
+  omni?: EngineResponseMeta;
+  /** Live engine session update (tool_call / tool_call_update / plan). */
+  omni_event?: {
     type: string;
     toolCallId?: string;
     toolName?: string;

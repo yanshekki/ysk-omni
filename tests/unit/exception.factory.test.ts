@@ -25,9 +25,9 @@ describe('ExceptionFactory', () => {
     expect(body.error.message).toContain('echo');
   });
 
-  it('engine timeout copy does not mention Grok CLI', () => {
-    expect(ExceptionFactory.grokTimeout().message).not.toMatch(/Grok/i);
-    expect(ExceptionFactory.grokNotAvailable().message).not.toMatch(/Grok/i);
+  it('engine timeout copy does not mention Grok', () => {
+    expect(ExceptionFactory.engineTimeout().message).not.toMatch(/Grok/i);
+    expect(ExceptionFactory.engineNotAvailable().message).not.toMatch(/Grok/i);
     expect(ExceptionFactory.concurrencyLimit().message).not.toMatch(/Grok/i);
   });
 });

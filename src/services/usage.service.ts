@@ -151,7 +151,7 @@ export class UsageService {
             ipMax: p.rateLimitIpMax,
             chatBurstMax: p.chatBurstMax,
             blockFailedAuthThreshold: p.failedAuthThreshold,
-            grokMaxConcurrent: env.GROK_MAX_CONCURRENT,
+            engineMaxConcurrent: env.OMNI_MAX_CONCURRENT,
           };
         } catch {
           return {
@@ -160,7 +160,7 @@ export class UsageService {
             ipMax: env.RATE_LIMIT_IP_MAX,
             chatBurstMax: env.CHAT_BURST_MAX,
             blockFailedAuthThreshold: env.BLOCK_FAILED_AUTH_THRESHOLD,
-            grokMaxConcurrent: env.GROK_MAX_CONCURRENT,
+            engineMaxConcurrent: env.OMNI_MAX_CONCURRENT,
           };
         }
       })(),

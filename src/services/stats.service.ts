@@ -1,6 +1,6 @@
 import { prisma } from '../config/database';
 import { env } from '../config/env';
-import { grokCliService } from './grok-cli.service';
+import { engineSlotService } from './engine-slot.service';
 import { ipBlacklistService } from './ip-blacklist.service';
 import { ddosPolicyService } from './ddos-policy.service';
 import { abuseGuardService } from './abuse-guard.service';
@@ -140,8 +140,8 @@ export class StatsService {
         requests: m._count._all,
       })),
       concurrency: {
-        active: grokCliService.activeCount,
-        max: grokCliService.maxConcurrent,
+        active: engineSlotService.activeCount,
+        max: engineSlotService.maxConcurrent,
       },
       queue: await this.getQueueSnapshot(),
       safety: settings

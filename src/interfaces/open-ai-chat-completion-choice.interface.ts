@@ -6,8 +6,8 @@ export interface OpenAiChatCompletionChoice {
     /** DeepSeek-compatible chain-of-thought */
     reasoning_content?: string | null;
     /**
-     * Grok alias of reasoning_content (same text).
-     * Kept for Grok-oriented clients; mainstream clients use reasoning_content.
+     * legacy alias of reasoning_content (same text).
+     * Kept for legacy clients; mainstream clients use reasoning_content.
      */
     thought?: string | null;
     tool_calls?: Array<{

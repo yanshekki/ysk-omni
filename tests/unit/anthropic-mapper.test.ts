@@ -11,14 +11,14 @@ import { anthropicMessagesSchema } from '../../src/dto/anthropic-messages.dto';
 describe('anthropic-mapper', () => {
   it('maps system + messages to chat DTO', () => {
     const dto = anthropicToChatDto({
-      model: 'grok-4.5',
+      model: 'echo',
       max_tokens: 100,
       system: 'You are helpful',
       messages: [{ role: 'user', content: 'hi' }],
       stream: false,
       include_reasoning: false,
     });
-    expect(dto.model).toBe('grok-4.5');
+    expect(dto.model).toBe('echo');
     expect(dto.messages[0]?.role).toBe('system');
     expect(dto.messages[1]?.content).toBe('hi');
     expect(dto.max_tokens).toBe(100);
@@ -95,7 +95,7 @@ describe('anthropic-mapper', () => {
 
   it('accepts tool_use in Zod schema (no longer rejected)', () => {
     const parsed = anthropicMessagesSchema.parse({
-      model: 'grok-4.5',
+      model: 'echo',
       max_tokens: 32,
       messages: [
         {
@@ -124,7 +124,7 @@ describe('anthropic-mapper', () => {
       id: 'chatcmpl_x',
       object: 'chat.completion',
       created: 1,
-      model: 'grok-4.5',
+      model: 'echo',
       choices: [
         {
           index: 0,
@@ -157,7 +157,7 @@ describe('anthropic-mapper', () => {
       id: 'chatcmpl_x',
       object: 'chat.completion',
       created: 1,
-      model: 'grok-4.5',
+      model: 'echo',
       choices: [
         {
           index: 0,

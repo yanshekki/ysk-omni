@@ -89,9 +89,9 @@ export async function cmdDoctor(opts: {
       ok('NODE_ENV=production (or production default)');
     }
 
-    const cwd = env.GROK_DEFAULT_CWD || '(storage/workspaces/default)';
-    const allow = env.GROK_CWD_ALLOWLIST || cwd;
-    info(`GROK_DEFAULT_CWD: ${cwd}`);
+    const cwd = env.OMNI_DEFAULT_CWD || '(storage/workspaces/default)';
+    const allow = env.OMNI_CWD_ALLOWLIST || cwd;
+    info(`OMNI_DEFAULT_CWD: ${cwd}`);
     const envDir = path.dirname(paths.envFile);
     const roots = String(allow)
       .split(',')
@@ -106,7 +106,7 @@ export async function cmdDoctor(opts: {
       )
     ) {
       warn(
-        'GROK_CWD_ALLOWLIST / GROK_DEFAULT_CWD includes the gateway root or .env directory — agent keys can read ENCRYPTION_KEY',
+        'OMNI_CWD_ALLOWLIST / OMNI_DEFAULT_CWD includes the gateway root or .env directory — agent keys can read ENCRYPTION_KEY',
       );
     }
 

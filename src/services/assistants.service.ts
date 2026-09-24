@@ -36,7 +36,7 @@ function publicAssistant(row: {
     created_at: Math.floor(row.createdAt.getTime() / 1000),
     name: row.name || null,
     description: null,
-    model: row.model || 'grok-4.6',
+    model: row.model || 'echo',
     instructions: row.instructions || null,
     tools,
     metadata,
@@ -241,7 +241,7 @@ export class AssistantsService {
 
   /**
    * Create + execute a run synchronously (Assistants-lite).
-   * Maps thread messages → chat completion via Grok.
+   * Maps thread messages → chat completion via the chat engine.
    */
   async createAndRun(
     apiKey: AuthenticatedApiKey,
@@ -314,7 +314,7 @@ export class AssistantsService {
           messages: chatMessages,
           stream: false,
           include_reasoning: true,
-          session_id: thread.grokSessionId || undefined,
+          session_id: thread.engineSessionId || undefined,
           tools: tools?.length ? tools : undefined,
         },
         {
@@ -331,8 +331,8 @@ export class AssistantsService {
           ? result.choices?.[0]?.message?.content || ''
           : '';
       const sessionId =
-        result && 'grok' in result
-          ? (result as { grok?: { sessionId?: string } }).grok?.sessionId
+        result && 'omni' in result
+          ? (result as { omni?: { sessionId?: string } }).omni?.sessionId
           : undefined;
 
       await prisma.assistantMessage.create({
@@ -347,7 +347,7 @@ export class AssistantsService {
       if (sessionId) {
         await prisma.assistantThread.update({
           where: { id: threadId },
-          data: { grokSessionId: sessionId },
+          data: { engineSessionId: sessionId },
         });
       }
 

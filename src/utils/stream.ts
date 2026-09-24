@@ -13,7 +13,7 @@ function tryFlush(res: Response): void {
 }
 
 export function initSse(res: Response): void {
-  // Disable request socket timeout so long Grok streams are not cut
+  // Disable request socket timeout so long streams are not cut
   try {
     reqSocketSetTimeout(res, 0);
   } catch {

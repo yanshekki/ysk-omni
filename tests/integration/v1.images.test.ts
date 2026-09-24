@@ -63,9 +63,9 @@ describe('v1 images API (OpenAI-compatible)', () => {
       grok?: { asset_ids: string[] };
     };
     expect(body.data[0]?.b64_json).toBeTruthy();
-    expect(body.grok?.asset_ids?.length).toBe(1);
+    expect(body.omni?.asset_ids?.length).toBe(1);
 
-    const assetId = body.grok!.asset_ids[0]!;
+    const assetId = body.omni!.asset_ids[0]!;
     const meta = await apiFetch(h.baseUrl, `/v1/media/assets/${assetId}`, {
       key: agentKey,
     });

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -12,7 +12,7 @@ describe('v1 routes (auth, models, documents, api-keys)', () => {
 
   beforeAll(async () => {
     h = await startHarness('v1r');
-    mockGrokStream();
+    mockEngineStream();
   }, 60_000);
 
   afterAll(async () => {

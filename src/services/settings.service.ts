@@ -30,11 +30,11 @@ export class SettingsService {
     const map = new Map(rows.map((r) => [r.key, r.value]));
 
     const envDefaults: AppSettings = {
-      globalSafeMode: env.GROK_SAFE_MODE,
-      safeMaxTurns: env.GROK_SAFE_MAX_TURNS,
-      safeTimeoutMs: env.GROK_SAFE_TIMEOUT_MS,
+      globalSafeMode: env.OMNI_SAFE_MODE,
+      safeMaxTurns: env.OMNI_SAFE_MAX_TURNS,
+      safeTimeoutMs: env.OMNI_SAFE_TIMEOUT_MS,
       safeToolsMode: SAFE_TOOLS_MODES.READONLY,
-      defaultModel: env.GROK_DEFAULT_MODEL,
+      defaultModel: env.OMNI_DEFAULT_MODEL,
       adminPanelEnabled: env.ADMIN_PANEL_ENABLED,
     };
 

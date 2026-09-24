@@ -26,7 +26,7 @@ describe('Responses vision / input mapping', () => {
 
   it('schema transform keeps image parts', () => {
     const parsed = createResponseSchema.parse({
-      model: 'grok-4.5',
+      model: 'echo',
       input: [
         {
           role: 'user',

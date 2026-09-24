@@ -1,5 +1,5 @@
-/** Grok-native metadata (extension; ignored by standard OpenAI clients) */
-export interface GrokResponseMeta {
+/** Gateway metadata (extension; ignored by standard OpenAI clients) */
+export interface EngineResponseMeta {
   sessionId?: string;
   stopReason?: string;
   requestId?: string;

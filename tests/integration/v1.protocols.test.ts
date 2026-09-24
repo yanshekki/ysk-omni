@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -13,7 +13,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
 
   beforeAll(async () => {
     h = await startHarness('v1p');
-    mockGrokStream('protocol-pong');
+    mockEngineStream('protocol-pong');
   }, 60_000);
 
   afterAll(async () => {
@@ -27,7 +27,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'test-engine',
         messages: [{ role: 'user', content: 'say pong' }],
         stream: false,
       },
@@ -51,7 +51,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
         'Content-Type': 'application/json',
       },
       body: {
-        model: 'grok-4.5',
+        model: 'test-engine',
         max_tokens: 64,
         messages: [{ role: 'user', content: 'hi' }],
       },
@@ -72,7 +72,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
     const res = await apiFetch(h.baseUrl, '/v1/messages', {
       method: 'POST',
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         max_tokens: 16,
         messages: [{ role: 'user', content: 'x' }],
       },
@@ -89,7 +89,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         input: 'hello responses',
         stream: false,
       },
@@ -135,7 +135,7 @@ describe('v1 multi-protocol (chat / messages / responses)', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         max_tokens: 16,
         messages: [{ role: 'user', content: 'x' }],
       },

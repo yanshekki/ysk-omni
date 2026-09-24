@@ -30,7 +30,7 @@ const chatCompletionObjectSchema = z.object({
   model: z.string().min(1).max(128).optional(),
   messages: z.array(chatMessageSchema).min(1).max(MAX_MESSAGES),
   stream: z.boolean().optional().default(false),
-  /** Grok CLI has no sampling knobs — accepted; ignored unless strictSampling */
+  /** local engine has no sampling knobs — accepted; ignored unless strictSampling */
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().int().positive().optional(),
   top_p: z.number().min(0).max(1).optional(),
@@ -45,7 +45,7 @@ const chatCompletionObjectSchema = z.object({
     .optional(),
   include_reasoning: z.boolean().optional().default(true),
 
-  // OpenAI tools (mapped to Grok --tools when apiFeatures.tools)
+  // OpenAI tools (mapped to tools when apiFeatures.tools)
   tools: z.array(z.unknown()).optional(),
   tool_choice: z.unknown().optional(),
   functions: z.array(z.unknown()).optional(),
@@ -70,7 +70,7 @@ const chatCompletionObjectSchema = z.object({
     })
     .optional(),
 
-  // Grok CLI capability passthroughs
+  // local engine capability passthroughs
   reasoning_effort: z.string().max(32).optional(),
   effort: z.string().max(32).optional(),
   system_prompt_override: z.string().max(MAX_MESSAGE_CHARS).optional(),

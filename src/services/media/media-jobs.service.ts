@@ -66,7 +66,7 @@ export class MediaJobsService {
     apiKey: AuthenticatedApiKey;
     prompt: string;
     model?: string;
-    /** Grok allows 6 or 10 only */
+    /** Duration is 6 or 10 only */
     seconds?: number;
     aspectRatio?: string;
     sourceAssetId?: string;

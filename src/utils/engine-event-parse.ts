@@ -1,15 +1,15 @@
 import type {
-  GrokToolCall,
-  GrokUsage,
-} from '../interfaces/grok-collected-output.interface';
-import type { GrokResponseMeta } from '../interfaces/grok-response-meta.interface';
+  EngineToolCall,
+  EngineUsage,
+} from '../interfaces/engine-collected-output.interface';
+import type { EngineResponseMeta } from '../interfaces/engine-response-meta.interface';
 import { createId } from './id';
 
-/** Parse usage object from Grok end event. */
-export function parseGrokUsage(raw: unknown): GrokUsage | undefined {
+/** Parse usage object from end event. */
+export function parseEngineUsage(raw: unknown): EngineUsage | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const u = raw as Record<string, unknown>;
-  const out: GrokUsage = {};
+  const out: EngineUsage = {};
   if (typeof u.input_tokens === 'number') out.input_tokens = u.input_tokens;
   if (typeof u.output_tokens === 'number') out.output_tokens = u.output_tokens;
   if (typeof u.total_tokens === 'number') out.total_tokens = u.total_tokens;
@@ -67,16 +67,16 @@ function newToolCallId(): string {
 }
 
 /**
- * Extract OpenAI-style tool_calls from Grok stream events.
+ * Extract OpenAI-style tool_calls from stream events.
  * Handles multiple event shapes (tool_call, tool_use, function_call, batches).
  */
-export function parseGrokToolCallEvent(event: {
+export function parseEngineToolCallEvent(event: {
   type?: string;
   data?: unknown;
   [k: string]: unknown;
-}): GrokToolCall[] {
+}): EngineToolCall[] {
   const t = String(event.type || '').toLowerCase();
-  const out: GrokToolCall[] = [];
+  const out: EngineToolCall[] = [];
   if (
     t === 'tool_call_update' ||
     t === 'usage' ||
@@ -170,7 +170,7 @@ export function parseGrokToolCallEvent(event: {
   return out;
 }
 
-export function usageToOpenAi(u?: GrokUsage): {
+export function usageToOpenAi(u?: EngineUsage): {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
@@ -201,9 +201,9 @@ export function usageToOpenAi(u?: GrokUsage): {
   };
 }
 
-export function grokUsageToMetaCost(
-  u?: GrokUsage,
-): GrokResponseMeta['cost'] | undefined {
+export function engineUsageToMetaCost(
+  u?: EngineUsage,
+): EngineResponseMeta['cost'] | undefined {
   if (!u) return undefined;
   if (
     u.total_cost_usd == null &&

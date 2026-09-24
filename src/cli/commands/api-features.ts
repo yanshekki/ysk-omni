@@ -44,7 +44,7 @@ async function saveFeatures(
 }
 
 function printFeatures(f: ApiFeatures): void {
-  info('API features / Grok capability gates');
+  info('API features / capability gates');
   info('');
   info('Protocols:');
   info(`  openaiChat:          ${f.openaiChat}`);

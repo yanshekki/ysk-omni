@@ -8,7 +8,7 @@ vi.mock('../../src/services/settings.service', () => ({
       safeMaxTurns: 4,
       safeTimeoutMs: 120_000,
       safeToolsMode: 'none',
-      defaultModel: 'grok-4.5',
+      defaultModel: 'echo',
       adminPanelEnabled: true,
     })),
   },
@@ -35,7 +35,7 @@ describe('PolicyService', () => {
       safeMaxTurns: 4,
       safeTimeoutMs: 120_000,
       safeToolsMode: 'none',
-      defaultModel: 'grok-4.5',
+      defaultModel: 'echo',
       adminPanelEnabled: true,
     });
   });
@@ -67,7 +67,7 @@ describe('PolicyService', () => {
       safeMaxTurns: 2,
       safeTimeoutMs: 30_000,
       safeToolsMode: 'readonly',
-      defaultModel: 'grok-4.5',
+      defaultModel: 'echo',
       adminPanelEnabled: true,
     });
     const policy = await policyService.resolve(

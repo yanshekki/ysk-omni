@@ -4,7 +4,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -36,7 +36,7 @@ const HITS: Hit[] = [
   {
     name: 'model get',
     method: 'GET',
-    path: '/v1/models/grok-4.5',
+    path: '/v1/models/echo',
     key: 'client',
     ok: [200, 404],
   },
@@ -46,7 +46,7 @@ const HITS: Hit[] = [
     path: '/v1/chat/completions',
     key: 'client',
     body: {
-      model: 'grok-4.5',
+      model: 'echo',
       messages: [{ role: 'user', content: 'hi' }],
       stream: false,
     },
@@ -116,7 +116,7 @@ const HITS: Hit[] = [
     path: '/v1/messages',
     key: 'client',
     body: {
-      model: 'grok-4.5',
+      model: 'echo',
       max_tokens: 64,
       messages: [{ role: 'user', content: 'hi' }],
     },
@@ -128,7 +128,7 @@ const HITS: Hit[] = [
     path: '/v1/responses',
     key: 'client',
     body: {
-      model: 'grok-4.5',
+      model: 'echo',
       input: 'hello',
     },
     ok: [200, 400, 501, 502, 503],
@@ -159,7 +159,7 @@ const HITS: Hit[] = [
     method: 'POST',
     path: '/v1/assistants',
     key: 'client',
-    body: { model: 'grok-4.5', name: 'a' },
+    body: { model: 'echo', name: 'a' },
     ok: [200, 201, 400, 501],
   },
   {
@@ -302,7 +302,7 @@ describe('v1 + health hit matrix', () => {
   beforeAll(async () => {
     h = await startHarness('hit-v1');
     if (!h) return;
-    mockGrokStream('v1-hit');
+    mockEngineStream('v1-hit');
     setMediaProviderForTests(mockMediaProvider);
     await apiFeaturesService.applyPreset('open');
     await apiFeaturesService.update({

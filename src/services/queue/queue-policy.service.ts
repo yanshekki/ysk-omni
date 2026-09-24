@@ -15,7 +15,7 @@ type RebuildHook = () => void;
 export function defaultQueuePolicy(): QueuePolicy {
   return {
     enabled: true,
-    globalConcurrency: Math.max(1, Math.min(env.GROK_MAX_CONCURRENT, 8)),
+    globalConcurrency: Math.max(1, Math.min(env.OMNI_MAX_CONCURRENT, 8)),
     perKeyConcurrency: 1,
     maxQueueDepth: 100,
     maxQueueDepthPerKey: 20,
@@ -23,7 +23,7 @@ export function defaultQueuePolicy(): QueuePolicy {
     playgroundPriority: 50,
     leaseMs: 45_000,
     leaseHeartbeatMs: 15_000,
-    maxWaitMs: Math.max(env.GROK_TIMEOUT_MS, 600_000),
+    maxWaitMs: Math.max(env.OMNI_TIMEOUT_MS, 600_000),
     maxAttempts: 1,
     fairness: 'weighted_round_robin',
     paused: false,

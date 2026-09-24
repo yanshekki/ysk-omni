@@ -79,7 +79,7 @@ describe('admin routes', () => {
         id: chatId,
         requestId: `req_${randomBytes(8).toString('hex')}`,
         apiKeyId: clientKeyId,
-        model: 'grok-4.5',
+        model: 'echo',
         stream: false,
         status: 'success',
         durationMs: 12,

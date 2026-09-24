@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   mapFinishChunk,
-  mapGrokToChatCompletion,
+  mapEngineToChatCompletion,
   mapModelsList,
   mapReasoningDeltaChunk,
   mapRoleChunk,
@@ -24,8 +24,8 @@ describe('openai-mapper', () => {
   });
 
   it('maps grok json to OpenAI chat completion with reasoning', () => {
-    const res = mapGrokToChatCompletion(
-      'grok-4.5',
+    const res = mapEngineToChatCompletion(
+      'echo',
       { text: 'pong', stopReason: 'EndTurn', sessionId: 'sess-1' },
       {
         completionId: 'chatcmpl_test',
@@ -34,19 +34,19 @@ describe('openai-mapper', () => {
       },
     );
     expect(res.object).toBe('chat.completion');
-    expect(res.model).toBe('grok-4.5');
+    expect(res.model).toBe('echo');
     expect(res.choices[0]?.message.content).toBe('pong');
     expect(res.choices[0]?.message.reasoning_content).toBe('thinking...');
     expect(res.choices[0]?.message.thought).toBe('thinking...');
     expect(res.choices[0]?.finish_reason).toBe('stop');
     expect(res.id).toBe('chatcmpl_test');
-    expect(res.grok?.sessionId).toBe('sess-1');
-    expect(res.grok?.stopReason).toBe('EndTurn');
+    expect(res.omni?.sessionId).toBe('sess-1');
+    expect(res.omni?.stopReason).toBe('EndTurn');
   });
 
   it('omits reasoning when includeReasoning is false', () => {
-    const res = mapGrokToChatCompletion(
-      'grok-4.5',
+    const res = mapEngineToChatCompletion(
+      'echo',
       { text: 'pong' },
       {
         completionId: 'chatcmpl_test',
@@ -72,7 +72,7 @@ describe('openai-mapper', () => {
     expect(reasoning.choices[0]?.delta.thought).toBe('hmm');
     expect(delta.choices[0]?.delta.content).toBe('he');
     expect(end.choices[0]?.finish_reason).toBe('stop');
-    expect(end.grok?.sessionId).toBe('s1');
+    expect(end.omni?.sessionId).toBe('s1');
   });
 
   it('maps model list', () => {

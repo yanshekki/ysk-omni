@@ -238,7 +238,7 @@ export class DocumentService {
   }
 
   /**
-   * Decrypt owned documents into `targetDir` so Grok CLI (safe sandbox tools)
+   * Decrypt owned documents into `targetDir` so local engine (safe sandbox tools)
    * can `read_file` / open them by absolute path.
    */
   async materializeDocuments(
@@ -278,7 +278,7 @@ export class DocumentService {
 
   /**
    * Build prompt context from documents. Optionally materialize files into
-   * `materializeDir`. Prefer `pathPrefix` (relative to Grok cwd) in the prompt
+   * `materializeDir`. Prefer `pathPrefix` (relative to cwd) in the prompt
    * so tools never need absolute host paths.
    */
   async buildContextFromDocuments(

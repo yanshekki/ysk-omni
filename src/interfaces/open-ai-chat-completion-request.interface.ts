@@ -5,13 +5,13 @@ import type { OpenAiChatMessage } from './open-ai-chat-message.interface';
  *
  * Runtime validation uses Zod: `CreateChatCompletionDto` in `dto/chat.dto.ts`.
  * Prefer the DTO at API boundaries; this interface tracks the OpenAI-compatible
- * surface (including Grok extensions).
+ * surface (including gateway extensions).
  */
 export interface OpenAiChatCompletionRequest {
   model?: string;
   messages: OpenAiChatMessage[];
   stream?: boolean;
-  /** Accepted for SDK compatibility — not applied by Grok CLI unless mapped later */
+  /** Accepted for SDK compatibility — not applied by local engine unless mapped later */
   temperature?: number;
   max_tokens?: number;
   top_p?: number;
@@ -26,7 +26,7 @@ export interface OpenAiChatCompletionRequest {
   };
   stream_options?: { include_usage?: boolean };
 
-  // Grok / gateway extensions
+  // gateway extensions
   cwd?: string;
   session_id?: string;
   document_ids?: string[];

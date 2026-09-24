@@ -13,7 +13,7 @@ import { defaultQueuePolicy } from '../../src/services/queue/queue-policy.servic
 import { queuePolicyService } from '../../src/services/queue/queue-policy.service';
 import { apiFeaturesService } from '../../src/services/api-features.service';
 import { settingsService } from '../../src/services/settings.service';
-import { grokCliService } from '../../src/services/grok-cli.service';
+import { engineSlotService } from '../../src/services/engine-slot.service';
 import { vi } from 'vitest';
 
 export type Harness = {
@@ -91,11 +91,11 @@ export async function ensureAdminPanelOn(): Promise<void> {
   }
 }
 
-/** Mock Grok CLI stream so chat/messages/responses don't call the real binary. */
-export function mockGrokStream(text = 'mock-assistant-reply'): void {
-  vi.spyOn(grokCliService, 'tryAcquire').mockReturnValue(true);
-  vi.spyOn(grokCliService, 'release').mockImplementation(() => undefined);
-  vi.spyOn(grokCliService, 'stream').mockImplementation(async function* () {
+/** Mock local engine stream so chat/messages/responses don't call the real binary. */
+export function mockEngineStream(text = 'mock-assistant-reply'): void {
+  vi.spyOn(engineSlotService, 'tryAcquire').mockReturnValue(true);
+  vi.spyOn(engineSlotService, 'release').mockImplementation(() => undefined);
+  vi.spyOn(engineSlotService, 'stream').mockImplementation(async function* () {
     yield { type: 'text' as const, data: text };
     yield {
       type: 'end' as const,
@@ -105,14 +105,14 @@ export function mockGrokStream(text = 'mock-assistant-reply'): void {
       usage: { input_tokens: 3, output_tokens: 5, total_tokens: 8 },
     };
   });
-  vi.spyOn(grokCliService, 'listModelsFromCli').mockResolvedValue([
-    'grok-4.5',
-    'grok-mock',
+  vi.spyOn(engineSlotService, 'listModelsFromCli').mockResolvedValue([
+    'echo',
+    'echo',
   ]);
-  vi.spyOn(grokCliService, 'isAvailable').mockResolvedValue(true);
+  vi.spyOn(engineSlotService, 'isAvailable').mockResolvedValue(true);
 }
 
-export function restoreGrokMocks(): void {
+export function restoreEngineMocks(): void {
   vi.restoreAllMocks();
 }
 
@@ -167,7 +167,7 @@ export async function stopHarness(h: Harness | null): Promise<void> {
     .deleteMany({ where: { name: { startsWith: h.prefix } } })
     .catch(() => undefined);
   await prisma.$disconnect().catch(() => undefined);
-  restoreGrokMocks();
+  restoreEngineMocks();
 }
 
 export type FetchOpts = {

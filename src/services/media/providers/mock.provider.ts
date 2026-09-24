@@ -6,7 +6,7 @@ import type {
 } from './media-provider.interface';
 
 /**
- * Deterministic 1×1 PNG for tests (no Grok CLI).
+ * Deterministic 1×1 PNG for tests (no local engine).
  * Enable with MEDIA_PROVIDER=mock or setMediaProviderForTests.
  */
 const PNG_1X1 = Buffer.from(

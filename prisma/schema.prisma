@@ -60,7 +60,7 @@ model ChatRequest {
   stream             Boolean  @default(false)
   status             String
   durationMs         Int?
-  grokSessionId      String?
+  engineSessionId      String?
   promptCiphertext   Bytes
   promptIv           Bytes
   promptTag          Bytes
@@ -282,8 +282,8 @@ model AssistantThread {
   apiKeyId    String
   assistantId String?
   metadataJson String?
-  /// Grok session id for continuity
-  grokSessionId String?
+  /// Engine session id for continuity
+  engineSessionId String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -340,7 +340,7 @@ model MediaAsset {
   originalName String?
   /// generation | edit | upload | import
   source       String    @default("generation")
-  provider     String    @default("grok-tools")
+  provider     String    @default("stub")
   metaJson     String?
   prompt       String?
   createdAt    DateTime  @default(now())
@@ -377,15 +377,15 @@ model MediaJob {
   @@map("media_jobs")
 }
 
-/// Client session_id → Grok CLI UUID (create once, then --resume).
-model GrokSessionAlias {
+/// Client session_id → engine session UUID.
+model EngineSessionAlias {
   id              String   @id @default(uuid())
   apiKeyId        String
   clientSessionId String
-  grokSessionId   String
+  engineSessionId   String
   createdAt       DateTime @default(now())
 
   @@unique([apiKeyId, clientSessionId])
-  @@index([apiKeyId, grokSessionId])
-  @@map("grok_session_aliases")
+  @@index([apiKeyId, engineSessionId])
+  @@map("engine_session_aliases")
 }

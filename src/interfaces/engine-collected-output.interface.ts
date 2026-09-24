@@ -1,5 +1,5 @@
-/** Token usage from Grok CLI end event (when present). */
-export type GrokUsage = {
+/** Token usage from local engine end event (when present). */
+export type EngineUsage = {
   input_tokens?: number;
   output_tokens?: number;
   total_tokens?: number;
@@ -12,20 +12,20 @@ export type GrokUsage = {
   total_cost_usd_ticks?: number;
 };
 
-export type GrokToolCall = {
+export type EngineToolCall = {
   id: string;
   type: 'function';
   function: { name: string; arguments: string };
 };
 
 /** Aggregated stream/non-stream output used when auditing chat results. */
-export interface GrokCollectedOutput {
+export interface EngineCollectedOutput {
   text: string;
   reasoning: string;
   sessionId?: string;
   stopReason?: string;
   requestId?: string;
-  usage?: GrokUsage;
+  usage?: EngineUsage;
   numTurns?: number;
-  toolCalls?: GrokToolCall[];
+  toolCalls?: EngineToolCall[];
 }

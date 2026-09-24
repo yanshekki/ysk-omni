@@ -88,11 +88,6 @@ import {
   cmdRuntimesUninstall,
 } from './commands/runtimes';
 import {
-  cmdGrokInspect,
-  cmdGrokSessionsList,
-  cmdGrokSessionsDelete,
-} from './commands/grok-env';
-import {
   cmdApiFeaturesGet,
   cmdApiFeaturesSet,
   cmdApiFeaturesPreset,
@@ -842,46 +837,6 @@ program
   .argument('<id>', 'Registry id')
   .action(async (id: string) => {
     await cmdUnload({ ...globalOpts(), id });
-  });
-
-const grokEnvCmd = program
-  .command('grok', { hidden: true })
-  .description('Internal leftover inspect / sessions');
-
-grokEnvCmd
-  .command('inspect')
-  .description('Internal leftover inspect snapshot')
-  .action(async () => {
-    await cmdGrokInspect(globalOpts());
-  });
-
-const grokSessionsCmd = grokEnvCmd
-  .command('sessions')
-  .description('Internal leftover session table')
-  .option('-q, --q <text>', 'Search title / summary / id')
-  .option('--cwd <path>', 'Filter by working directory')
-  .option('--limit <n>', 'Max rows', (v: string) => Number(v))
-  .action(async (opts: { q?: string; cwd?: string; limit?: number }) => {
-    await cmdGrokSessionsList({ ...globalOpts(), ...opts });
-  });
-
-grokSessionsCmd
-  .command('list')
-  .description('Internal leftover session table')
-  .option('-q, --q <text>', 'Search title / summary / id')
-  .option('--cwd <path>', 'Filter by working directory')
-  .option('--limit <n>', 'Max rows', (v: string) => Number(v))
-  .action(async (opts: { q?: string; cwd?: string; limit?: number }) => {
-    await cmdGrokSessionsList({ ...globalOpts(), ...opts });
-  });
-
-grokSessionsCmd
-  .command('delete')
-  .description('Delete a leftover session row')
-  .argument('<id>', 'Session UUID')
-  .option('--yes', 'Confirm delete')
-  .action(async (id: string, opts: { yes?: boolean }) => {
-    await cmdGrokSessionsDelete({ ...globalOpts(), id, yes: opts.yes });
   });
 
 // ——— API features / capability gates ———

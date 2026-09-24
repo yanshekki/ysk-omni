@@ -2,7 +2,7 @@ import {
   AUDIT_ACTIONS,
   KEY_MODES,
   ROLES,
-  resolveGrokAspectRatio,
+  resolveAspectRatio,
 } from '../../config/constants';
 import type { AuthenticatedApiKey } from '../../interfaces';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
@@ -17,9 +17,8 @@ import type {
   MediaArtifact,
   MediaProvider,
 } from './providers/media-provider.interface';
-import { grokToolsMediaProvider } from './providers/grok-tools.provider';
-import { mockMediaProvider } from './providers/mock.provider';
 import { stubMediaProvider } from './providers/stub.provider';
+import { mockMediaProvider } from './providers/mock.provider';
 import { HttpWorkerMediaProvider } from './providers/http-worker.provider';
 import { convertImage } from './format-convert';
 import { assertModelAllowed } from '../../utils/model-allowlist';
@@ -38,9 +37,6 @@ export function resolveMediaProvider(): MediaProvider {
   const envName = (process.env.MEDIA_PROVIDER || '').toLowerCase();
   if (envName === 'mock') return mockMediaProvider;
   if (envName === 'none' || envName === 'stub') return stubMediaProvider;
-  if (envName === 'grok' || envName === 'grok-tools') {
-    return grokToolsMediaProvider;
-  }
   return stubMediaProvider;
 }
 
@@ -59,7 +55,7 @@ export type ImageGenerationResult = {
     revised_prompt?: string;
   }>;
   /** Gateway extension */
-  grok?: {
+  omni?: {
     provider: string;
     asset_ids: string[];
   };
@@ -151,7 +147,7 @@ async function persistArtifacts(input: {
   return {
     created: Math.floor(Date.now() / 1000),
     data,
-    grok: { provider: input.providerId, asset_ids: assetIds },
+    omni: { provider: input.providerId, asset_ids: assetIds },
   };
 }
 
@@ -160,7 +156,7 @@ async function persistArtifacts(input: {
  *
  * **Limits (must match chat):**
  * - `maxTurns` / `timeoutMs` from `policyService.resolve` (key override →
- *   Safety settings when global/key safe, else env `GROK_TIMEOUT_MS` / unlimited turns)
+ *   Safety settings when global/key safe, else env `OMNI_TIMEOUT_MS` / unlimited turns)
  * - `model` from request or `settings.defaultModel`
  *
  * **Tools (media-specific):** callers already passed `assertImageAccess`
@@ -220,7 +216,7 @@ export class MediaOrchestratorService {
     await assertImagesEnabled();
     assertImageAccess(input.apiKey);
 
-    const aspectRatio = resolveGrokAspectRatio(input.size, input.aspectRatio);
+    const aspectRatio = resolveAspectRatio(input.size, input.aspectRatio);
     const provider = resolveMediaProvider();
     const req = await policyToImageRun(input.apiKey, {
       prompt: input.prompt,
@@ -280,7 +276,7 @@ export class MediaOrchestratorService {
       );
     }
 
-    const aspectRatio = resolveGrokAspectRatio(input.size, input.aspectRatio);
+    const aspectRatio = resolveAspectRatio(input.size, input.aspectRatio);
     // Same policy source of truth as chat + generateImages (maxTurns/timeout/model)
     const base = await policyToImageRun(input.apiKey, {
       prompt: input.prompt,

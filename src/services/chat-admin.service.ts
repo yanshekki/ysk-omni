@@ -226,7 +226,7 @@ export class ChatAdminService {
       stream: r.stream,
       status: r.status,
       durationMs: r.durationMs,
-      grokSessionId: r.grokSessionId,
+      engineSessionId: r.engineSessionId,
       policyMode: r.policyMode,
       errorMessage: r.errorMessage,
       ip: r.ip,

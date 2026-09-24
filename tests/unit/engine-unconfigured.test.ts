@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { grokCliService } from '../../src/services/grok-cli.service';
-import { grokToolsMediaProvider } from '../../src/services/media/providers/grok-tools.provider';
+import { engineSlotService } from '../../src/services/engine-slot.service';
+import { stubMediaProvider } from '../../src/services/media/providers/stub.provider';
 import { HttpException } from '../../src/exceptions/http.exception';
 
 describe('engine_unconfigured after Grok spawn removal', () => {
   it('chat runOnce throws 501 engine_unconfigured', async () => {
     await expect(
-      grokCliService.runOnce({
+      engineSlotService.runOnce({
         prompt: 'hi',
         model: 'echo',
         cwd: process.cwd(),
@@ -20,7 +20,7 @@ describe('engine_unconfigured after Grok spawn removal', () => {
 
   it('image generate throws 501 engine_unconfigured', async () => {
     try {
-      await grokToolsMediaProvider.generateImage({
+      await stubMediaProvider.generateImage({
         prompt: 'cat',
         apiKeyId: 'k',
       } as never);

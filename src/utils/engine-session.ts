@@ -32,10 +32,10 @@ export function uuidV5(name: string, namespace = UUID_V5_NAMESPACE): string {
 }
 
 /**
- * Deterministic Grok CLI session UUID for a tenant + client session id.
- * Grok 1.0+ requires `-s` to be a UUID and only accepts it on first create.
+ * Deterministic local engine session UUID for a tenant + client session id.
+ * 1.0+ requires `-s` to be a UUID and only accepts it on first create.
  */
-export function namespacedGrokSessionId(
+export function namespacedEngineSessionId(
   apiKeyId: string,
   clientSessionId: string,
 ): string {
@@ -43,32 +43,32 @@ export function namespacedGrokSessionId(
   return uuidV5(`ysk-omni:${apiKeyId}:${raw}`);
 }
 
-export type GrokSessionCliMode = 'create' | 'resume';
+export type EngineSessionCliMode = 'create' | 'resume';
 
-export type ResolvedGrokSession = {
-  mode: GrokSessionCliMode;
-  grokSessionId: string;
+export type ResolvedEngineSession = {
+  mode: EngineSessionCliMode;
+  engineSessionId: string;
 };
 
 /**
  * Decide create (`-s`) vs resume (`--resume`) for a client `session_id`.
- * `knownGrokSessionId` comes from a persisted alias row.
+ * `knownEngineSessionId` comes from a persisted alias row.
  */
-export function resolveGrokSessionBinding(input: {
+export function resolveEngineSessionBinding(input: {
   apiKeyId: string;
   clientSessionId: string;
-  knownGrokSessionId?: string | null;
-  knownByGrokId?: string | null;
-}): ResolvedGrokSession {
-  if (input.knownGrokSessionId && isUuid(input.knownGrokSessionId)) {
-    return { mode: 'resume', grokSessionId: input.knownGrokSessionId };
+  knownEngineSessionId?: string | null;
+  knownByEngineId?: string | null;
+}): ResolvedEngineSession {
+  if (input.knownEngineSessionId && isUuid(input.knownEngineSessionId)) {
+    return { mode: 'resume', engineSessionId: input.knownEngineSessionId };
   }
-  if (input.knownByGrokId && isUuid(input.knownByGrokId)) {
-    return { mode: 'resume', grokSessionId: input.knownByGrokId };
+  if (input.knownByEngineId && isUuid(input.knownByEngineId)) {
+    return { mode: 'resume', engineSessionId: input.knownByEngineId };
   }
   return {
     mode: 'create',
-    grokSessionId: namespacedGrokSessionId(
+    engineSessionId: namespacedEngineSessionId(
       input.apiKeyId,
       input.clientSessionId,
     ),

@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   isSessionAlreadyExistsError,
   isUuid,
-  namespacedGrokSessionId,
-  resolveGrokSessionBinding,
+  namespacedEngineSessionId,
+  resolveEngineSessionBinding,
   uuidV5,
-} from '../../src/utils/grok-session';
+} from '../../src/utils/engine-session';
 
-describe('grok-session', () => {
+describe('engine-session', () => {
   it('uuidV5 is stable and RFC version 5', () => {
     const a = uuidV5('ysk-omni:key:chat-1');
     const b = uuidV5('ysk-omni:key:chat-1');
@@ -17,46 +17,46 @@ describe('grok-session', () => {
   });
 
   it('namespaces per API key', () => {
-    const one = namespacedGrokSessionId('key-a', 'room');
-    const two = namespacedGrokSessionId('key-b', 'room');
+    const one = namespacedEngineSessionId('key-a', 'room');
+    const two = namespacedEngineSessionId('key-b', 'room');
     expect(one).not.toBe(two);
     expect(isUuid(one)).toBe(true);
     expect(one.startsWith('gog_')).toBe(false);
   });
 
   it('creates on first bind and resumes when known', () => {
-    const created = resolveGrokSessionBinding({
+    const created = resolveEngineSessionBinding({
       apiKeyId: 'key-a',
       clientSessionId: 'room',
     });
     expect(created.mode).toBe('create');
-    expect(isUuid(created.grokSessionId)).toBe(true);
+    expect(isUuid(created.engineSessionId)).toBe(true);
 
-    const resumed = resolveGrokSessionBinding({
+    const resumed = resolveEngineSessionBinding({
       apiKeyId: 'key-a',
       clientSessionId: 'room',
-      knownGrokSessionId: created.grokSessionId,
+      knownEngineSessionId: created.engineSessionId,
     });
     expect(resumed.mode).toBe('resume');
-    expect(resumed.grokSessionId).toBe(created.grokSessionId);
+    expect(resumed.engineSessionId).toBe(created.engineSessionId);
   });
 
   it('resumes when client sends back the Grok UUID', () => {
-    const grokId = namespacedGrokSessionId('key-a', 'room');
-    const r = resolveGrokSessionBinding({
+    const grokId = namespacedEngineSessionId('key-a', 'room');
+    const r = resolveEngineSessionBinding({
       apiKeyId: 'key-a',
       clientSessionId: grokId,
-      knownByGrokId: grokId,
+      knownByEngineId: grokId,
     });
     expect(r.mode).toBe('resume');
-    expect(r.grokSessionId).toBe(grokId);
+    expect(r.engineSessionId).toBe(grokId);
   });
 
   it('detects already-exists errors from stderr details', () => {
     expect(isSessionAlreadyExistsError('already in use')).toBe(true);
     expect(
       isSessionAlreadyExistsError({
-        message: 'Grok CLI exited with code 1',
+        message: 'local engine exited with code 1',
         details: { stderr: 'Error: session must not already exist' },
       }),
     ).toBe(true);

@@ -30,7 +30,7 @@ router.use('/v1/responses', responsesRoutes);
 /** Assistants-lite (feature-flagged) */
 router.use('/v1/assistants', assistantsRoutes);
 router.use('/v1/threads', threadsRoutes);
-/** OpenAI Images API (media pipeline — Grok tools / mock provider) */
+/** OpenAI Images API (media pipeline — media tools / mock provider) */
 router.use('/v1/images', imagesRoutes);
 /** Stored media artifacts (download by id) */
 router.use('/v1/media/assets', mediaAssetsRoutes);

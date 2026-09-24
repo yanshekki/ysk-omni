@@ -4557,7 +4557,7 @@ async function renderUsage() {
           <div class="card"><div class="label">${escapeHtml(t('usage.ipMax'))}</div><div class="value value-sm">${limits.ipMax}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('usage.burst'))}</div><div class="value value-sm">${limits.chatBurstMax}</div></div>
           <div class="card"><div class="label">${escapeHtml(t('usage.block'))}</div><div class="value value-sm">${limits.blockFailedAuthThreshold}</div></div>
-          <div class="card"><div class="label">${escapeHtml(t('usage.concurrent'))}</div><div class="value value-sm">${limits.grokMaxConcurrent}</div></div>
+          <div class="card"><div class="label">${escapeHtml(t('usage.concurrent'))}</div><div class="value value-sm">${limits.engineMaxConcurrent}</div></div>
         </div>
       </div>
     </div>

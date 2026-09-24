@@ -1,4 +1,4 @@
-/** Decrypted document written into the Grok workspace for tools. */
+/** Decrypted document written into the workspace for tools. */
 export interface MaterializedDocument {
   id: string;
   originalName: string;

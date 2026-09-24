@@ -1,12 +1,12 @@
-import type { GrokResponseMeta } from './grok-response-meta.interface';
-import type { GrokToolCall } from './grok-collected-output.interface';
+import type { EngineResponseMeta } from './engine-response-meta.interface';
+import type { EngineToolCall } from './engine-collected-output.interface';
 
-/** Options when mapping Grok CLI output → OpenAI chat.completion */
+/** Options when mapping local engine output → OpenAI chat.completion */
 export interface MapCompletionOptions {
   completionId?: string;
   reasoningContent?: string | null;
   includeReasoning?: boolean;
-  grok?: GrokResponseMeta;
+  omni?: EngineResponseMeta;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -16,5 +16,5 @@ export interface MapCompletionOptions {
       cache_creation_tokens?: number;
     };
   };
-  toolCalls?: GrokToolCall[];
+  toolCalls?: EngineToolCall[];
 }

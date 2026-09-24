@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { grokCliService } from '../services/grok-cli.service';
+import { llamaServerBin } from '../services/runtimes/llama-server';
 import { asyncHandler } from '../utils/async-handler';
 
 export class HealthController {
@@ -14,7 +14,7 @@ export class HealthController {
 
   ready = asyncHandler(async (_req: Request, res: Response) => {
     let dbOk = false;
-    let grokOk = false;
+    let textEngineOk = false;
 
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -23,14 +23,14 @@ export class HealthController {
       dbOk = false;
     }
 
-    grokOk = await grokCliService.isAvailable();
+    textEngineOk = Boolean(llamaServerBin());
 
     const ready = dbOk;
     res.status(ready ? 200 : 503).json({
       status: ready ? 'ready' : 'not_ready',
       checks: {
         database: dbOk ? 'up' : 'down',
-        grok_cli: grokOk ? 'up' : 'down',
+        text_engine: textEngineOk ? 'up' : 'down',
       },
       timestamp: new Date().toISOString(),
     });

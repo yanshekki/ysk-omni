@@ -4,7 +4,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -16,7 +16,7 @@ describe('v1 tools + vision protocol paths', () => {
 
   beforeAll(async () => {
     h = await startHarness('tv');
-    mockGrokStream('ok-with-tools');
+    mockEngineStream('ok-with-tools');
     await apiFeaturesService.update({
       tools: true,
       vision: true,
@@ -36,7 +36,7 @@ describe('v1 tools + vision protocol paths', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         messages: [
           {
             role: 'user',
@@ -72,7 +72,7 @@ describe('v1 tools + vision protocol paths', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         max_tokens: 64,
         tools: [
           {
@@ -131,7 +131,7 @@ describe('v1 tools + vision protocol paths', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
-        model: 'grok-4.5',
+        model: 'echo',
         input: [
           {
             role: 'user',
@@ -157,6 +157,7 @@ describe('v1 tools + vision protocol paths', () => {
       method: 'POST',
       key: h.clientKey,
       body: {
+        model: 'test-engine',
         messages: [
           {
             role: 'user',

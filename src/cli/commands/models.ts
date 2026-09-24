@@ -5,7 +5,7 @@ export async function cmdModels(
   opts: CliOpts & { refresh?: boolean },
 ): Promise<void> {
   const rt = initCliRuntime(opts);
-  // Lazy import after env is set so modelsService/grok sees correct paths
+  // Lazy import after env is set so modelsService sees correct paths
   try {
     const { modelsService } = await import('../../services/models.service');
     const { disconnectDatabase } = await import('../../config/database');

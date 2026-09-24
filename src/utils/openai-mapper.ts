@@ -1,5 +1,5 @@
-import type { GrokJsonResult } from '../interfaces/grok-json-result.interface';
-import type { GrokResponseMeta } from '../interfaces/grok-response-meta.interface';
+import type { EngineJsonResult } from '../interfaces/engine-json-result.interface';
+import type { EngineResponseMeta } from '../interfaces/engine-response-meta.interface';
 import type { MapCompletionOptions } from '../interfaces/map-completion-options.interface';
 import type { OpenAiChatCompletion } from '../interfaces/open-ai-chat-completion.interface';
 import type { OpenAiChatCompletionChunk } from '../interfaces/open-ai-chat-completion-chunk.interface';
@@ -7,9 +7,9 @@ import type { OpenAiModel } from '../interfaces/open-ai-model.interface';
 import type { OpenAiModelList } from '../interfaces/open-ai-model-list.interface';
 import { createChatCompletionId } from './id';
 
-export function mapGrokToChatCompletion(
+export function mapEngineToChatCompletion(
   model: string,
-  result: GrokJsonResult,
+  result: EngineJsonResult,
   options: MapCompletionOptions = {},
 ): OpenAiChatCompletion {
   const completionId = options.completionId ?? createChatCompletionId();
@@ -27,7 +27,7 @@ export function mapGrokToChatCompletion(
 
   if (includeReasoning && reasoning) {
     message.reasoning_content = reasoning;
-    message.thought = reasoning; // Grok alias
+    message.thought = reasoning; // legacy alias
   } else if (includeReasoning) {
     message.reasoning_content = null;
     message.thought = null;
@@ -36,7 +36,7 @@ export function mapGrokToChatCompletion(
     message.tool_calls = toolCalls;
   }
 
-  let finishReason = mapStopReason(result.stopReason ?? options.grok?.stopReason);
+  let finishReason = mapStopReason(result.stopReason ?? options.omni?.stopReason);
   if (toolCalls?.length && !(result.text ?? '').trim()) {
     finishReason = 'tool_calls';
   }
@@ -63,9 +63,9 @@ export function mapGrokToChatCompletion(
     usage,
   };
 
-  const grok = buildGrokMeta(result, options.grok);
-  if (grok) {
-    response.grok = grok;
+  const meta = buildEngineMeta(result, options.omni);
+  if (meta) {
+    response.omni = meta;
   }
 
   return response;
@@ -94,19 +94,19 @@ export function mapTextDeltaChunk(
 
 /**
  * DeepSeek-compatible reasoning stream chunk.
- * Also sets Grok alias `thought` to the same string.
+ * Also sets legacy alias `thought` to the same string.
  */
 export function mapReasoningDeltaChunk(
   model: string,
   reasoningContent: string,
   completionId: string,
   created: number,
-  includeGrokAlias = true,
+  includeThoughtAlias = true,
 ): OpenAiChatCompletionChunk {
   const delta: OpenAiChatCompletionChunk['choices'][0]['delta'] = {
     reasoning_content: reasoningContent,
   };
-  if (includeGrokAlias) {
+  if (includeThoughtAlias) {
     delta.thought = reasoningContent;
   }
   return {
@@ -149,7 +149,7 @@ export function mapFinishChunk(
   completionId: string,
   created: number,
   stopReason?: string,
-  grok?: GrokResponseMeta,
+  omni?: EngineResponseMeta,
 ): OpenAiChatCompletionChunk {
   const fr =
     stopReason === 'tool_calls'
@@ -169,10 +169,10 @@ export function mapFinishChunk(
     ],
   };
   if (
-    grok &&
-    (grok.sessionId || grok.stopReason || grok.requestId || grok.numTurns || grok.cost)
+    omni &&
+    (omni.sessionId || omni.stopReason || omni.requestId || omni.numTurns || omni.cost)
   ) {
-    chunk.grok = grok;
+    chunk.omni = omni;
   }
   return chunk;
 }
@@ -198,11 +198,11 @@ function mapStopReason(
   return 'stop';
 }
 
-function buildGrokMeta(
-  result: GrokJsonResult,
-  extra?: GrokResponseMeta,
-): GrokResponseMeta | undefined {
-  const meta: GrokResponseMeta = {
+function buildEngineMeta(
+  result: EngineJsonResult,
+  extra?: EngineResponseMeta,
+): EngineResponseMeta | undefined {
+  const meta: EngineResponseMeta = {
     sessionId: extra?.sessionId ?? result.sessionId,
     stopReason: extra?.stopReason ?? result.stopReason,
     requestId: extra?.requestId ?? result.requestId,

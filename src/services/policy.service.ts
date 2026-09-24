@@ -21,7 +21,7 @@ export class PolicyService {
   ): Promise<ResolvedPolicy> {
     const settings = await settingsService.getAll();
     const keyMode = normalizeApiKeyMode(apiKey.role, apiKey.mode);
-    const forcedSafe = settings.globalSafeMode || env.GROK_SAFE_MODE;
+    const forcedSafe = settings.globalSafeMode || env.OMNI_SAFE_MODE;
     const mode: ApiKeyMode = forcedSafe ? KEY_MODES.SAFE : keyMode;
 
     if (mode === KEY_MODES.SAFE) {
@@ -56,9 +56,9 @@ export class PolicyService {
 
     return {
       mode,
-      alwaysApprove: env.GROK_ALWAYS_APPROVE,
+      alwaysApprove: env.OMNI_ALWAYS_APPROVE,
       cwd: resolveSafeCwd(clientCwd),
-      timeoutMs: apiKey.timeoutMs ?? env.GROK_TIMEOUT_MS,
+      timeoutMs: apiKey.timeoutMs ?? env.OMNI_TIMEOUT_MS,
       maxTurns: apiKey.maxTurns ?? null,
       toolsAllowlist: null,
       toolsDenylist: null,

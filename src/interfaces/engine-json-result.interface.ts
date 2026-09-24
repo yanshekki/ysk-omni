@@ -1,4 +1,4 @@
-export interface GrokJsonResult {
+export interface EngineJsonResult {
   text?: string;
   stopReason?: string;
   sessionId?: string;

@@ -90,13 +90,6 @@ router.post('/catalog/rm', adminController.catalogRemove);
 router.post('/models/load', adminController.loadModel);
 router.post('/models/unload', adminController.unloadModel);
 router.get('/system', adminController.system);
-router.get('/grok/inspect', adminController.grokInspect);
-router.get('/grok/sessions', adminController.grokSessionsList);
-router.delete(
-  '/grok/sessions/:id',
-  validate(adminIdParamSchema, 'params'),
-  adminController.grokSessionsDelete,
-);
 router.get('/system/update-check', adminController.checkUpdate);
 router.post('/system/update', adminController.runUpdate);
 
@@ -179,7 +172,7 @@ router.put(
   adminController.updateSettings,
 );
 
-// API protocol + Grok capability feature flags
+// API protocol + capability feature flags
 router.get('/api-features', adminController.apiFeaturesGet);
 router.put('/api-features', adminController.apiFeaturesPut);
 router.post('/api-features/preset', adminController.apiFeaturesPreset);

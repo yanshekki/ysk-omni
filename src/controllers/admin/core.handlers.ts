@@ -12,9 +12,7 @@ import { updateService } from '../../services/update.service';
 import { usageService } from '../../services/usage.service';
 import { modelsService } from '../../services/models.service';
 import { systemHealthService } from '../../services/system-health.service';
-import { grokInspectService } from '../../services/grok-inspect.service';
-import { grokSessionsService } from '../../services/grok-sessions.service';
-import { grokCliService } from '../../services/grok-cli.service';
+import { engineSlotService } from '../../services/engine-slot.service';
 import { encryptionService } from '../../services/encryption.service';
 import { llamaServerBin } from '../../services/runtimes/llama-server';
 import { requestIp } from '../../utils/client-ip';
@@ -145,16 +143,16 @@ export const adminCoreHandlers = {
         database: dbOk ? 'up' : 'down',
         textEngine: textEngineUp ? 'up' : 'down',
         concurrency: {
-          active: grokCliService.activeCount,
-          max: grokCliService.maxConcurrent,
+          active: engineSlotService.activeCount,
+          max: engineSlotService.maxConcurrent,
         },
         version,
         software,
         updating: updateService.isUpdating(),
         env: {
           nodeEnv: env.NODE_ENV,
-          safeModeEnv: env.GROK_SAFE_MODE,
-          defaultModel: env.GROK_DEFAULT_MODEL,
+          safeModeEnv: env.OMNI_SAFE_MODE,
+          defaultModel: env.OMNI_DEFAULT_MODEL,
           storageDir: env.storageDir,
           adminPanelEnabled: env.ADMIN_PANEL_ENABLED,
           port: env.PORT,
@@ -164,49 +162,6 @@ export const adminCoreHandlers = {
         },
       },
     });
-  }),
-
-  grokInspect: asyncHandler(async (_req: Request, res: Response) => {
-    const data = await grokInspectService.snapshot();
-    res.json({ object: 'admin.grok_inspect', data });
-  }),
-
-  grokSessionsList: asyncHandler(async (req: Request, res: Response) => {
-    const q = typeof req.query.q === 'string' ? req.query.q : '';
-    const cwd = typeof req.query.cwd === 'string' ? req.query.cwd : '';
-    const limit = Number(req.query.limit);
-    const offset = Number(req.query.offset);
-    const result = await grokSessionsService.list({
-      q,
-      cwd,
-      limit: Number.isFinite(limit) ? limit : undefined,
-      offset: Number.isFinite(offset) ? offset : undefined,
-    });
-    res.json({
-      object: 'admin.grok_sessions',
-      data: result.data,
-      total: result.total,
-    });
-  }),
-
-  grokSessionsDelete: asyncHandler(async (req: Request, res: Response) => {
-    if (!req.apiKey) throw ExceptionFactory.unauthorized();
-    const id = String(req.params.id || '');
-    let data: { id: string; deleted: boolean };
-    try {
-      data = await grokSessionsService.delete(id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      throw ExceptionFactory.validation(msg);
-    }
-    await auditService.log({
-      apiKeyId: req.apiKey.id,
-      action: AUDIT_ACTIONS.GROK_SESSION_DELETE,
-      resource: 'grok_session',
-      resourceId: id,
-      ip: requestIp(req),
-    });
-    res.json({ object: 'admin.grok_session_deleted', data });
   }),
 
   checkUpdate: asyncHandler(async (req: Request, res: Response) => {

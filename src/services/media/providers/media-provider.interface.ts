@@ -1,4 +1,4 @@
-/** Pluggable media generation backends (Grok tools, HTTP providers, mock). */
+/** Pluggable media generation backends (media tools, HTTP providers, mock). */
 
 export type MediaKind = 'image' | 'video' | 'audio' | 'file';
 
@@ -21,7 +21,7 @@ export interface ImageGenRequest {
   n?: number;
   /** OpenAI-compat pixel size or legacy field; prefer aspectRatio */
   size?: string;
-  /** Grok Imagine aspect_ratio (1:1, 16:9, …) */
+  /** image generation aspect_ratio (1:1, 16:9, …) */
   aspectRatio?: string;
   /** Working directory for tool-based providers */
   cwd?: string;

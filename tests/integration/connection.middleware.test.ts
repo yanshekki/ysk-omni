@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -15,7 +15,7 @@ describe('connection / middleware matrix', () => {
 
   beforeAll(async () => {
     h = await startHarness('conn');
-    mockGrokStream();
+    mockEngineStream();
   }, 60_000);
 
   afterAll(async () => {

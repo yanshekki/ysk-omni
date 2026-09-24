@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_API_FEATURES } from '../../src/interfaces/api-features.type';
 import {
-  buildGrokRequestFromChatDto,
+  buildEngineRequestFromChatDto,
   buildVisionPromptJson,
-} from '../../src/services/grok-request-builder.service';
+} from '../../src/services/chat-request-builder.service';
 import type { ResolvedPolicy } from '../../src/interfaces/resolved-policy.interface';
 
 const policy: ResolvedPolicy = {
@@ -17,7 +17,7 @@ const policy: ResolvedPolicy = {
   sandboxForced: false,
 };
 
-describe('grok-request-builder vision', () => {
+describe('chat-request-builder vision', () => {
   it('maps OpenAI data-URL images to ACP { type, mimeType, data }', () => {
     const built = buildVisionPromptJson([
       {
@@ -70,9 +70,9 @@ describe('grok-request-builder vision', () => {
   });
 
   it('does not emit removed --best-of-n / --check flags', () => {
-    const req = buildGrokRequestFromChatDto(
+    const req = buildEngineRequestFromChatDto(
       {
-        model: 'grok-4.6',
+        model: 'echo',
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
         include_reasoning: true,
@@ -87,7 +87,7 @@ describe('grok-request-builder vision', () => {
   });
 });
 
-describe('grok-request-builder safe lock', () => {
+describe('chat-request-builder safe lock', () => {
   const safePolicy: ResolvedPolicy = {
     mode: 'safe',
     cwd: '/tmp/sandbox',
@@ -100,9 +100,9 @@ describe('grok-request-builder safe lock', () => {
   };
 
   it('does not merge client tools or pass privilege flags in safe mode', () => {
-    const req = buildGrokRequestFromChatDto(
+    const req = buildEngineRequestFromChatDto(
       {
-        model: 'grok-4.6',
+        model: 'echo',
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
         include_reasoning: true,
@@ -141,9 +141,9 @@ describe('grok-request-builder safe lock', () => {
   });
 
   it('still merges tools for agent policy', () => {
-    const req = buildGrokRequestFromChatDto(
+    const req = buildEngineRequestFromChatDto(
       {
-        model: 'grok-4.6',
+        model: 'echo',
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
         include_reasoning: true,

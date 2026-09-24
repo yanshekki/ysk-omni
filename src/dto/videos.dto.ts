@@ -1,34 +1,34 @@
 import { z } from 'zod';
 import {
-  GROK_ASPECT_RATIOS,
-  GROK_VIDEO_MAX_SECONDS,
-  GROK_VIDEO_MIN_SECONDS,
-  GROK_VIDEO_VOICES,
+  ASPECT_RATIOS,
+  VIDEO_MAX_SECONDS,
+  VIDEO_MIN_SECONDS,
+  VIDEO_VOICES,
   MAX_MESSAGE_CHARS,
 } from '../config/constants';
 
 const aspectRatioEnum = z.enum(
-  GROK_ASPECT_RATIOS as unknown as [string, ...string[]],
+  ASPECT_RATIOS as unknown as [string, ...string[]],
 );
 
-/** Snap to Grok image_to_video / reference_to_video duration (1–15s since 1.0.1). */
+/** Snap to image-to-video / reference_to_video duration (1–15s since 1.0.1). */
 function snapVideoSeconds(v: unknown): number {
   if (v === undefined || v === null || v === '') return 6;
   const n = Number(v);
   if (!Number.isFinite(n)) return 6;
   return Math.min(
-    GROK_VIDEO_MAX_SECONDS,
-    Math.max(GROK_VIDEO_MIN_SECONDS, Math.round(n)),
+    VIDEO_MAX_SECONDS,
+    Math.max(VIDEO_MIN_SECONDS, Math.round(n)),
   );
 }
 
 export const createVideoSchema = z.object({
   prompt: z.string().min(1).max(MAX_MESSAGE_CHARS),
   model: z.string().min(1).max(128).optional(),
-  /** Grok video duration in seconds (1–15, default 6). */
+  /** Video duration in seconds (1–15, default 6). */
   seconds: z.preprocess(
     snapVideoSeconds,
-    z.number().int().min(GROK_VIDEO_MIN_SECONDS).max(GROK_VIDEO_MAX_SECONDS),
+    z.number().int().min(VIDEO_MIN_SECONDS).max(VIDEO_MAX_SECONDS),
   ),
   aspect_ratio: aspectRatioEnum.optional(),
   /** Optional media-library asset id (image) for image_to_video */
@@ -39,7 +39,7 @@ export const createVideoSchema = z.object({
   source_document_id: z.string().uuid().optional(),
   /** Preset Imagine voices (max 3). Presence selects reference_to_video. */
   voices: z
-    .array(z.enum(GROK_VIDEO_VOICES as unknown as [string, ...string[]]))
+    .array(z.enum(VIDEO_VOICES as unknown as [string, ...string[]]))
     .max(3)
     .optional(),
   format: z.enum(['mp4', 'webm', 'mov']).optional(),

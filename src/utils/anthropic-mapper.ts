@@ -114,7 +114,7 @@ export function anthropicMessageToOpenAiMessages(m: {
             typeof input === 'string' ? input : JSON.stringify(input ?? {}),
         },
       });
-      // Also keep a text trail for Grok prompt context
+      // Also keep a text trail for prompt context
       textParts.push(
         `[tool_use name=${name} id=${id}] ${typeof input === 'string' ? input : JSON.stringify(input)}`,
       );

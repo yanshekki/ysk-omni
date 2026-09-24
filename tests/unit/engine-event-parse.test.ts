@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
-  parseGrokToolCallEvent,
-  parseGrokUsage,
-} from '../../src/utils/grok-event-parse';
+  parseEngineToolCallEvent,
+  parseEngineUsage,
+} from '../../src/utils/engine-event-parse';
 
-describe('grok-event-parse', () => {
+describe('engine-event-parse', () => {
   it('parses usage camelCase and snake_case', () => {
     expect(
-      parseGrokUsage({ input_tokens: 1, output_tokens: 2 })?.total_tokens,
+      parseEngineUsage({ input_tokens: 1, output_tokens: 2 })?.total_tokens,
     ).toBe(3);
     expect(
-      parseGrokUsage({ inputTokens: 4, outputTokens: 5 })?.total_tokens,
+      parseEngineUsage({ inputTokens: 4, outputTokens: 5 })?.total_tokens,
     ).toBe(9);
   });
 
   it('includes cache buckets in total_tokens', () => {
-    const u = parseGrokUsage({
+    const u = parseEngineUsage({
       input_tokens: 10,
       cache_read_input_tokens: 40,
       cache_creation_input_tokens: 5,
@@ -26,7 +26,7 @@ describe('grok-event-parse', () => {
   });
 
   it('maps ACP tool_call toolName/rawInput/toolCallId', () => {
-    const calls = parseGrokToolCallEvent({
+    const calls = parseEngineToolCallEvent({
       type: 'tool_call',
       toolCallId: 'call_1',
       toolName: 'read_file',
@@ -41,7 +41,7 @@ describe('grok-event-parse', () => {
 
   it('ignores tool_call_update', () => {
     expect(
-      parseGrokToolCallEvent({
+      parseEngineToolCallEvent({
         type: 'tool_call_update',
         toolCallId: 'call_1',
         toolName: 'read_file',
@@ -51,7 +51,7 @@ describe('grok-event-parse', () => {
   });
 
   it('parses multiple tool event shapes', () => {
-    const a = parseGrokToolCallEvent({
+    const a = parseEngineToolCallEvent({
       type: 'tool_use',
       name: 'search',
       input: { q: 'x' },
@@ -59,7 +59,7 @@ describe('grok-event-parse', () => {
     });
     expect(a[0]?.function.name).toBe('search');
 
-    const b = parseGrokToolCallEvent({
+    const b = parseEngineToolCallEvent({
       type: 'tool_call',
       data: {
         function: { name: 'fn', arguments: '{"a":1}' },
@@ -68,7 +68,7 @@ describe('grok-event-parse', () => {
     });
     expect(b[0]?.function.name).toBe('fn');
 
-    const c = parseGrokToolCallEvent({
+    const c = parseEngineToolCallEvent({
       type: 'end',
       tool_calls: [
         {

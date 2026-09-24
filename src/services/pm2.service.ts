@@ -394,7 +394,7 @@ export class Pm2Service {
       const list = JSON.parse(stdout || '[]') as Array<Record<string, unknown>>;
       const app =
         list.find((p) => p.name === appName) ||
-        list.find((p) => String(p.name || '').includes('grok'));
+        list.find((p) => String(p.name || '').includes('ysk-omni'));
 
       if (!app) {
         let messageKey = 'pm2.msgNotInList';

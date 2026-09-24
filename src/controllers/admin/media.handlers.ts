@@ -286,12 +286,12 @@ export const adminMediaHandlers = {
       apiKeyId: req.apiKey.id,
       action: AUDIT_ACTIONS.MEDIA_GENERATE,
       resource: 'media_asset',
-      resourceId: result.grok?.asset_ids?.[0],
+      resourceId: result.omni?.asset_ids?.[0],
       meta: {
         via: 'admin.media.generate',
         asKeyId: actor.id,
         asKeyName: actor.name,
-        count: result.grok?.asset_ids?.length ?? 0,
+        count: result.omni?.asset_ids?.length ?? 0,
         aspect_ratio: body.aspect_ratio || body.size || null,
       },
       ip: requestIp(req),
@@ -369,11 +369,11 @@ export const adminMediaHandlers = {
       apiKeyId: req.apiKey.id,
       action: AUDIT_ACTIONS.MEDIA_GENERATE,
       resource: 'media_asset',
-      resourceId: result.grok?.asset_ids?.[0],
+      resourceId: result.omni?.asset_ids?.[0],
       meta: {
         via: 'admin.media.edit',
         asKeyId: actor.id,
-        count: result.grok?.asset_ids?.length ?? 0,
+        count: result.omni?.asset_ids?.length ?? 0,
         sourceKind: source.kind,
         sourceId: source.id,
       },
@@ -389,7 +389,7 @@ export const adminMediaHandlers = {
   /**
    * Admin SPA: enqueue video job.
    * Source frame (optional): multipart `image`, media asset id, or document id.
-   * If none, a frame is generated from the prompt first (Grok image_to_video).
+   * If none, a frame is generated from the prompt first (image-to-video).
    */
   createVideo: asyncHandler(async (req: Request, res: Response) => {
     if (!req.apiKey) throw ExceptionFactory.unauthorized();
@@ -416,12 +416,12 @@ export const adminMediaHandlers = {
         ? voicesRaw.split(',').map((s: string) => s.trim()).filter(Boolean)
         : undefined;
     if (voices?.length) {
-      const { GROK_VIDEO_VOICES } = await import('../../config/constants');
-      const allowed = new Set<string>(GROK_VIDEO_VOICES);
+      const { VIDEO_VOICES } = await import('../../config/constants');
+      const allowed = new Set<string>(VIDEO_VOICES);
       const bad = voices.filter((v) => !allowed.has(v));
       if (bad.length) {
         throw ExceptionFactory.validation(
-          `Unknown video voice(s): ${bad.join(', ')}. Allowed: ${GROK_VIDEO_VOICES.join(', ')}`,
+          `Unknown video voice(s): ${bad.join(', ')}. Allowed: ${VIDEO_VOICES.join(', ')}`,
         );
       }
     }

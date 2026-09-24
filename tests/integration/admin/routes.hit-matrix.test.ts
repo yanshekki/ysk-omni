@@ -6,7 +6,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiFetch,
-  mockGrokStream,
+  mockEngineStream,
   startHarness,
   stopHarness,
   type Harness,
@@ -43,8 +43,7 @@ const HITS: Hit[] = [
   { method: 'GET', path: '/admin/api/usage', ok: [200, 500, 503] },
   { method: 'GET', path: '/admin/api/models', ok: [200, 500, 503] },
   { method: 'GET', path: '/admin/api/system', ok: [200, 500, 503] },
-  { method: 'GET', path: '/admin/api/grok/inspect', ok: [200, 500, 503] },
-  { method: 'GET', path: '/admin/api/grok/sessions', ok: [200, 500, 503] },
+
   {
     method: 'GET',
     path: '/admin/api/system/update-check',
@@ -316,7 +315,7 @@ const HITS: Hit[] = [
     method: 'POST',
     path: '/admin/api/chat/completions',
     body: {
-      model: 'grok-4.5',
+      model: 'echo',
       messages: [{ role: 'user', content: 'ping' }],
       stream: false,
     },
@@ -344,7 +343,7 @@ describe('admin API hit matrix (every route)', () => {
   beforeAll(async () => {
     h = await startHarness('hit-adm');
     if (!h) return;
-    mockGrokStream('hit-matrix');
+    mockEngineStream('hit-matrix');
     setMediaProviderForTests(mockMediaProvider);
     await apiFeaturesService.update({
       imagesApi: true,

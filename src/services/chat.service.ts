@@ -10,9 +10,9 @@ import {
 } from '../config/constants';
 import type { CreateChatCompletionDto } from '../dto/chat.dto';
 import type { ChatContext } from '../interfaces/chat-context.interface';
-import type { GrokCollectedOutput } from '../interfaces/grok-collected-output.interface';
-import type { GrokRunOptions } from '../interfaces/grok-run-options.interface';
-import type { GrokResponseMeta } from '../interfaces/grok-response-meta.interface';
+import type { EngineCollectedOutput } from '../interfaces/engine-collected-output.interface';
+import type { EngineRunOptions } from '../interfaces/engine-run-options.interface';
+import type { EngineResponseMeta } from '../interfaces/engine-response-meta.interface';
 import type { OpenAiChatCompletion } from '../interfaces/open-ai-chat-completion.interface';
 import type { ResolvedPolicy } from '../interfaces/resolved-policy.interface';
 import { ExceptionFactory } from '../exceptions/exception.factory';
@@ -28,7 +28,7 @@ import { rmSafe, ensureDir } from '../utils/fs-safe';
 import { toBytes } from '../utils/prisma-bytes';
 import {
   mapFinishChunk,
-  mapGrokToChatCompletion,
+  mapEngineToChatCompletion,
   mapReasoningDeltaChunk,
   mapRoleChunk,
   mapTextDeltaChunk,
@@ -43,7 +43,7 @@ import { logger } from '../utils/logger';
 import { auditService } from './audit.service';
 import { documentService } from './document.service';
 import { encryptionService } from './encryption.service';
-import { grokCliService } from './grok-cli.service';
+import { engineSlotService } from './engine-slot.service';
 import {
   ECHO_MODEL_ID,
   echoCompletion,
@@ -53,7 +53,7 @@ import { engineManager } from './runtimes/engine-manager';
 import { llamaServerBin } from './runtimes/llama-server';
 import { vllmAvailable } from './runtimes/vllm';
 import { findEntry } from './hf/registry';
-import { grokSessionMapService } from './grok-session-map.service';
+import { engineSessionMapService } from './engine-session-map.service';
 import { policyService } from './policy.service';
 import { settingsService } from './settings.service';
 import { chatQueueService } from './queue/chat-queue.service';
@@ -61,13 +61,13 @@ import { jobWaiterRegistry } from './queue/job-waiter';
 import { queuePolicyService } from './queue/queue-policy.service';
 import type { StreamWireFormat } from '../interfaces/chat-job-payload.interface';
 import type { ExecuteCompletionOptions } from '../interfaces/execute-completion-options.interface';
-import type { GrokToolCall, GrokUsage } from '../interfaces/grok-collected-output.interface';
+import type { EngineToolCall, EngineUsage } from '../interfaces/engine-collected-output.interface';
 import { mapAnthropicStopReason } from '../utils/anthropic-mapper';
 import { apiFeaturesService } from './api-features.service';
 import {
-  buildGrokRequestFromChatDto,
+  buildEngineRequestFromChatDto,
   estimateCompletionTokens,
-} from './grok-request-builder.service';
+} from './chat-request-builder.service';
 import { messageHasImageParts } from '../utils/message-content';
 import { inlineRemoteImageUrls } from '../utils/vision-remote';
 
@@ -83,9 +83,9 @@ function policyToRunOpts(
     toolsDenylist?: string | null;
     promptJson?: string;
     jsonSchema?: string;
-    extra?: Partial<GrokRunOptions>;
+    extra?: Partial<EngineRunOptions>;
   },
-): GrokRunOptions {
+): EngineRunOptions {
   return {
     ...(base.extra || {}),
     prompt: base.prompt,
@@ -267,7 +267,7 @@ export class ChatService {
   }
 
   /**
-   * Run Grok completion (worker or direct). Does not enqueue.
+   * Run completion (worker or direct). Does not enqueue.
    */
   async executeCompletion(
     dto: CreateChatCompletionDto,
@@ -311,14 +311,14 @@ export class ChatService {
     const includeReasoning = dto.include_reasoning !== false;
     const policy = await policyService.resolve(ctx.apiKey, dto.cwd);
 
-    // Feature gates + Grok flag mapping (tools, vision, schema, effort, …)
+    // Feature gates + feature mapping (tools, vision, schema, effort, …)
     const hasRemoteImages = dto.messages.some((m) =>
       messageHasImageParts(m.content),
     );
     if (hasRemoteImages && features.vision) {
       dto.messages = await inlineRemoteImageUrls(dto.messages);
     }
-    const builtReq = buildGrokRequestFromChatDto(dto, policy, features);
+    const builtReq = buildEngineRequestFromChatDto(dto, policy, features);
 
     const documentIds = [
       ...new Set((dto.document_ids ?? []).filter((id) => typeof id === 'string' && id)),
@@ -362,7 +362,7 @@ export class ChatService {
             contextChars: docContext.length,
             attachDir: attachRel,
           },
-          'Document context prepared for Grok CLI',
+          'Document context prepared for local engine',
         );
       }
 
@@ -396,7 +396,7 @@ export class ChatService {
         );
       }
 
-      const extra: Partial<GrokRunOptions> = { ...builtReq.extra };
+      const extra: Partial<EngineRunOptions> = { ...builtReq.extra };
       // Never pass raw client resume / OS-global --continue (cross-tenant).
       extra.continueSession = false;
       const sessionHint =
@@ -405,15 +405,15 @@ export class ChatService {
       extra.sessionId = extra.sessionId;
       extra.forkSession = Boolean(extra.forkSession && sessionHint);
       if (sessionHint) {
-        const binding = await grokSessionMapService.resolve(
+        const binding = await engineSessionMapService.resolve(
           ctx.apiKey.id,
           sessionHint,
         );
         if (binding.mode === 'resume') {
-          extra.resumeSessionId = binding.grokSessionId;
+          extra.resumeSessionId = binding.engineSessionId;
           extra.sessionId = undefined;
         } else {
-          extra.sessionId = binding.grokSessionId;
+          extra.sessionId = binding.engineSessionId;
         }
       }
 
@@ -432,12 +432,12 @@ export class ChatService {
 
       // Queue worker already limits concurrency; direct mode still uses in-process slots
       const fromQueue = Boolean(options?.fromQueue);
-      if (!fromQueue && !grokCliService.tryAcquire()) {
+      if (!fromQueue && !engineSlotService.tryAcquire()) {
         throw ExceptionFactory.concurrencyLimit();
       }
       if (fromQueue) {
         // Soft acquire so stats still reflect load (best-effort)
-        grokCliService.tryAcquire();
+        engineSlotService.tryAcquire();
       }
 
       const chatRequestDbId = createId();
@@ -512,10 +512,10 @@ export class ChatService {
           return;
         }
 
-        const collected = await this.collectFromGrokStream(
+        const collected = await this.collectFromEngineStream(
           policyToRunOpts(policy, runBase),
         );
-        await this.rememberGrokSession(
+        await this.rememberEngineSession(
           ctx.apiKey.id,
           dto.session_id,
           collected.sessionId,
@@ -530,7 +530,7 @@ export class ChatService {
           data: {
             status: CHAT_STATUS.SUCCESS,
             durationMs,
-            grokSessionId: collected.sessionId ?? null,
+            engineSessionId: collected.sessionId ?? null,
             responseCiphertext: toBytes(responseEnc.ciphertext),
             responseIv: toBytes(responseEnc.iv),
             responseTag: toBytes(responseEnc.tag),
@@ -555,8 +555,8 @@ export class ChatService {
           ip: ctx.ip,
         });
 
-        const { usageToOpenAi, grokUsageToMetaCost } = await import(
-          '../utils/grok-event-parse'
+        const { usageToOpenAi, engineUsageToMetaCost } = await import(
+          '../utils/engine-event-parse'
         );
         let usage = usageToOpenAi(collected.usage);
         let usageEstimated = false;
@@ -572,7 +572,7 @@ export class ChatService {
           };
           usageEstimated = true;
         }
-        const completion = mapGrokToChatCompletion(
+        const completion = mapEngineToChatCompletion(
           model,
           {
             text: collected.text,
@@ -586,12 +586,12 @@ export class ChatService {
             includeReasoning,
             usage,
             toolCalls: collected.toolCalls,
-            grok: {
+            omni: {
               sessionId: collected.sessionId,
               stopReason: collected.stopReason,
               requestId: collected.requestId,
               numTurns: collected.numTurns,
-              cost: grokUsageToMetaCost(collected.usage),
+              cost: engineUsageToMetaCost(collected.usage),
             },
           },
         );
@@ -603,7 +603,7 @@ export class ChatService {
         await this.markFailed(chatRequestDbId, started, err);
         throw err;
       } finally {
-        grokCliService.release();
+        engineSlotService.release();
       }
     } finally {
       if (attachDir) {
@@ -744,40 +744,40 @@ export class ChatService {
     });
   }
 
-  private async rememberGrokSession(
+  private async rememberEngineSession(
     apiKeyId: string,
     clientSessionId: string | undefined,
-    grokSessionId: string | undefined,
+    engineSessionId: string | undefined,
   ): Promise<void> {
-    if (!clientSessionId?.trim() || !grokSessionId) return;
+    if (!clientSessionId?.trim() || !engineSessionId) return;
     try {
-      await grokSessionMapService.remember(
+      await engineSessionMapService.remember(
         apiKeyId,
         clientSessionId,
-        grokSessionId,
+        engineSessionId,
       );
     } catch (err) {
-      logger.warn({ err, apiKeyId }, 'Failed to persist Grok session alias');
+      logger.warn({ err, apiKeyId }, 'Failed to persist engine session alias');
     }
   }
 
-  private async collectFromGrokStream(
-    options: GrokRunOptions,
-  ): Promise<GrokCollectedOutput> {
+  private async collectFromEngineStream(
+    options: EngineRunOptions,
+  ): Promise<EngineCollectedOutput> {
     const textParts: string[] = [];
     const reasoningParts: string[] = [];
-    const toolCalls: GrokToolCall[] = [];
+    const toolCalls: EngineToolCall[] = [];
     let sessionId: string | undefined;
     let stopReason: string | undefined;
     let requestId: string | undefined;
-    let usage: GrokUsage | undefined;
+    let usage: EngineUsage | undefined;
     let numTurns: number | undefined;
 
-    const { parseGrokUsage, parseGrokToolCallEvent } = await import(
-      '../utils/grok-event-parse'
+    const { parseEngineUsage, parseEngineToolCallEvent } = await import(
+      '../utils/engine-event-parse'
     );
 
-    for await (const event of grokCliService.stream({ ...options, stream: true })) {
+    for await (const event of engineSlotService.stream({ ...options, stream: true })) {
       if (event.type === 'thought' && typeof event.data === 'string') {
         reasoningParts.push(event.data);
       } else if (event.type === 'text' && typeof event.data === 'string') {
@@ -786,10 +786,10 @@ export class ChatService {
         if (typeof event.stopReason === 'string') stopReason = event.stopReason;
         if (typeof event.sessionId === 'string') sessionId = event.sessionId;
         if (typeof event.requestId === 'string') requestId = event.requestId;
-        if (event.usage) usage = parseGrokUsage(event.usage);
+        if (event.usage) usage = parseEngineUsage(event.usage);
         if (typeof event.num_turns === 'number') numTurns = event.num_turns;
       } else {
-        toolCalls.push(...parseGrokToolCallEvent(event));
+        toolCalls.push(...parseEngineToolCallEvent(event));
       }
     }
 
@@ -806,7 +806,7 @@ export class ChatService {
   }
 
   private buildAuditPayload(
-    collected: GrokCollectedOutput,
+    collected: EngineCollectedOutput,
     includeReasoning: boolean,
   ): string {
     if (!includeReasoning || !collected.reasoning) {
@@ -833,7 +833,7 @@ export class ChatService {
     jobId?: string;
     wireFormat?: StreamWireFormat;
     suppressQueueEvents?: boolean;
-    runOpts?: GrokRunOptions;
+    runOpts?: EngineRunOptions;
     usageEstimate?: boolean;
     estimatedPromptTokens?: number;
   }): Promise<void> {
@@ -857,22 +857,22 @@ export class ChatService {
     const created = Math.floor(Date.now() / 1000);
     const textParts: string[] = [];
     const reasoningParts: string[] = [];
-    const toolCalls: GrokToolCall[] = [];
-    let grokSessionId: string | undefined;
+    const toolCalls: EngineToolCall[] = [];
+    let engineSessionId: string | undefined;
     let stopReason: string | undefined;
-    let grokRequestId: string | undefined;
-    let streamUsage: GrokUsage | undefined;
+    let engineRequestId: string | undefined;
+    let streamUsage: EngineUsage | undefined;
     let clientClosed = false;
 
     const msgId = createMessageId();
     const respId = createResponseId();
     const outputItemId = `msg_${createId().replace(/-/g, '').slice(0, 20)}`;
     const {
-      parseGrokUsage,
-      parseGrokToolCallEvent,
+      parseEngineUsage,
+      parseEngineToolCallEvent,
       usageToOpenAi,
-      grokUsageToMetaCost,
-    } = await import('../utils/grok-event-parse');
+      engineUsageToMetaCost,
+    } = await import('../utils/engine-event-parse');
 
     res.on('close', () => {
       clientClosed = true;
@@ -946,7 +946,7 @@ export class ChatService {
       });
     }
 
-    const streamOpts: GrokRunOptions =
+    const streamOpts: EngineRunOptions =
       runOpts ||
       policyToRunOpts(policy, {
         prompt,
@@ -957,7 +957,7 @@ export class ChatService {
       });
 
     try {
-      for await (const event of grokCliService.stream(streamOpts)) {
+      for await (const event of engineSlotService.stream(streamOpts)) {
         if (clientClosed) break;
 
         if (event.type === 'thought' && typeof event.data === 'string') {
@@ -991,9 +991,9 @@ export class ChatService {
           }
         } else if (event.type === 'end') {
           if (typeof event.stopReason === 'string') stopReason = event.stopReason;
-          if (typeof event.sessionId === 'string') grokSessionId = event.sessionId;
-          if (typeof event.requestId === 'string') grokRequestId = event.requestId;
-          if (event.usage) streamUsage = parseGrokUsage(event.usage);
+          if (typeof event.sessionId === 'string') engineSessionId = event.sessionId;
+          if (typeof event.requestId === 'string') engineRequestId = event.requestId;
+          if (event.usage) streamUsage = parseEngineUsage(event.usage);
         } else {
           const evType = String(event.type || '');
           if (
@@ -1009,7 +1009,7 @@ export class ChatService {
               created,
               model,
               choices: [{ index: 0, delta: {}, finish_reason: null }],
-              grok_event: {
+              omni_event: {
                 type: evType,
                 toolCallId:
                   typeof rec.toolCallId === 'string'
@@ -1025,7 +1025,7 @@ export class ChatService {
               },
             });
           }
-          const tcs = parseGrokToolCallEvent(event);
+          const tcs = parseEngineToolCallEvent(event);
           if (tcs.length && wireFormat === 'openai') {
             for (let i = 0; i < tcs.length; i++) {
               const tc = tcs[i]!;
@@ -1064,11 +1064,11 @@ export class ChatService {
 
       if (!clientClosed) {
         if (wireFormat === 'openai') {
-          const grokMeta: GrokResponseMeta = {
-            sessionId: grokSessionId,
+          const engineMeta: EngineResponseMeta = {
+            sessionId: engineSessionId,
             stopReason,
-            requestId: grokRequestId,
-            cost: grokUsageToMetaCost(streamUsage),
+            requestId: engineRequestId,
+            cost: engineUsageToMetaCost(streamUsage),
           };
           const finishChunk = mapFinishChunk(
             model,
@@ -1077,7 +1077,7 @@ export class ChatService {
             toolCalls.length && !textParts.join('').trim()
               ? 'tool_calls'
               : stopReason,
-            grokMeta,
+            engineMeta,
           );
           if (streamUsage || args.usageEstimate) {
             finishChunk.usage = streamUsage
@@ -1099,7 +1099,7 @@ export class ChatService {
             type: 'content_block_stop',
             index: 0,
           });
-          // Emit tool_use content blocks when Grok surfaced tool calls
+          // Emit tool_use content blocks when the engine surfaced tool calls
           let blockIndex = 1;
           for (const tc of toolCalls) {
             let input: Record<string, unknown> = {};
@@ -1208,14 +1208,14 @@ export class ChatService {
         res.end();
       }
 
-      const collected: GrokCollectedOutput = {
+      const collected: EngineCollectedOutput = {
         text: textParts.join(''),
         reasoning: reasoningParts.join(''),
-        sessionId: grokSessionId,
+        sessionId: engineSessionId,
         stopReason,
-        requestId: grokRequestId,
+        requestId: engineRequestId,
       };
-      await this.rememberGrokSession(ctx.apiKey.id, dto.session_id, grokSessionId);
+      await this.rememberEngineSession(ctx.apiKey.id, dto.session_id, engineSessionId);
       const auditPayload = this.buildAuditPayload(collected, includeReasoning);
       const responseEnc = encryptionService.encrypt(auditPayload);
       const durationMs = Date.now() - started;
@@ -1225,7 +1225,7 @@ export class ChatService {
         data: {
           status: clientClosed ? CHAT_STATUS.CANCELLED : CHAT_STATUS.SUCCESS,
           durationMs,
-          grokSessionId: grokSessionId ?? null,
+          engineSessionId: engineSessionId ?? null,
           responseCiphertext: toBytes(responseEnc.ciphertext),
           responseIv: toBytes(responseEnc.iv),
           responseTag: toBytes(responseEnc.tag),
@@ -1275,7 +1275,7 @@ export class ChatService {
   ): Promise<void> {
     const durationMs = Date.now() - started;
     const message = err instanceof Error ? err.message : 'Unknown error';
-    const isTimeout = err instanceof HttpException && err.code === 'grok_timeout';
+    const isTimeout = err instanceof HttpException && err.code === 'engine_timeout';
 
     try {
       await prisma.chatRequest.update({

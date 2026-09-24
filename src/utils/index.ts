@@ -34,7 +34,7 @@ export {
 } from './request-meta';
 export { logger } from './logger';
 export {
-  mapGrokToChatCompletion,
+  mapEngineToChatCompletion,
   mapTextDeltaChunk,
   mapReasoningDeltaChunk,
   mapRoleChunk,
