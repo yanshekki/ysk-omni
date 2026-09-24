@@ -34,6 +34,7 @@ export const adminController = {
   unloadModel: adminCatalogHandlers.unloadModel,
   runtimes: adminRuntimesHandlers.list,
   runtimesInstall: adminRuntimesHandlers.install,
+  runtimesUninstall: adminRuntimesHandlers.uninstall,
   apiFeaturesGet: adminApiFeaturesHandlers.get,
   apiFeaturesPut: adminApiFeaturesHandlers.put,
   apiFeaturesPreset: adminApiFeaturesHandlers.preset,

@@ -3,11 +3,14 @@ import { PassThrough } from 'node:stream';
 import { describe, expect, it } from 'vitest';
 import {
   INSTALL_STEPS,
+  UNINSTALL_STEPS,
   hostOs,
   installArgv,
+  uninstallArgv,
 } from '../../src/services/runtimes/runtime-catalog';
 import {
   runInstall,
+  runUninstall,
   type InstallEvent,
   type InstallSpawn,
 } from '../../src/services/runtimes/runtime-install';
@@ -92,5 +95,36 @@ describe('runtime one-click install', () => {
     });
     expect(result.ok).toBe(false);
     expect(events.some((e) => e.type === 'error')).toBe(true);
+  });
+
+  it('uninstall argv heads are allowlisted package managers', () => {
+    for (const [id, byOs] of Object.entries(UNINSTALL_STEPS)) {
+      for (const [os, steps] of Object.entries(byOs)) {
+        for (const argv of steps || []) {
+          expect(ALLOWED.has(argv[0] || ''), `${id}/${os}`).toBe(true);
+          expect(argv.join(' ')).toMatch(/uninstall|rm /);
+        }
+      }
+    }
+  });
+
+  it('ComfyUI has no uninstall argv', () => {
+    expect(uninstallArgv('comfy', 'darwin')).toEqual([]);
+    expect(uninstallArgv('vllm', 'darwin')).toEqual([]);
+  });
+
+  it('runUninstall streams step/log/done with a fake spawn', async () => {
+    const events: InstallEvent[] = [];
+    const result = await runUninstall('ffmpeg', (e) => events.push(e), {
+      spawn: fakeSpawn(0, 'Uninstalling ffmpeg\n'),
+    });
+    expect(result.ok).toBe(true);
+    expect(events.some((e) => e.type === 'start' && e.action === 'uninstall')).toBe(
+      true,
+    );
+    expect(events.some((e) => e.type === 'log' && e.line.includes('ffmpeg'))).toBe(
+      true,
+    );
+    expect(events.some((e) => e.type === 'done' && e.code === 0)).toBe(true);
   });
 });

@@ -31,6 +31,7 @@ export type RuntimeReportItem = RuntimeSpec &
     status: 'installed' | 'configured' | 'missing' | 'unsupported';
     /** Host OS has a package-manager argv the gateway can spawn. */
     installable: boolean;
+    uninstallable: boolean;
   };
 
 export type RuntimesReport = {
@@ -349,8 +350,77 @@ export const INSTALL_STEPS: Record<
   },
 };
 
-export function installArgv(id: string, os: HostOs = hostOs()): string[][] {
-  const rows = INSTALL_STEPS[id]?.[os] || [];
+export const UNINSTALL_STEPS: Record<
+  string,
+  Partial<Record<HostOs, readonly (readonly string[])[]>>
+> = {
+  llamacpp: {
+    darwin: [['brew', 'uninstall', '--formula', 'llama.cpp']],
+    linux: [['brew', 'uninstall', '--formula', 'llama.cpp']],
+    win32: [
+      [
+        'winget',
+        'uninstall',
+        '-e',
+        '--id',
+        'ggml.llamacpp',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  vllm: {
+    linux: [['python3', '-m', 'pip', 'uninstall', '-y', 'vllm']],
+  },
+  mlx: {
+    darwin: [['brew', 'uninstall', '--formula', 'mlx-lm']],
+  },
+  ollama: {
+    darwin: [['brew', 'uninstall', '--formula', 'ollama']],
+    linux: [['brew', 'uninstall', '--formula', 'ollama']],
+    win32: [
+      [
+        'winget',
+        'uninstall',
+        '-e',
+        '--id',
+        'Ollama.Ollama',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  ffmpeg: {
+    darwin: [['brew', 'uninstall', '--formula', 'ffmpeg']],
+    linux: [['brew', 'uninstall', '--formula', 'ffmpeg']],
+    win32: [
+      [
+        'winget',
+        'uninstall',
+        '-e',
+        '--id',
+        'Gyan.FFmpeg',
+        '--disable-interactivity',
+      ],
+    ],
+  },
+  whisper: {
+    darwin: [
+      ['python3', '-m', 'pip', 'uninstall', '-y', 'faster-whisper-server'],
+    ],
+    linux: [
+      ['python3', '-m', 'pip', 'uninstall', '-y', 'faster-whisper-server'],
+    ],
+    win32: [
+      ['python3', '-m', 'pip', 'uninstall', '-y', 'faster-whisper-server'],
+    ],
+  },
+  kokoro: {
+    darwin: [['docker', 'rm', '-f', 'ysk-omni-kokoro']],
+    linux: [['docker', 'rm', '-f', 'ysk-omni-kokoro']],
+    win32: [['docker', 'rm', '-f', 'ysk-omni-kokoro']],
+  },
+};
+
+function mapPmArgv(rows: readonly (readonly string[])[]): string[][] {
   return rows.map((argv) => {
     const head = argv[0];
     if (head === 'python3' && !whichBin('python3') && whichBin('python')) {
@@ -358,6 +428,14 @@ export function installArgv(id: string, os: HostOs = hostOs()): string[][] {
     }
     return [...argv];
   });
+}
+
+export function installArgv(id: string, os: HostOs = hostOs()): string[][] {
+  return mapPmArgv(INSTALL_STEPS[id]?.[os] || []);
+}
+
+export function uninstallArgv(id: string, os: HostOs = hostOs()): string[][] {
+  return mapPmArgv(UNINSTALL_STEPS[id]?.[os] || []);
 }
 
 function envSet(name: string): boolean {
@@ -466,7 +544,15 @@ export function buildRuntimesReport(): RuntimesReport {
     else if (probe.installed) status = 'installed';
     else if (probe.configured) status = 'configured';
     const installable = (INSTALL_STEPS[spec.id]?.[os] || []).length > 0;
-    return { ...spec, ...probe, applicable, status, installable };
+    const uninstallable = (UNINSTALL_STEPS[spec.id]?.[os] || []).length > 0;
+    return {
+      ...spec,
+      ...probe,
+      applicable,
+      status,
+      installable,
+      uninstallable,
+    };
   });
   return {
     host: {

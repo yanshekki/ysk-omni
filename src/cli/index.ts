@@ -82,7 +82,11 @@ import {
   cmdLoad,
   cmdUnload,
 } from './commands/catalog';
-import { cmdRuntimes, cmdRuntimesInstall } from './commands/runtimes';
+import {
+  cmdRuntimes,
+  cmdRuntimesInstall,
+  cmdRuntimesUninstall,
+} from './commands/runtimes';
 import {
   cmdGrokInspect,
   cmdGrokSessionsList,
@@ -802,6 +806,14 @@ runtimesCmd
   .argument('<id>', 'Runtime id (llamacpp, ffmpeg, mlx, …)')
   .action(async (id: string) => {
     await cmdRuntimesInstall({ ...globalOpts(), id });
+  });
+
+runtimesCmd
+  .command('uninstall')
+  .description('Uninstall a runtime via Homebrew, pip, winget, or Docker')
+  .argument('<id>', 'Runtime id (llamacpp, ffmpeg, mlx, …)')
+  .action(async (id: string) => {
+    await cmdRuntimesUninstall({ ...globalOpts(), id });
   });
 
 program

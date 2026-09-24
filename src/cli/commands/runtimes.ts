@@ -2,8 +2,12 @@ import {
   buildRuntimesReport,
   hostOs,
   installArgv,
+  uninstallArgv,
 } from '../../services/runtimes/runtime-catalog';
-import { runInstall } from '../../services/runtimes/runtime-install';
+import {
+  runInstall,
+  runUninstall,
+} from '../../services/runtimes/runtime-install';
 import { initCliRuntime, emitJson, type CliOpts } from '../lib/runtime-context';
 import { fail, info, ok, warn } from '../lib/print';
 
@@ -50,6 +54,32 @@ export async function cmdRuntimesInstall(
     else if (ev.type === 'log') info(ev.line);
     else if (ev.type === 'error') fail(ev.message);
     else if (ev.type === 'done' && ev.code === 0) ok(`Installed ${id}`);
+  });
+  if (!result.ok) process.exitCode = 1;
+}
+
+export async function cmdRuntimesUninstall(
+  opts: CliOpts & { id: string },
+): Promise<void> {
+  initCliRuntime(opts);
+  const id = String(opts.id || '')
+    .trim()
+    .toLowerCase();
+  const steps = uninstallArgv(id, hostOs());
+  if (!steps.length) {
+    fail(`No one-click uninstall for ${id} on ${hostOs()}`);
+    process.exitCode = 1;
+    return;
+  }
+  const result = await runUninstall(id, (ev) => {
+    if (opts.json) {
+      console.log(JSON.stringify(ev));
+      return;
+    }
+    if (ev.type === 'step') info(`$ ${ev.argv.join(' ')}`);
+    else if (ev.type === 'log') info(ev.line);
+    else if (ev.type === 'error') fail(ev.message);
+    else if (ev.type === 'done' && ev.code === 0) ok(`Uninstalled ${id}`);
   });
   if (!result.ok) process.exitCode = 1;
 }

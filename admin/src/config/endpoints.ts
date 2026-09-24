@@ -14,6 +14,7 @@ export const endpoints = {
   catalog: '/catalog',
   runtimes: '/runtimes',
   runtimesInstall: '/runtimes/install',
+  runtimesUninstall: '/runtimes/uninstall',
   catalogPull: '/catalog/pull',
   modelsLoad: '/models/load',
   modelsUnload: '/models/unload',

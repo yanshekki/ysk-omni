@@ -10521,20 +10521,34 @@ function paintRuntimeInstallLog() {
     pre.textContent = (job.lines || []).join('\n');
     pre.scrollTop = pre.scrollHeight;
   }
+  const running = job && job.status === 'running';
   document.querySelectorAll('[data-rt-install]').forEach((btn) => {
     const id = btn.getAttribute('data-rt-install');
-    const running = job && job.status === 'running';
     btn.disabled = Boolean(running);
-    if (running && job.id === id) btn.textContent = t('runtimes.installing');
+    if (running && job.id === id && job.action !== 'uninstall') {
+      btn.textContent = t('runtimes.installing');
+    }
+  });
+  document.querySelectorAll('[data-rt-uninstall]').forEach((btn) => {
+    const id = btn.getAttribute('data-rt-uninstall');
+    btn.disabled = Boolean(running);
+    if (running && job.id === id && job.action === 'uninstall') {
+      btn.textContent = t('runtimes.uninstalling');
+    }
   });
 }
 
-async function startRuntimeInstall(id) {
+async function startRuntimeInstall(id, action) {
   if (state.runtimesInstall?.status === 'running') return;
-  state.runtimesInstall = { id, status: 'running', lines: [] };
+  const act = action === 'uninstall' ? 'uninstall' : 'install';
+  state.runtimesInstall = { id, action: act, status: 'running', lines: [] };
   await renderRuntimes();
   try {
-    const res = await fetch(`${API}/runtimes/install`, {
+    const url =
+      act === 'uninstall'
+        ? `${API}/runtimes/uninstall`
+        : `${API}/runtimes/install`;
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -10570,8 +10584,16 @@ async function startRuntimeInstall(id) {
             state.runtimesInstall.status = 'error';
           } else if (ev.type === 'done') {
             state.runtimesInstall.status = ev.code === 0 ? 'done' : 'error';
+            const okKey =
+              state.runtimesInstall.action === 'uninstall'
+                ? 'runtimes.uninstallDone'
+                : 'runtimes.installDone';
+            const failKey =
+              state.runtimesInstall.action === 'uninstall'
+                ? 'runtimes.uninstallFail'
+                : 'runtimes.installFail';
             state.runtimesInstall.lines.push(
-              ev.code === 0 ? t('runtimes.installDone') : t('runtimes.installFail'),
+              ev.code === 0 ? t(okKey) : t(failKey),
             );
           }
           if (state.runtimesInstall.lines.length > 200) {
@@ -10674,13 +10696,22 @@ async function renderRuntimes() {
         .map((m) => `<span class="badge muted">${escapeHtml(hasT(`catalog.mod.${m}`) ? t(`catalog.mod.${m}`) : m)}</span>`)
         .join('');
       const canInstall = Boolean(it.installable) && viewOs === hostOs;
+      const canUninstall =
+        Boolean(it.uninstallable) &&
+        viewOs === hostOs &&
+        (it.status === 'installed' || it.status === 'configured');
       const thisJob = job && job.id === it.id;
       const running = job?.status === 'running';
-      const installLabel = running && thisJob
-        ? t('runtimes.installing')
-        : it.status === 'installed' || it.status === 'configured'
-          ? t('runtimes.reinstall')
-          : t('runtimes.install');
+      const installLabel =
+        running && thisJob && job.action !== 'uninstall'
+          ? t('runtimes.installing')
+          : it.status === 'installed' || it.status === 'configured'
+            ? t('runtimes.reinstall')
+            : t('runtimes.install');
+      const uninstallLabel =
+        running && thisJob && job.action === 'uninstall'
+          ? t('runtimes.uninstalling')
+          : t('runtimes.uninstall');
       const logHtml =
         thisJob && (job.lines || []).length
           ? `<pre class="runtime-install-log" id="rt-install-log">${escapeHtml((job.lines || []).join('\n'))}</pre>`
@@ -10710,6 +10741,11 @@ async function renderRuntimes() {
               ${
                 canInstall
                   ? `<button type="button" class="btn sm" data-rt-install="${escapeHtml(it.id)}" ${running ? 'disabled' : ''}>${escapeHtml(installLabel)}</button>`
+                  : ''
+              }
+              ${
+                canUninstall
+                  ? `<button type="button" class="btn danger sm" data-rt-uninstall="${escapeHtml(it.id)}" data-rt-name="${escapeHtml(it.name)}" ${running ? 'disabled' : ''}>${escapeHtml(uninstallLabel)}</button>`
                   : ''
               }
               <button type="button" class="btn secondary sm" data-copy-cmd="${encodeURIComponent(cmd)}">${escapeHtml(t('runtimes.copyCmd'))}</button>
@@ -10780,7 +10816,21 @@ async function renderRuntimes() {
   document.querySelectorAll('[data-rt-install]').forEach((btn) => {
     btn.onclick = () => {
       const id = btn.getAttribute('data-rt-install');
-      if (id) startRuntimeInstall(id).catch(onErr);
+      if (id) startRuntimeInstall(id, 'install').catch(onErr);
+    };
+  });
+  document.querySelectorAll('[data-rt-uninstall]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute('data-rt-uninstall');
+      const name = btn.getAttribute('data-rt-name') || id;
+      if (!id) return;
+      const ok = await openUiDialog({
+        variant: 'danger',
+        title: t('runtimes.uninstall'),
+        message: tf('runtimes.uninstallConfirm', { name }),
+        confirmText: t('runtimes.uninstall'),
+      });
+      if (ok) startRuntimeInstall(id, 'uninstall').catch(onErr);
     };
   });
   document.querySelectorAll('[data-copy-cmd]').forEach((btn) => {

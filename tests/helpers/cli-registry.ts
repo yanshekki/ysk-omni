@@ -135,6 +135,7 @@ export const CLI_EXPECTED_LEAVES = [
   'unload',
   'runtimes',
   'runtimes install',
+  'runtimes uninstall',
   'grok inspect',
   'grok sessions',
   'grok sessions list',

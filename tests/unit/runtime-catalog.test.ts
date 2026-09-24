@@ -25,6 +25,7 @@ describe('runtime catalog', () => {
     expect(typeof llama?.installable).toBe('boolean');
     const comfy = report.items.find((i) => i.id === 'comfy');
     expect(comfy?.installable).toBe(false);
+    expect(comfy?.uninstallable).toBe(false);
   });
 
   it('marks MLX unsupported off Apple Silicon', () => {

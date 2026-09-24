@@ -4,6 +4,7 @@ import {
   hostOs,
   installArgv,
   packageManagerPath,
+  uninstallArgv,
   whichBin,
 } from './runtime-catalog';
 
@@ -19,8 +20,10 @@ const ALLOWED_BINS = new Set([
 
 const STEP_TIMEOUT_MS = 20 * 60 * 1000;
 
+export type PackageAction = 'install' | 'uninstall';
+
 export type InstallEvent =
-  | { type: 'start'; id: string }
+  | { type: 'start'; id: string; action: PackageAction }
   | { type: 'step'; index: number; argv: string[] }
   | { type: 'log'; stream: 'stdout' | 'stderr'; line: string }
   | { type: 'done'; code: number }
@@ -119,7 +122,7 @@ function runArgv(
       } catch {
         /* ignore */
       }
-      reject(new Error(`Install timed out after ${STEP_TIMEOUT_MS / 60000} minutes`));
+      reject(new Error(`Timed out after ${STEP_TIMEOUT_MS / 60000} minutes`));
     }, STEP_TIMEOUT_MS);
     child.on('error', (err) => {
       clearTimeout(timer);
@@ -132,21 +135,22 @@ function runArgv(
   });
 }
 
-export async function runInstall(
+export async function runPackageAction(
   id: string,
+  action: PackageAction,
   onEvent: (e: InstallEvent) => void,
   opts: { spawn?: InstallSpawn } = {},
 ): Promise<{ ok: boolean; code: number }> {
   const os = hostOs();
-  const steps = installArgv(id, os);
+  const steps = action === 'uninstall' ? uninstallArgv(id, os) : installArgv(id, os);
   if (!steps.length) {
-    const err = `No one-click install for ${id} on ${os}`;
+    const err = `No one-click ${action} for ${id} on ${os}`;
     onEvent({ type: 'error', message: err });
     onEvent({ type: 'done', code: 1 });
     return { ok: false, code: 1 };
   }
   if (active) {
-    const err = 'A runtime install is already running';
+    const err = 'A runtime install or uninstall is already running';
     onEvent({ type: 'error', message: err });
     onEvent({ type: 'done', code: 1 });
     return { ok: false, code: 1 };
@@ -154,7 +158,7 @@ export async function runInstall(
   active = { id, child: null };
   const spawnFn = opts.spawn || spawn;
   const skipWhich = Boolean(opts.spawn);
-  onEvent({ type: 'start', id });
+  onEvent({ type: 'start', id, action });
   try {
     for (let i = 0; i < steps.length; i += 1) {
       const argv = steps[i];
@@ -176,4 +180,20 @@ export async function runInstall(
   } finally {
     active = null;
   }
+}
+
+export function runInstall(
+  id: string,
+  onEvent: (e: InstallEvent) => void,
+  opts: { spawn?: InstallSpawn } = {},
+): Promise<{ ok: boolean; code: number }> {
+  return runPackageAction(id, 'install', onEvent, opts);
+}
+
+export function runUninstall(
+  id: string,
+  onEvent: (e: InstallEvent) => void,
+  opts: { spawn?: InstallSpawn } = {},
+): Promise<{ ok: boolean; code: number }> {
+  return runPackageAction(id, 'uninstall', onEvent, opts);
 }

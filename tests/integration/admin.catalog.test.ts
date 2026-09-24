@@ -69,6 +69,22 @@ describe('admin catalog + Hub search', () => {
     expect(manual.status).toBe(400);
   });
 
+  it('POST /admin/api/runtimes/uninstall validates id', async () => {
+    if (!h) return;
+    const missing = await apiFetch(h.baseUrl, '/admin/api/runtimes/uninstall', {
+      method: 'POST',
+      key: h.adminKey,
+      body: {},
+    });
+    expect(missing.status).toBe(400);
+    const manual = await apiFetch(h.baseUrl, '/admin/api/runtimes/uninstall', {
+      method: 'POST',
+      key: h.adminKey,
+      body: { id: 'comfy' },
+    });
+    expect(manual.status).toBe(400);
+  });
+
   it('GET /admin/api/catalog returns curated packs', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/admin/api/catalog', {

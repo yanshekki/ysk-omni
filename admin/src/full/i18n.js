@@ -787,7 +787,7 @@ const dict = {
     runtimes: {
       title: 'Runtimes',
       intro:
-        'Install inference engines on this host. One-click runs Homebrew, pip, winget, or Docker for this OS. The gateway does not use sudo.',
+        'Install or uninstall inference engines on this host. One-click runs Homebrew, pip, winget, or Docker for this OS. The gateway does not use sudo.',
       kpiInstalled: 'Ready',
       kpiMissing: 'Not installed',
       kpiHost: 'This host',
@@ -813,6 +813,12 @@ const dict = {
       installDone: 'Installed',
       installFail: 'Install failed',
       installLog: 'Install log',
+      uninstall: 'Uninstall',
+      uninstalling: 'Uninstalling…',
+      uninstallDone: 'Uninstalled',
+      uninstallFail: 'Uninstall failed',
+      uninstallConfirm:
+        'This will run the package manager to remove {name}. The gateway does not use sudo.',
       docs: 'Documentation',
       refresh: 'Re-scan PATH',
       path: 'Detected',
@@ -2185,7 +2191,7 @@ const dict = {
     runtimes: {
       title: '執行環境',
       intro:
-        '在此主機安裝推論引擎。可一鍵執行本作業系統的套件管理員（Homebrew、pip、winget 或 Docker）。閘道不會使用 sudo。',
+        '在此主機安裝或解除安裝推論引擎。可一鍵執行本作業系統的套件管理員（Homebrew、pip、winget 或 Docker）。閘道不會使用 sudo。',
       kpiInstalled: '已就緒',
       kpiMissing: '未安裝',
       kpiHost: '本機',
@@ -2211,6 +2217,12 @@ const dict = {
       installDone: '安裝完成',
       installFail: '安裝失敗',
       installLog: '安裝紀錄',
+      uninstall: '解除安裝',
+      uninstalling: '解除安裝中…',
+      uninstallDone: '已解除安裝',
+      uninstallFail: '解除安裝失敗',
+      uninstallConfirm:
+        '將以套件管理員移除「{name}」。閘道不會使用 sudo。',
       docs: '文件',
       refresh: '重新偵測 PATH',
       path: '偵測結果',
