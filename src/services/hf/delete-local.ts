@@ -27,7 +27,12 @@ export async function deleteLocalModel(id: string): Promise<{
     const resolved = path.resolve(entry.path);
     const rel = path.relative(modelsDir, resolved);
     if (!rel.startsWith('..') && !path.isAbsolute(rel) && fs.existsSync(resolved)) {
-      fs.unlinkSync(resolved);
+      const st = fs.lstatSync(resolved);
+      if (st.isDirectory()) {
+        fs.rmSync(resolved, { recursive: true, force: true });
+      } else {
+        fs.unlinkSync(resolved);
+      }
       file = resolved;
     }
   }

@@ -3,7 +3,7 @@ import { engineSlotService } from '../../src/services/engine-slot.service';
 import { stubMediaProvider } from '../../src/services/media/providers/stub.provider';
 import { HttpException } from '../../src/exceptions/http.exception';
 
-describe('engine_unconfigured after Grok spawn removal', () => {
+describe('engine_unconfigured when no text runtime is attached', () => {
   it('chat runOnce throws 501 engine_unconfigured', async () => {
     await expect(
       engineSlotService.runOnce({
@@ -18,17 +18,17 @@ describe('engine_unconfigured after Grok spawn removal', () => {
     });
   });
 
-  it('image generate throws 501 engine_unconfigured', async () => {
+  it('image generate throws 503 when no media worker is configured', async () => {
     try {
       await stubMediaProvider.generateImage({
         prompt: 'cat',
         apiKeyId: 'k',
       } as never);
-      expect.fail('expected engine_unconfigured');
+      expect.fail('expected media_provider_unavailable');
     } catch (err) {
       expect(err).toBeInstanceOf(HttpException);
-      expect((err as HttpException).statusCode).toBe(501);
-      expect((err as HttpException).code).toBe('engine_unconfigured');
+      expect((err as HttpException).statusCode).toBe(503);
+      expect((err as HttpException).code).toBe('media_provider_unavailable');
     }
   });
 });

@@ -42,6 +42,35 @@ describe('deleteLocalModel', () => {
     expect(out.file).toBe(gguf);
     expect(fs.existsSync(gguf)).toBe(false);
   });
+
+  it('removes a snapshot directory (whisper / diffusion / T2V)', async () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ysk-omni-deldir-'));
+    homes.push(home);
+    process.env.OMNI_HOME = home;
+    const models = path.join(home, 'models');
+    const snap = path.join(models, 'org__whisper');
+    fs.mkdirSync(path.join(snap, 'weights'), { recursive: true });
+    fs.writeFileSync(path.join(snap, 'weights', 'model.bin'), 'x');
+    upsertEntry(
+      {
+        id: 'org/whisper',
+        repoId: 'org/whisper',
+        filename: '',
+        path: snap,
+        quant: '',
+        modality: 'stt',
+        runtime: 'whisper',
+        vramMb: 1,
+        pulledAt: new Date().toISOString(),
+        sha256: '',
+      },
+      path.join(home, 'registry.json'),
+    );
+    const out = await deleteLocalModel('org/whisper');
+    expect(out.removed).toBe('org/whisper');
+    expect(out.file).toBe(snap);
+    expect(fs.existsSync(snap)).toBe(false);
+  });
 });
 
 describe('pruneMissingFiles', () => {
