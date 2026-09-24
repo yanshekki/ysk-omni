@@ -6,7 +6,6 @@ import {
   type Harness,
 } from '../helpers/api-harness';
 import { apiFeaturesService } from '../../src/services/api-features.service';
-import { VIDEO_FIXTURE_BYTES } from '../../src/services/media/media-jobs.service';
 import { vramScheduler } from '../../src/services/vram-scheduler';
 
 describe('v1 video jobs', () => {
@@ -82,7 +81,9 @@ describe('v1 video jobs', () => {
       key: h.adminKey,
     });
     expect(content.status).toBe(200);
-    expect(Buffer.from(content.text, 'utf8').equals(VIDEO_FIXTURE_BYTES) ||
-      content.text.includes('ysk-omni-video-fixture')).toBe(true);
+    expect(content.text.includes('ysk-omni-video-fixture')).toBe(true);
+    expect(content.text.includes('ftyp') || content.text.includes('isom')).toBe(
+      true,
+    );
   });
 });

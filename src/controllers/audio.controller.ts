@@ -72,11 +72,16 @@ export class AudioController {
 
     const sttUrl = (process.env.OMNI_STT_URL || '').trim();
     if (sttUrl) {
-      const upstream = await fetch(sttUrl.replace(/\/$/, '') + '/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: req.file.originalname, bytes: req.file.size }),
+      const form = new FormData();
+      const blob = new Blob([new Uint8Array(req.file.buffer)], {
+        type: req.file.mimetype || 'application/octet-stream',
       });
+      form.append('file', blob, req.file.originalname || 'audio.wav');
+      form.append('model', 'whisper-1');
+      const upstream = await fetch(
+        sttUrl.replace(/\/$/, '') + '/v1/audio/transcriptions',
+        { method: 'POST', body: form },
+      );
       const json = await upstream.json().catch(() => ({}));
       if (!upstream.ok) {
         throw ExceptionFactory.engineUnconfigured(

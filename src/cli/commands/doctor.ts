@@ -34,19 +34,23 @@ export async function cmdDoctor(opts: {
 
   try {
     const { loadRegistry } = await import('../../services/hf/registry');
-    const { vramScheduler } = await import('../../services/vram-scheduler');
+    const { readEnginesState } = await import('../../services/runtimes/engine-manager');
+    const { llamaServerBin } = await import('../../services/runtimes/llama-server');
+    const { vllmBin } = await import('../../services/runtimes/vllm');
     const { ECHO_MODEL_ID } = await import('../../services/runtimes/echo');
-    const snap = vramScheduler.snapshot();
+    const st = readEnginesState();
     const local = loadRegistry().models;
     ok(`Echo engine: ${ECHO_MODEL_ID}`);
-    if (!snap.loaded.length) {
-      info('Loaded models: (none)');
+    info(`llama-server: ${llamaServerBin() || 'not on PATH'}`);
+    info(`vllm: ${vllmBin() || 'not on PATH'}`);
+    if (!st.loaded.length) {
+      info('Loaded engines: (none) — start the gateway and Load a model in Admin');
     } else {
       ok(
-        `Loaded models: ${snap.loaded.map((m) => `${m.id} (${m.vramMb} MB)`).join(', ')}`,
+        `Loaded engines: ${st.loaded.map((m) => `${m.id} (${m.kind} :${m.port}, ${m.vramMb} MB)`).join(', ')}`,
       );
     }
-    info(`Estimated VRAM: ${snap.usedMb} MB / ${snap.budgetMb} MB budget`);
+    info(`Estimated VRAM: ${st.usedMb} MB / ${st.budgetMb} MB budget`);
     if (local.length) {
       info(`Registry: ${local.map((m) => m.id).join(', ')}`);
     }

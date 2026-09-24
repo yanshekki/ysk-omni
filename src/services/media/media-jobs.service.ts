@@ -7,10 +7,23 @@ import { mediaStoreService } from './media-store.service';
 import { vramScheduler } from '../vram-scheduler';
 import { engineManager } from '../runtimes/engine-manager';
 import type { AuthenticatedApiKey } from '../../interfaces';
-
-/** Deterministic fixture bytes for completed video jobs without a GPU worker. */
-export const VIDEO_FIXTURE_BYTES = Buffer.from('ysk-omni-video-fixture\n', 'utf8');
 import { KEY_MODES, ROLES } from '../../config/constants';
+
+/** ISO-BMFF ftyp box plus a free box marker. Playable enough for `ftyp` sniffers. */
+export function videoFixtureBytes(): Buffer {
+  const ftyp = Buffer.from([
+    0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
+    0x00, 0x00, 0x02, 0x00, 0x69, 0x73, 0x6f, 0x6d, 0x6d, 0x70, 0x34, 0x31,
+  ]);
+  const marker = Buffer.from('ysk-omni-video-fixture\n');
+  const free = Buffer.alloc(8 + marker.length);
+  free.writeUInt32BE(free.length, 0);
+  free.write('free', 4);
+  marker.copy(free, 8);
+  return Buffer.concat([ftyp, free]);
+}
+
+export const VIDEO_FIXTURE_BYTES = videoFixtureBytes();
 
 export type MediaJobPublic = {
   id: string;
@@ -160,11 +173,34 @@ export class MediaJobsService {
     }
 
     try {
+      let bytes = VIDEO_FIXTURE_BYTES;
+      const videoUrl = (process.env.OMNI_VIDEO_URL || '').trim();
+      if (videoUrl) {
+        const upstream = await fetch(videoUrl.replace(/\/$/, '') + '/v1/videos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: opts.prompt,
+            seconds: opts.seconds,
+          }),
+        });
+        if (upstream.ok) {
+          const ct = upstream.headers.get('content-type') || '';
+          const raw = Buffer.from(await upstream.arrayBuffer());
+          if (ct.includes('json')) {
+            const parsed = JSON.parse(raw.toString('utf8')) as { b64?: string; b64_json?: string };
+            const b64 = parsed.b64 || parsed.b64_json;
+            if (b64) bytes = Buffer.from(b64, 'base64');
+          } else if (raw.length) {
+            bytes = raw;
+          }
+        }
+      }
       const stored = await mediaStoreService.save({
         apiKeyId,
         kind: 'video',
         mime: 'video/mp4',
-        bytes: VIDEO_FIXTURE_BYTES,
+        bytes,
         originalName: `video-${jobId.slice(0, 8)}.mp4`,
         source: 'generation',
         provider: 'fixture',

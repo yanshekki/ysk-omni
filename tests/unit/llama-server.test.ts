@@ -6,7 +6,10 @@ import {
   chatLlamaServer,
   llamaServerBin,
 } from '../../src/services/runtimes/llama-server';
-import { engineManager } from '../../src/services/runtimes/engine-manager';
+import {
+  engineManager,
+  readEnginesState,
+} from '../../src/services/runtimes/engine-manager';
 import { findEntry, upsertEntry } from '../../src/services/hf/registry';
 import { vramScheduler } from '../../src/services/vram-scheduler';
 
@@ -94,6 +97,8 @@ describe('llama-server spawn/proxy', () => {
     expect(second.choices[0]?.message?.content).toBe('llama-proxy-ok');
     expect(engineManager.get(id)?.port).toBe(port);
     expect(engineManager.list()).toHaveLength(1);
+    const st = readEnginesState();
+    expect(st.loaded.some((e) => e.id === id && (e.pid || 0) > 0)).toBe(true);
   });
 
   it('chatStream proxies SSE tokens from llama-server', async () => {

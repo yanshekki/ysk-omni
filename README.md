@@ -35,6 +35,36 @@ ysk-omni doctor
 
 Alias: `ysko` → same binary. Do not use `yo` (Yeoman).
 
+## Local workers
+
+Text chat with a pulled GGUF needs `llama-server` on `PATH` (or `OMNI_LLAMA_SERVER`). Load the model in Admin Catalog, then `POST /v1/chat/completions` with that model id. Safetensors ids need `vllm` (`OMNI_VLLM`). Without those binaries, use `model=echo`.
+
+Image / speech / transcription / video workers are HTTP:
+
+```bash
+# OpenAI-shaped image worker
+export OMNI_IMAGE_URL=http://127.0.0.1:7860
+curl -s http://127.0.0.1:3850/v1/images/generations \
+  -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
+  -d '{"prompt":"a red square"}'
+
+# TTS
+export OMNI_TTS_URL=http://127.0.0.1:9880
+curl -s http://127.0.0.1:3850/v1/audio/speech \
+  -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
+  -d '{"input":"hello","voice":"alloy"}' --output speech.mp3
+
+# STT (multipart file is forwarded to the worker)
+export OMNI_STT_URL=http://127.0.0.1:9881
+curl -s http://127.0.0.1:3850/v1/audio/transcriptions \
+  -H "Authorization: Bearer $KEY" -F file=@clip.wav
+
+# Video worker (optional). Without it, jobs complete with a tiny ftyp fixture.
+export OMNI_VIDEO_URL=http://127.0.0.1:8188
+```
+
+Unset those URLs → HTTP 501 `{ "error": { "code": "engine_unconfigured" } }`.
+
 ## License
 
 MIT — same as GCTOAC.
