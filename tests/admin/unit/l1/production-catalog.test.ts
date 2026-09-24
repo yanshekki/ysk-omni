@@ -24,5 +24,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('Load');
     expect(boot).toContain('Unload');
     expect(boot).toContain('Local models');
+    expect(boot).toContain('catalog-kpi-grid');
+    expect(boot).toContain('data-catalog-tab');
+    expect(boot).toContain('Curated packs');
   });
 });

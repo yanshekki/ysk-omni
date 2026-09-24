@@ -2367,19 +2367,22 @@ button.dash-kpi:hover {
   display: none; /* tab already labels the section */
 }
 
-/* Shared KPI strip under title (media / system) */
+/* Shared KPI strip under title (media / system / catalog) */
 .media-kpi-grid,
-.system-kpi-grid {
+.system-kpi-grid,
+.catalog-kpi-grid {
   margin-bottom: 14px;
 }
 .media-kpi-grid .card-sub,
-.system-kpi-grid .card-sub {
+.system-kpi-grid .card-sub,
+.catalog-kpi-grid .card-sub {
   margin-top: 6px;
   font-size: var(--text-xs);
   line-height: 1.4;
   font-weight: 500;
 }
-.system-kpi-grid .dash-kpi-den {
+.system-kpi-grid .dash-kpi-den,
+.catalog-kpi-grid .dash-kpi-den {
   font-size: 0.72em;
   font-weight: 600;
   opacity: 0.65;
@@ -2698,6 +2701,28 @@ button.dash-kpi:hover {
 }
 .media-tabs-panel .media-tab-pane-studio .data-table-panel > .panel-h {
   display: flex;
+}
+.catalog-tabs-panel .catalog-tab-pane {
+  padding: 14px 16px 16px;
+}
+.catalog-tabs-panel .catalog-tab-pane > .panel,
+.catalog-tabs-panel .catalog-tab-pane .data-table-panel,
+.catalog-tabs-panel .catalog-tab-pane .data-filter-panel {
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+.catalog-tabs-panel .catalog-tab-pane .data-filter-panel {
+  margin-bottom: 12px;
+}
+.catalog-quant-select {
+  min-width: 7.5rem;
+  max-width: 11rem;
+}
+.catalog-vram-cell {
+  min-width: 5.5rem;
 }
 /* Assets / jobs: flush filter + table like queue jobs tab */
 .media-tabs-panel .media-tab-pane-assets .data-filter-panel,

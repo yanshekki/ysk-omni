@@ -215,6 +215,10 @@ const state = {
   pm2Tab: 'runner',
   /** API features tab: 'protocols' | 'media' | 'caps' | 'emu' */
   apiFeaturesTab: 'protocols',
+  /** Catalog: 'packs' | 'local' */
+  catalogTab: 'packs',
+  catalogModality: '',
+  catalogPulling: '',
   models: [],
   keys: [],
 };
@@ -9585,6 +9589,28 @@ const CURATED_PACKS = [
   },
 ];
 
+function catalogPackName(p) {
+  return p.label || String(p.id || '').split('/').pop() || p.id || '';
+}
+
+function catalogLocalsForPack(p, local) {
+  const id = String(p.id || '');
+  return (local || []).filter(
+    (m) => m.id === id || m.repoId === id || String(m.id || '').startsWith(`${id}:`),
+  );
+}
+
+function catalogModalityLabel(m) {
+  const key = `catalog.mod.${m}`;
+  return hasT(key) ? t(key) : m || '—';
+}
+
+function catalogDefaultQuant(quants) {
+  const list = quants || [];
+  if (list.includes('Q4_K_M')) return 'Q4_K_M';
+  return list[0] || '';
+}
+
 async function renderCatalog() {
   let data = {};
   try {
@@ -9595,56 +9621,248 @@ async function renderCatalog() {
   const packs = data.packs && data.packs.length ? data.packs : CURATED_PACKS;
   const local = data.local || [];
   const loaded = data.loaded || [];
-  const packRows = packs
+  const loadedIds = new Set(loaded.map((m) => m.id));
+  const usedMb = data.usedMb ?? 0;
+  const budgetMb = data.budgetMb ?? 0;
+  const vramPct = budgetMb
+    ? Math.min(100, Math.round((usedMb / budgetMb) * 100))
+    : 0;
+  const tab =
+    state.catalogTab === 'local' || state.catalogTab === 'packs'
+      ? state.catalogTab
+      : 'packs';
+  state.catalogTab = tab;
+  const modality = state.catalogModality || '';
+  const modalities = ['text', 'image', 'video', 'tts', 'stt'];
+  const visiblePacks = modality
+    ? packs.filter((p) => p.modality === modality)
+    : packs;
+  const pulling = state.catalogPulling || '';
+
+  const packRows = visiblePacks
     .map((p) => {
+      const onDisk = catalogLocalsForPack(p, local);
+      const quants = p.quants || [];
+      const defaultQ = catalogDefaultQuant(quants);
+      const quantHtml = quants.length
+        ? `<select class="catalog-quant-select" data-quant-for="${escapeHtml(p.id)}">${quants
+            .map(
+              (q) =>
+                `<option value="${escapeHtml(q)}" ${q === defaultQ ? 'selected' : ''}>${escapeHtml(q)}</option>`,
+            )
+            .join('')}</select>`
+        : `<span class="muted">${escapeHtml(t('catalog.noQuant'))}</span>`;
+      const isPulling = pulling === p.id;
+      const pullLabel = isPulling
+        ? t('catalog.pulling')
+        : onDisk.length
+          ? t('catalog.pullAgain')
+          : t('catalog.pull');
       return `
       <tr>
-        <td><code>${escapeHtml(p.id)}</code>${p.label ? `<div class="muted">${escapeHtml(p.label)}</div>` : ''}</td>
-        <td>${escapeHtml(p.modality || '')}</td>
-        <td>${escapeHtml(p.runtime || '')}</td>
-        <td>${escapeHtml((p.quants || []).join(', ') || '—')}</td>
-        <td>${p.vramMb ?? 0}</td>
-        <td><button type="button" class="btn sm" data-pull="${escapeHtml(p.id)}">Pull</button></td>
+        <td>
+          <div class="cell-primary">${escapeHtml(catalogPackName(p))}</div>
+          <div class="cell-sub mono" title="${escapeHtml(p.id)}">${escapeHtml(p.id)}</div>
+        </td>
+        <td><span class="badge muted">${escapeHtml(catalogModalityLabel(p.modality))}</span></td>
+        <td><span class="badge muted">${escapeHtml(p.runtime || '—')}</span></td>
+        <td>${quantHtml}</td>
+        <td class="catalog-vram-cell">${p.vramMb ?? 0} MB</td>
+        <td>${
+          onDisk.length
+            ? `<span class="badge success">${escapeHtml(t('catalog.onDisk'))}</span>`
+            : `<span class="muted">—</span>`
+        }</td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(p.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(pullLabel)}</button>
+            <span class="muted" data-pull-status="${escapeHtml(p.id)}"></span>
+          </div>
+        </td>
       </tr>`;
     })
     .join('');
-  const localRows = local
-    .map(
-      (m) => `
-      <tr>
-        <td><code>${escapeHtml(m.id)}</code></td>
-        <td>${escapeHtml(m.path || '—')}</td>
-        <td>${m.vramMb ?? 0}</td>
-        <td>
-          <button type="button" class="btn sm" data-load="${escapeHtml(m.id)}" data-vram="${m.vramMb ?? 0}">Load</button>
-          <button type="button" class="btn secondary sm" data-unload="${escapeHtml(m.id)}">Unload</button>
-        </td>
-      </tr>`,
-    )
-    .join('');
-  document.getElementById('app').innerHTML = shell(`
-    <div class="topbar"><h2>Catalog</h2></div>
-    <p class="muted">VRAM ${data.usedMb ?? 0} / ${data.budgetMb ?? 0} MB · loaded: ${
-      loaded.map((m) => m.id).join(', ') || 'none'
-    }</p>
-    <div class="panel">
-      <div class="panel-h"><strong>Curated packs</strong></div>
-      <div class="panel-pad">
-        <table class="data-table"><thead><tr><th>Id</th><th>Modality</th><th>Runtime</th><th>Quants</th><th>VRAM</th><th></th></tr></thead>
-        <tbody>${packRows || '<tr><td colspan="6">No packs</td></tr>'}</tbody></table>
+
+  const packEmpty = `
+    <tr class="empty-row"><td colspan="7">
+      <div class="data-empty">
+        <div class="data-empty-icon">∅</div>
+        <strong>${escapeHtml(t('catalog.emptyPacks'))}</strong>
       </div>
+    </td></tr>`;
+
+  const localRows = local
+    .map((m) => {
+      const isLoaded = loadedIds.has(m.id);
+      return `
+      <tr>
+        <td>
+          <div class="cell-primary mono">${escapeHtml(m.id)}</div>
+          <div class="cell-sub" title="${escapeHtml(m.path || '')}">${escapeHtml(m.path || '—')}</div>
+        </td>
+        <td class="catalog-vram-cell">${m.vramMb ?? 0} MB</td>
+        <td>${
+          isLoaded
+            ? `<span class="badge success">${escapeHtml(t('catalog.loaded'))}</span>`
+            : `<span class="badge muted">${escapeHtml(t('catalog.idle'))}</span>`
+        }</td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="btn sm" data-load="${escapeHtml(m.id)}" data-vram="${m.vramMb ?? 0}" ${isLoaded ? 'disabled' : ''}>${escapeHtml(t('catalog.load'))}</button>
+            <button type="button" class="btn secondary sm" data-unload="${escapeHtml(m.id)}" ${isLoaded ? '' : 'disabled'}>${escapeHtml(t('catalog.unload'))}</button>
+          </div>
+        </td>
+      </tr>`;
+    })
+    .join('');
+
+  const localEmpty = `
+    <tr class="empty-row"><td colspan="4">
+      <div class="data-empty">
+        <div class="data-empty-icon">∅</div>
+        <strong>${escapeHtml(t('catalog.emptyLocal'))}</strong>
+        <p class="muted">${escapeHtml(t('catalog.emptyLocalHint'))}</p>
+      </div>
+    </td></tr>`;
+
+  const loadedNames = loaded.map((m) => catalogPackName({ id: m.id })).join(', ');
+  const kpiGrid = `
+    <div class="grid catalog-kpi-grid media-kpi-grid">
+      <div class="card">
+        <div class="label">${escapeHtml(t('catalog.kpiLoaded'))}</div>
+        <div class="value value-sm">${loaded.length}</div>
+        <div class="muted card-sub">${escapeHtml(loadedNames || t('catalog.kpiLoadedNone'))}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('catalog.kpiVram'))}</div>
+        <div class="value value-sm">${usedMb}<span class="dash-kpi-den">/${budgetMb}</span></div>
+        <div class="usage-bar ${vramPct > 80 ? 'warn' : ''}"><span style="width:${vramPct}%"></span></div>
+        <div class="muted card-sub">${escapeHtml(tf('catalog.kpiVramSub', { used: usedMb, budget: budgetMb }))}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('catalog.kpiLocal'))}</div>
+        <div class="value value-sm">${local.length}</div>
+        <div class="muted card-sub">${escapeHtml(t('catalog.kpiLocalSub'))}</div>
+      </div>
+      <div class="card">
+        <div class="label">${escapeHtml(t('catalog.kpiPacks'))}</div>
+        <div class="value value-sm">${packs.length}</div>
+        <div class="muted card-sub">${escapeHtml(t('catalog.kpiPacksSub'))}</div>
+      </div>
+    </div>`;
+
+  const modFilter = filterPanelHtml({
+    title: t('catalog.filterModality'),
+    hint: t('catalog.intro'),
+    meta: tf('common.pagerTotal', { n: visiblePacks.length }),
+    searchHtml: '',
+    gridHtml: `
+      <label>${escapeHtml(t('catalog.filterModality'))}
+        <select id="cat-mod">
+          <option value="">${escapeHtml(t('catalog.filterAll'))}</option>
+          ${modalities
+            .map(
+              (m) =>
+                `<option value="${escapeHtml(m)}" ${modality === m ? 'selected' : ''}>${escapeHtml(catalogModalityLabel(m))}</option>`,
+            )
+            .join('')}
+        </select>
+      </label>`,
+  });
+
+  const packsTable = `
+    <div class="panel data-table-panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>${escapeHtml(t('catalog.colName'))}</th>
+            <th>${escapeHtml(t('catalog.colModality'))}</th>
+            <th>${escapeHtml(t('catalog.colRuntime'))}</th>
+            <th>${escapeHtml(t('catalog.colQuant'))}</th>
+            <th>${escapeHtml(t('catalog.colVram'))}</th>
+            <th>${escapeHtml(t('catalog.colStatus'))}</th>
+            <th>${escapeHtml(t('common.actions'))}</th>
+          </tr></thead>
+          <tbody>${packRows || packEmpty}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  const localTable = `
+    <div class="panel data-table-panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>${escapeHtml(t('catalog.colName'))}</th>
+            <th>${escapeHtml(t('catalog.colVram'))}</th>
+            <th>${escapeHtml(t('catalog.colStatus'))}</th>
+            <th>${escapeHtml(t('common.actions'))}</th>
+          </tr></thead>
+          <tbody>${localRows || localEmpty}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  document.getElementById('app').innerHTML = shell(`
+    <div class="topbar">
+      <h2>${escapeHtml(t('catalog.title'))}</h2>
     </div>
-    <div class="panel">
-      <div class="panel-h"><strong>Local models</strong></div>
-      <div class="panel-pad">
-        <table class="data-table"><thead><tr><th>Id</th><th>Path</th><th>VRAM</th><th></th></tr></thead>
-        <tbody>${localRows || '<tr><td colspan="4">Empty registry — Pull a pack first</td></tr>'}</tbody></table>
+    ${pageMetaHtml([t('catalog.intro')])}
+    ${kpiGrid}
+    <div class="usage-tabs-panel panel catalog-tabs-panel media-tabs-panel">
+      <div class="seg-tabs" role="tablist" aria-label="${escapeHtml(t('catalog.title'))}">
+        <button type="button" role="tab" class="seg-tab ${tab === 'packs' ? 'is-active' : ''}" data-catalog-tab="packs" aria-selected="${tab === 'packs'}">
+          ${escapeHtml(t('catalog.tabPacks'))}
+          <span class="seg-tab-count">${packs.length}</span>
+        </button>
+        <button type="button" role="tab" class="seg-tab ${tab === 'local' ? 'is-active' : ''}" data-catalog-tab="local" aria-selected="${tab === 'local'}">
+          ${escapeHtml(t('catalog.tabLocal'))}
+          <span class="seg-tab-count">${local.length}</span>
+        </button>
+      </div>
+      <div class="usage-tab-body">
+        <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-packs" ${tab === 'packs' ? '' : 'hidden'}>
+          ${modFilter}
+          ${packsTable}
+        </div>
+        <div class="usage-tab-pane catalog-tab-pane" id="catalog-tab-local" ${tab === 'local' ? '' : 'hidden'}>
+          ${localTable}
+        </div>
       </div>
     </div>
   `);
   bindShell();
+  document.querySelectorAll('[data-catalog-tab]').forEach((btn) => {
+    btn.onclick = () => {
+      state.catalogTab = btn.getAttribute('data-catalog-tab') || 'packs';
+      renderCatalog().catch(onErr);
+    };
+  });
+  const modSel = document.getElementById('cat-mod');
+  if (modSel) {
+    modSel.onchange = () => {
+      state.catalogModality = modSel.value;
+      renderCatalog().catch(onErr);
+    };
+  }
+  document.querySelector('[data-filter-apply]')?.addEventListener('click', () => {
+    state.catalogModality = document.getElementById('cat-mod')?.value || '';
+    renderCatalog().catch(onErr);
+  });
+  document.querySelector('[data-filter-reset]')?.addEventListener('click', () => {
+    state.catalogModality = '';
+    renderCatalog().catch(onErr);
+  });
   document.querySelectorAll('[data-pull]').forEach((btn) => {
     btn.onclick = async () => {
+      const packId = btn.getAttribute('data-pull') || '';
+      const sel = document.querySelector(`[data-quant-for="${CSS.escape(packId)}"]`);
+      const quant = sel && sel.value ? sel.value : '';
+      const spec = quant ? `${packId}:${quant}` : packId;
+      const statusEl = document.querySelector(`[data-pull-status="${CSS.escape(packId)}"]`);
+      state.catalogPulling = packId;
+      btn.disabled = true;
+      btn.textContent = t('catalog.pulling');
       try {
         const res = await fetch(`${API}/catalog/pull`, {
           method: 'POST',
@@ -9652,14 +9870,52 @@ async function renderCatalog() {
             'Content-Type': 'application/json',
             ...(state.key ? { Authorization: `Bearer ${state.key}` } : {}),
           },
-          body: JSON.stringify({ model: btn.getAttribute('data-pull') }),
+          body: JSON.stringify({ model: spec }),
         });
-        const text = await res.text();
+        const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+        let text = '';
+        if (reader) {
+          const dec = new TextDecoder();
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = dec.decode(value, { stream: true });
+            text += chunk;
+            const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+            const last = lines[lines.length - 1];
+            if (last && statusEl) {
+              try {
+                const ev = JSON.parse(last);
+                if (ev.status === 'downloading') {
+                  statusEl.textContent = ev.total
+                    ? `${ev.bytes || 0}/${ev.total}`
+                    : String(ev.bytes || ev.file || t('catalog.pulling'));
+                } else if (ev.status) {
+                  statusEl.textContent = String(ev.status);
+                }
+              } catch {
+                /* partial line */
+              }
+            }
+          }
+        } else {
+          text = await res.text();
+        }
         const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
         const last = lines.length ? JSON.parse(lines[lines.length - 1]) : {};
-        if (!res.ok) throw new Error(last.error?.message || last.reason || res.statusText);
+        if (!res.ok) {
+          throw new Error(last.error?.message || last.reason || res.statusText);
+        }
+        if (last.status === 'error') {
+          throw new Error(last.reason || t('catalog.pullFail'));
+        }
+        state.catalogPulling = '';
+        state.catalogTab = 'local';
         await renderCatalog();
       } catch (e) {
+        state.catalogPulling = '';
+        btn.disabled = false;
+        btn.textContent = t('catalog.pull');
         onErr(e);
       }
     };
