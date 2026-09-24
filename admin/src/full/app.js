@@ -9727,7 +9727,9 @@ function catalogQueueHas(id) {
 }
 
 function catalogDlDockHtml() {
-  const jobs = state.catalogQueue || [];
+  const jobs = (state.catalogQueue || []).filter(
+    (j) => j.status === 'queued' || j.status === 'downloading' || j.status === 'done',
+  );
   if (!jobs.length) return '';
   const rows = jobs
     .map((job) => {
@@ -9890,10 +9892,10 @@ async function pumpCatalogQueue() {
       else paintCatalogQueue();
     }, 1800);
   } catch (err) {
-    job.status = 'error';
-    job.error = err instanceof Error ? err.message : String(err);
+    state.catalogQueue = (state.catalogQueue || []).filter((j) => j !== job);
     paintCatalogQueue();
-    onErr(err);
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes('GGUF') && !msg.includes('GGUF 檔')) onErr(err);
   } finally {
     state.catalogQueueRunning = false;
     pumpCatalogQueue().catch(onErr);
@@ -10130,7 +10132,8 @@ async function renderCatalog() {
     .map((h) => {
       const onDisk = catalogLocalsForPack({ id: h.id }, local);
       const isPulling = catalogQueueHas(h.id);
-      const pullBtn = h.supported
+      const canPull = h.runtime === 'llamacpp';
+      const pullBtn = canPull
         ? `<button type="button" class="btn ${onDisk.length ? 'secondary' : ''} sm" data-pull="${escapeHtml(h.id)}" ${isPulling ? 'disabled' : ''}>${escapeHtml(isPulling ? t('catalog.pulling') : onDisk.length ? t('catalog.pullAgain') : t('catalog.pull'))}</button>`
         : `<span class="muted">${escapeHtml(t('catalog.unsupported'))}</span>`;
       return `
@@ -10153,7 +10156,7 @@ async function renderCatalog() {
         <td>${
           onDisk.length
             ? `<span class="badge success">${escapeHtml(t('catalog.onDisk'))}</span>`
-            : h.supported
+            : canPull
               ? `<span class="muted">—</span>`
               : `<span class="badge warn">${escapeHtml(t('catalog.unsupported'))}</span>`
         }</td>
