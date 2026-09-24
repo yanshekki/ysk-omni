@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/async-handler';
 import path from 'node:path';
-import os from 'node:os';
+import { omniHome } from '../../config/omni-home';
 import { loadCuratedPacks } from '../../catalog/curated';
 import { loadRegistry, findEntry } from '../../services/hf/registry';
 import { pullModel } from '../../services/hf/client';
@@ -29,9 +29,7 @@ export const adminCatalogHandlers = {
   pull: asyncHandler(async (req: Request, res: Response) => {
     const model = String((req.body as { model?: string })?.model || '').trim();
     if (!model) throw ExceptionFactory.validation('model is required');
-    const home = process.env.OMNI_HOME?.trim()
-      ? path.resolve(process.env.OMNI_HOME.trim())
-      : path.join(os.homedir(), '.ysk-omni');
+    const home = omniHome();
     res.status(200);
     res.setHeader('Content-Type', 'application/x-ndjson');
     const destDir = path.join(home, 'models');

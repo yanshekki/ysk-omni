@@ -1,10 +1,20 @@
 import { createApp } from './app';
 import { env } from './config/env';
+import { omniHome } from './config/omni-home';
 import { disconnectDatabase, prisma } from './config/database';
 import { documentService } from './services/document.service';
 import { logger } from './utils/logger';
+import { resolveRuntimePaths } from './cli/lib/paths';
+
+function ensureOmniHome(): string {
+  if (!process.env.OMNI_HOME?.trim()) {
+    process.env.OMNI_HOME = resolveRuntimePaths().home;
+  }
+  return omniHome();
+}
 
 async function bootstrap(): Promise<void> {
+  const home = ensureOmniHome();
   await documentService.ensureStorageDir();
 
   // Fail fast if DB is unreachable
@@ -35,8 +45,8 @@ async function bootstrap(): Promise<void> {
   const app = createApp();
   const server = app.listen(env.PORT, env.HOST, () => {
     logger.info(
-      { host: env.HOST, port: env.PORT, env: env.NODE_ENV },
-      'Grok OpenAI-compatible gateway listening',
+      { host: env.HOST, port: env.PORT, env: env.NODE_ENV, omniHome: home },
+      'YSK Omni gateway listening',
     );
   });
 

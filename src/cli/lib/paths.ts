@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { omniHome } from '../../config/omni-home';
 
 export const PACKAGE_NAME = 'ysk-omni';
 export const DEFAULT_PORT = 3850;
@@ -12,10 +12,7 @@ export function getPackageRoot(): string {
 }
 
 export function getDefaultHome(): string {
-  if (process.env.OMNI_HOME?.trim()) {
-    return path.resolve(process.env.OMNI_HOME.trim());
-  }
-  return path.join(os.homedir(), '.ysk-omni');
+  return omniHome();
 }
 
 export interface RuntimePaths {

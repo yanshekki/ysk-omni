@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import path from 'node:path';
-import os from 'node:os';
+import { omniHome } from '../config/omni-home';
 import { modelsService } from '../services/models.service';
 import { asyncHandler } from '../utils/async-handler';
 import { pullModel } from '../services/hf/client';
@@ -27,9 +27,7 @@ export class ModelsController {
     }
     res.status(200);
     res.setHeader('Content-Type', 'application/x-ndjson');
-    const home = process.env.OMNI_HOME?.trim()
-      ? path.resolve(process.env.OMNI_HOME.trim())
-      : path.join(os.homedir(), '.ysk-omni');
+    const home = omniHome();
     const destDir = path.join(home, 'models');
     const write = (obj: unknown) => {
       res.write(`${JSON.stringify(obj)}\n`);

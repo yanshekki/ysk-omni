@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { omniHome } from '../../config/omni-home';
 import type { ChildProcess } from 'node:child_process';
 import { findEntry, type RegistryEntry } from '../hf/registry';
 import { ExceptionFactory } from '../../exceptions/exception.factory';
@@ -33,10 +33,7 @@ export type EngineStateRow = {
 };
 
 export function enginesStatePath(): string {
-  const home = process.env.OMNI_HOME?.trim()
-    ? path.resolve(process.env.OMNI_HOME.trim())
-    : path.join(os.homedir(), '.ysk-omni');
-  return path.join(home, 'engines.json');
+  return path.join(omniHome(), 'engines.json');
 }
 
 function pidAlive(pid: number | null | undefined): boolean {

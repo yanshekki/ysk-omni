@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { omniHome } from '../../config/omni-home';
 
 export type ModelModality = 'text' | 'image' | 'video' | 'tts' | 'stt';
 export type ModelRuntime = 'llamacpp' | 'vllm' | 'echo' | 'diffusion' | 'whisper';
@@ -23,10 +23,7 @@ export type ModelRegistry = {
 };
 
 function defaultRegistryPath(): string {
-  const home = process.env.OMNI_HOME?.trim()
-    ? path.resolve(process.env.OMNI_HOME.trim())
-    : path.join(os.homedir(), '.ysk-omni');
-  return path.join(home, 'registry.json');
+  return path.join(omniHome(), 'registry.json');
 }
 
 export function registryPath(override?: string): string {
