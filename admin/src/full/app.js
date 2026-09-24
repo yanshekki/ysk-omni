@@ -269,6 +269,7 @@ function hashToPage(hash) {
     .split('/')[0]
     .toLowerCase();
   if (!raw) return null;
+  if (raw === 'runtime' || raw === 'engines' || raw === 'engine') return 'runtimes';
   return PAGE_FROM_HASH[raw] || null;
 }
 
@@ -1068,7 +1069,7 @@ function shell(content) {
         ${nav('documents', t('nav.documents'))}
         ${nav('media', t('nav.media'))}
         ${nav('catalog', t('nav.catalog'))}
-        ${nav('runtimes', t('nav.runtimes'))}
+        ${nav('runtimes', t('nav.runtimes') === 'nav.runtimes' ? 'Runtimes' : t('nav.runtimes'))}
         ${nav('audit', t('nav.audit'))}
         ${nav('settings', t('nav.settings'))}
         ${nav('apiFeatures', t('nav.apiFeatures'))}
@@ -10308,6 +10309,7 @@ async function renderCatalog() {
     <div class="topbar">
       <h2>${escapeHtml(t('catalog.title'))}</h2>
       <div class="toolbar">
+        <button type="button" class="btn secondary sm" data-nav="runtimes">${escapeHtml(t('nav.runtimes'))}</button>
         <button type="button" class="btn sm" id="cat-sync">${escapeHtml(t('catalog.sync'))}</button>
       </div>
     </div>

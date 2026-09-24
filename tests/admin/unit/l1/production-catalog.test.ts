@@ -37,6 +37,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('cat-hub-pager');
     expect(boot).toContain('data-pager');
     expect(boot).toContain('runtimes');
+    expect(boot).toContain('data-nav="runtimes"');
+    expect(boot).toContain('執行環境');
     expect(boot).toContain('Copy install command');
     expect(boot).toContain('catalog-pull-bar');
     expect(boot).toContain('cat-dl-dock');

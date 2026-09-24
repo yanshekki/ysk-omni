@@ -18,6 +18,17 @@ describe('admin catalog + Hub search', () => {
     await stopHarness(h);
   });
 
+  it('GET /admin/ and /admin/index.html replace the asset token', async () => {
+    if (!h) return;
+    for (const path of ['/admin/', '/admin/index.html'] as const) {
+      const res = await fetch(`${h.baseUrl}${path}`);
+      expect(res.status, path).toBe(200);
+      const html = await res.text();
+      expect(html, path).not.toContain('__ADMIN_ASSET_V__');
+      expect(html, path).toMatch(/\/admin\/boot\.js\?v=[0-9]+/);
+    }
+  });
+
   it('GET /admin/api/runtimes lists engines by host OS', async () => {
     if (!h) return;
     const res = await apiFetch(h.baseUrl, '/admin/api/runtimes', {

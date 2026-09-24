@@ -41,15 +41,17 @@ function adminAssetVersion(adminDir: string): string {
       'allowed-extensions.js',
     ];
     let max = 0;
+    let size = 0;
     for (const f of files) {
       try {
         const st = fs.statSync(path.join(adminDir, f));
         max = Math.max(max, st.mtimeMs);
+        size += st.size;
       } catch {
         /* ignore */
       }
     }
-    return String(Math.floor(max) || Date.now());
+    return `${Math.floor(max) || Date.now()}-${size}`;
   } catch {
     return String(Date.now());
   }
@@ -190,6 +192,47 @@ export function createApp() {
     });
   });
 
+  const sendRenderedAdminIndex = (res: express.Response) => {
+    const html = renderAdminIndex(adminDir);
+    res.status(200);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Length', String(Buffer.byteLength(html)));
+    res.removeHeader('ETag');
+    res.end(html);
+  };
+
+  const handleAdminIndex = async (
+    _req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    try {
+      const open = await isAdminPanelOpen();
+      if (!open) {
+        res.setHeader('Cache-Control', 'no-store');
+        res.status(503).sendFile(disabledPage, (err) => {
+          if (err) next();
+        });
+        return;
+      }
+      sendRenderedAdminIndex(res);
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  // Static must not emit the raw index.html (unreplaced __ADMIN_ASSET_V__).
+  app.use('/admin', (req, res, next) => {
+    if (req.method === 'GET' && req.path === '/index.html') {
+      void handleAdminIndex(req, res, next);
+      return;
+    }
+    next();
+  });
+
   // Admin SPA static files (only reached when panel open)
   // no-store for JS/CSS/HTML so i18n updates always reach the browser
   app.use(
@@ -203,27 +246,12 @@ export function createApp() {
         if (/\.(js|css|html|svg)$/i.test(filePath)) {
           res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
           res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
         }
       },
     }),
   );
-  app.get(['/admin', '/admin/', '/admin/index.html'], async (_req, res, next) => {
-    try {
-      const open = await isAdminPanelOpen();
-      if (!open) {
-        res.setHeader('Cache-Control', 'no-store');
-        res.status(503).sendFile(disabledPage, (err) => {
-          if (err) next();
-        });
-        return;
-      }
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.type('html').send(renderAdminIndex(adminDir));
-    } catch (e) {
-      next(e);
-    }
-  });
+  app.get(['/admin', '/admin/', '/admin/index.html'], handleAdminIndex);
   app.get(['/admin/*'], async (req, res, next) => {
     if (req.path.startsWith('/admin/api') || req.path.startsWith('/api')) {
       next();
@@ -234,20 +262,7 @@ export function createApp() {
       next();
       return;
     }
-    try {
-      const open = await isAdminPanelOpen();
-      if (!open) {
-        res.setHeader('Cache-Control', 'no-store');
-        res.status(503).sendFile(disabledPage, (err) => {
-          if (err) next();
-        });
-        return;
-      }
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.type('html').send(renderAdminIndex(adminDir));
-    } catch (e) {
-      next(e);
-    }
+    await handleAdminIndex(req, res, next);
   });
 
   app.use(routes);
