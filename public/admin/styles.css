@@ -1851,20 +1851,23 @@ body.ui-dialog-open {
   padding: 3px;
   margin: 0 10px 12px;
 }
-.lang-switch button {
+.lang-switch .lang-select {
   border: 0;
-  background: transparent;
-  color: var(--text-sub);
-  font-weight: 700;
-  font-size: 0.78rem;
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  transition: var(--transition);
-}
-.lang-switch button.is-active {
   background: var(--bg-white);
   color: var(--brand-blue);
-  box-shadow: var(--shadow-xs);
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  min-width: 9.5rem;
+  max-width: 100%;
+  cursor: pointer;
+}
+html[dir='rtl'] .sidebar {
+  text-align: right;
+}
+html[dir='rtl'] .layout {
+  direction: rtl;
 }
 
 /* Filter bar / pagination */

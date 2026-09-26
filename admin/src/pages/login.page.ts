@@ -39,13 +39,10 @@ export async function renderLoginPage(): Promise<void> {
     </div>
   `;
 
-  document.querySelectorAll('[data-lang]').forEach((b) => {
-    (b as HTMLElement).onclick = () => {
-      const lang = (b as HTMLElement).dataset.lang;
-      if (lang === 'en' || lang === 'zh-Hant') {
-        setLocale(lang);
-        renderLoginPage().catch(onErr);
-      }
+  document.querySelectorAll('.lang-select').forEach((el) => {
+    (el as HTMLSelectElement).onchange = () => {
+      setLocale((el as HTMLSelectElement).value);
+      renderLoginPage().catch(onErr);
     };
   });
 

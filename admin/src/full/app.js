@@ -1123,9 +1123,9 @@ function bindShell() {
     },
     { once: true },
   );
-  document.querySelectorAll('[data-lang]').forEach((b) => {
-    b.onclick = () => {
-      setLocale(b.dataset.lang);
+  document.querySelectorAll('.lang-select').forEach((el) => {
+    el.onchange = () => {
+      setLocale(el.value);
       render().catch(onErr);
     };
   });
@@ -1434,9 +1434,9 @@ async function renderLogin() {
       ${poweredByFooter()}
     </div>
   `;
-  document.querySelectorAll('[data-lang]').forEach((b) => {
-    b.onclick = () => {
-      setLocale(b.dataset.lang);
+  document.querySelectorAll('.lang-select').forEach((el) => {
+    el.onchange = () => {
+      setLocale(el.value);
       renderLogin().catch(onErr);
     };
   });

@@ -101,16 +101,13 @@ export function bindShell(rerender: () => void): void {
     },
     { once: true },
   );
-  document.querySelectorAll('[data-lang]').forEach((b) => {
-    (b as HTMLElement).onclick = () => {
-      const lang = (b as HTMLElement).dataset.lang;
-      if (lang === 'en' || lang === 'zh-Hant') {
-        setLocale(lang);
-        try {
-          rerender();
-        } catch (e) {
-          onErr(e);
-        }
+  document.querySelectorAll('.lang-select').forEach((el) => {
+    (el as HTMLSelectElement).onchange = () => {
+      setLocale((el as HTMLSelectElement).value);
+      try {
+        rerender();
+      } catch (e) {
+        onErr(e);
       }
     };
   });

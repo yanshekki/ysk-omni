@@ -74,5 +74,12 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('商務合作');
     expect(boot).toContain('nav.business');
     expect(boot).toContain('biz-deploy');
+    expect(boot).toContain('Bahasa Indonesia');
+    expect(boot).toContain('Español');
+    expect(boot).toContain('العربية');
+    expect(boot).toContain('हिन्दी');
+    expect(boot).toContain('繁體中文');
+    expect(boot).toContain('简体中文');
+    expect(boot).toContain('lang-select');
   });
 });

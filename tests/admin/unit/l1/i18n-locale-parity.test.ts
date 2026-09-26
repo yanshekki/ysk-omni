@@ -1,20 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
-
-function loadDict(file: string): { en: Record<string, unknown>; 'zh-Hant': Record<string, unknown> } {
-  const src = fs.readFileSync(file, 'utf8');
-  const start = src.indexOf('const dict = ');
-  if (start < 0) throw new Error(`no dict in ${file}`);
-  const rest = src.slice(start + 'const dict = '.length);
-  const end = rest.search(/\nfunction detectLocale/);
-  const objSrc = rest.slice(0, end).trim().replace(/;$/, '');
-  return vm.runInNewContext(`(${objSrc})`) as {
-    en: Record<string, unknown>;
-    'zh-Hant': Record<string, unknown>;
-  };
-}
+import { LOCALE_IDS, LOCALE_NATIVE } from '../../../../admin/src/i18n/runtime';
 
 function flatten(
   obj: unknown,
@@ -34,18 +21,32 @@ function flatten(
   return out;
 }
 
-const I18N = path.resolve(process.cwd(), 'admin/src/full/i18n.js');
+const LOCALE_DIR = path.resolve(process.cwd(), 'admin/src/i18n/locales');
 
-describe('Admin locale parity (en / zh-Hant)', () => {
-  const dict = loadDict(I18N);
-  const en = new Map(flatten(dict.en));
-  const zh = new Map(flatten(dict['zh-Hant']));
+function loadLocale(id: string): Record<string, unknown> {
+  return JSON.parse(
+    fs.readFileSync(path.join(LOCALE_DIR, `${id}.json`), 'utf8'),
+  ) as Record<string, unknown>;
+}
 
-  it('en and zh-Hant have the same key paths', () => {
-    const missingZh = [...en.keys()].filter((k) => !zh.has(k));
-    const missingEn = [...zh.keys()].filter((k) => !en.has(k));
-    expect(missingZh, `missing zh-Hant:\n${missingZh.join('\n')}`).toEqual([]);
-    expect(missingEn, `missing en:\n${missingEn.join('\n')}`).toEqual([]);
+describe('Admin locale parity (top 10 languages)', () => {
+  const en = new Map(flatten(loadLocale('en')));
+  const zh = new Map(flatten(loadLocale('zh-Hant')));
+
+  it('every locale has the same key paths as en', () => {
+    for (const id of LOCALE_IDS) {
+      const m = new Map(flatten(loadLocale(id)));
+      const missing = [...en.keys()].filter((k) => !m.has(k));
+      expect(missing, `${id} missing:\n${missing.join('\n')}`).toEqual([]);
+    }
+  });
+
+  it('native names cover ten locales', () => {
+    expect(LOCALE_IDS).toHaveLength(11);
+    expect(LOCALE_NATIVE.ar).toBe('العربية');
+    expect(LOCALE_NATIVE['zh-Hant']).toBe('繁體中文');
+    expect(LOCALE_NATIVE['zh-Hans']).toBe('简体中文');
+    expect(LOCALE_NATIVE.id).toBe('Bahasa Indonesia');
   });
 
   it('zh-Hant uses Hong Kong written Chinese glossary', () => {
