@@ -10,7 +10,7 @@ Product guide: [docs/en/admin.md](../docs/en/admin.md) · [docs/zh/admin.md](../
 |-------|---------|
 | `public/admin/boot.js` | Full SPA (Vite bundle) |
 | Source | `admin/src/full/app.js` + `i18n.js` |
-| Pages | Login, Dashboard, Chat, Chat logs, API Keys, Documents, Media, Catalog, Runtimes, Audit, Safety, API features, Usage, DDoS, Queue, PM2, System, Support |
+| Pages | Login, Dashboard, Chat, Chat logs, API Keys, Documents, Media, Catalog, Runtimes, Audit, Safety, API features, Usage, DDoS, Queue, PM2, System, Support, Business |
 
 ```bash
 npm run build:admin    # → public/admin/boot.js

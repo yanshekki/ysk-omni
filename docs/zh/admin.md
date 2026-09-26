@@ -40,5 +40,6 @@ ysk-omni admin on
 | PM2 | 行程管理 |
 | 系統狀態 | 軟件（Node、npm、llama-server、ffmpeg、PM2、Prisma）、套件更新、環境 |
 | 支援 | 作者與贊助 |
+| 商務合作 | 企業部署、OEM／白牌、系統整合、合作夥伴 |
 
 部署新的 `boot.js` 後請硬重新整理瀏覽器。

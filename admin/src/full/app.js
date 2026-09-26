@@ -257,6 +257,7 @@ const PAGE_FROM_HASH = {
   pm2: 'pm2',
   system: 'system',
   support: 'support',
+  business: 'business',
 };
 
 function pageToHash(page) {
@@ -1032,6 +1033,7 @@ function pageTitle() {
     pm2: t('nav.pm2'),
     system: t('nav.system'),
     support: t('nav.support'),
+    business: t('nav.business'),
   };
   return map[state.page] || t('brand');
 }
@@ -1081,6 +1083,7 @@ function shell(content) {
         ${nav('pm2', t('nav.pm2'))}
         ${nav('system', t('nav.system'))}
         ${nav('support', t('nav.support'))}
+        ${nav('business', t('nav.business'))}
         <div class="sidebar-foot">
           <button class="btn secondary sm logout-btn" id="btn-logout">${escapeHtml(t('logout'))}</button>
         </div>
@@ -9900,6 +9903,93 @@ async function renderSupport() {
   });
 }
 
+function businessMailto() {
+  const subject =
+    getLocale() === 'zh-Hant'
+      ? 'YSK Omni 商務合作'
+      : 'YSK Omni business partnership';
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`;
+}
+
+function renderBusiness() {
+  const mail = businessMailto();
+  document.getElementById('app').innerHTML = shell(`
+    <div class="topbar">
+      <h2>${escapeHtml(t('business.title'))}</h2>
+    </div>
+    ${pageMetaHtml([t('business.subtitle')])}
+    <div class="support-pills" role="navigation">
+      <button type="button" class="seg-tab is-active" data-jump="biz-deploy">${escapeHtml(t('business.pillDeploy'))}</button>
+      <button type="button" class="seg-tab" data-jump="biz-oem">${escapeHtml(t('business.pillOem'))}</button>
+      <button type="button" class="seg-tab" data-jump="biz-integrate">${escapeHtml(t('business.pillIntegrate'))}</button>
+      <button type="button" class="seg-tab" data-jump="biz-partner">${escapeHtml(t('business.pillPartner'))}</button>
+      <a class="seg-tab" href="${escapeHtml(mail)}">${escapeHtml(t('business.pillContact'))}</a>
+    </div>
+    <div class="support-stack">
+      <section class="panel support-panel" id="biz-deploy">
+        <div class="panel-h"><strong>${escapeHtml(t('business.deployTitle'))}</strong></div>
+        <div class="panel-pad">
+          <p class="support-prose">${escapeHtml(t('business.deployBody'))}</p>
+          <ul class="support-list">
+            <li>${escapeHtml(t('business.deployLi1'))}</li>
+            <li>${escapeHtml(t('business.deployLi2'))}</li>
+            <li>${escapeHtml(t('business.deployLi3'))}</li>
+            <li>${escapeHtml(t('business.deployLi4'))}</li>
+          </ul>
+        </div>
+      </section>
+      <section class="panel support-panel" id="biz-oem">
+        <div class="panel-h"><strong>${escapeHtml(t('business.oemTitle'))}</strong></div>
+        <div class="panel-pad">
+          <p class="support-prose">${escapeHtml(t('business.oemBody'))}</p>
+          <ul class="support-list">
+            <li>${escapeHtml(t('business.oemLi1'))}</li>
+            <li>${escapeHtml(t('business.oemLi2'))}</li>
+            <li>${escapeHtml(t('business.oemLi3'))}</li>
+          </ul>
+        </div>
+      </section>
+      <section class="panel support-panel" id="biz-integrate">
+        <div class="panel-h"><strong>${escapeHtml(t('business.integrateTitle'))}</strong></div>
+        <div class="panel-pad">
+          <p class="support-prose">${escapeHtml(t('business.integrateBody'))}</p>
+          <ul class="support-list">
+            <li>${escapeHtml(t('business.integrateLi1'))}</li>
+            <li>${escapeHtml(t('business.integrateLi2'))}</li>
+            <li>${escapeHtml(t('business.integrateLi3'))}</li>
+            <li>${escapeHtml(t('business.integrateLi4'))}</li>
+          </ul>
+        </div>
+      </section>
+      <section class="panel support-panel" id="biz-partner">
+        <div class="panel-h"><strong>${escapeHtml(t('business.partnerTitle'))}</strong></div>
+        <div class="panel-pad">
+          <p class="support-prose">${escapeHtml(t('business.partnerBody'))}</p>
+          <ul class="support-list">
+            <li>${escapeHtml(t('business.partnerLi1'))}</li>
+            <li>${escapeHtml(t('business.partnerLi2'))}</li>
+          </ul>
+        </div>
+      </section>
+      <section class="panel support-panel" id="biz-contact">
+        <div class="panel-h"><strong>${escapeHtml(t('business.contactTitle'))}</strong></div>
+        <div class="panel-pad">
+          <p class="support-prose">${escapeHtml(t('business.contactBody'))}</p>
+          <a class="btn support-email-btn" href="${escapeHtml(mail)}">${escapeHtml(t('business.contactCta'))}</a>
+          <p class="support-docs"><a href="${SUPPORT_SITE}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('business.site'))}</a></p>
+        </div>
+      </section>
+    </div>
+  `);
+  bindShell();
+  document.querySelectorAll('[data-jump]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-jump');
+      if (id) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
+
 /** Curated packs rendered in production Admin Catalog (fallback if API is empty). */
 const CURATED_PACKS = [
   {
@@ -11205,6 +11295,7 @@ async function render() {
     else if (state.page === 'pm2') await renderPm2();
     else if (state.page === 'system') await renderSystem();
     else if (state.page === 'support') await renderSupport();
+    else if (state.page === 'business') await renderBusiness();
     else await renderDashboard();
   } catch (e) {
     app.innerHTML = shell(`<div class="error-box">${escapeHtml(e.message)}</div>`);

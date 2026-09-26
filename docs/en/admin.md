@@ -40,5 +40,6 @@ ysk-omni admin on
 | PM2 | Process manager |
 | System | Software (Node, npm, llama-server, ffmpeg, PM2, Prisma), package update, env |
 | Support | Author and sponsorship |
+| Business | Enterprise deploy, OEM, integration, partners |
 
 After deploying a new `boot.js`, hard-refresh the browser.

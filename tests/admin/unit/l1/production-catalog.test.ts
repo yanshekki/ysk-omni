@@ -71,5 +71,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).not.toContain('Grok CLI');
     expect(boot).not.toContain('Grok CLI spawn');
     expect(boot).not.toContain('歷史殘留');
+    expect(boot).toContain('商務合作');
+    expect(boot).toContain('nav.business');
+    expect(boot).toContain('biz-deploy');
   });
 });

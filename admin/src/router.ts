@@ -14,6 +14,7 @@ import { renderChatsPage } from './pages/chats.page';
 import { renderChatPage } from './pages/chat.page';
 import { makeApiExplorerPage } from './pages/generic-api.page';
 import { renderSupportPage } from './pages/support.page';
+import { renderBusinessPage } from './pages/business.page';
 import { endpoints } from './config/endpoints';
 import { t } from './i18n';
 
@@ -89,6 +90,7 @@ export const pageRegistry: Record<Exclude<PageId, 'login'>, PageRenderer> = {
   pm2: renderPm2,
   system: renderSystem,
   support: renderSupportPage,
+  business: renderBusinessPage,
 };
 
 export async function renderPage(
