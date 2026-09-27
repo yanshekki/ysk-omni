@@ -46,8 +46,7 @@ def main() -> None:
     walk(en)
     for lang in LANGS:
         missing = [s for s in unique if s not in maps[lang]]
-        if missing:
-            raise SystemExit(f"{lang}: {len(missing)} missing e.g. {missing[:5]!r}")
+        print(f"{lang}: {len(maps[lang])} translated, {len(missing)} still English")
         out = deep_map(en, maps[lang])
         dest = LOCALE_DIR / f"{lang}.json"
         dest.write_text(

@@ -1,0 +1,200 @@
+{"en":"—","hi":"—","es":"—","ar":"—","fr":"—","bn":"—","pt":"—","ru":"—","id":"—"}
+{"en":"ID","hi":"आईडी","es":"ID","ar":"المعرّف","fr":"ID","bn":"আইডি","pt":"ID","ru":"ID","id":"ID"}
+{"en":"IP","hi":"आईपी","es":"IP","ar":"IP","fr":"IP","bn":"আইপি","pt":"IP","ru":"IP","id":"IP"}
+{"en":"No","hi":"नहीं","es":"No","ar":"لا","fr":"Non","bn":"না","pt":"Não","ru":"Нет","id":"Tidak"}
+{"en":"OK","hi":"ठीक","es":"OK","ar":"حسنًا","fr":"OK","bn":"ঠিক আছে","pt":"OK","ru":"ОК","id":"OK"}
+{"en":"On","hi":"चालू","es":"Activado","ar":"تشغيل","fr":"Activé","bn":"চালু","pt":"Ligado","ru":"Вкл.","id":"Aktif"}
+{"en":"To","hi":"तक","es":"Hasta","ar":"إلى","fr":"Au","bn":"পর্যন্ত","pt":"Até","ru":"До","id":"Sampai"}
+{"en":"UA","hi":"UA","es":"UA","ar":"UA","fr":"UA","bn":"UA","pt":"UA","ru":"UA","id":"UA"}
+{"en":"Up","hi":"चालू","es":"Activo","ar":"يعمل","fr":"Actif","bn":"চালু","pt":"Ativo","ru":"Работает","id":"Aktif"}
+{"en":"429","hi":"429","es":"429","ar":"429","fr":"429","bn":"429","pt":"429","ru":"429","id":"429"}
+{"en":"API","hi":"API","es":"API","ar":"API","fr":"API","bn":"API","pt":"API","ru":"API","id":"API"}
+{"en":"All","hi":"सभी","es":"Todos","ar":"الكل","fr":"Tout","bn":"সব","pt":"Todos","ru":"Все","id":"Semua"}
+{"en":"CPU","hi":"CPU","es":"CPU","ar":"CPU","fr":"CPU","bn":"CPU","pt":"CPU","ru":"CPU","id":"CPU"}
+{"en":"Key","hi":"कुंजी","es":"Clave","ar":"المفتاح","fr":"Clé","bn":"কী","pt":"Chave","ru":"Ключ","id":"Kunci"}
+{"en":"Low","hi":"कम","es":"Bajo","ar":"منخفض","fr":"Faible","bn":"কম","pt":"Baixo","ru":"Низкий","id":"Rendah"}
+{"en":"Max","hi":"अधिकतम","es":"Máx.","ar":"الحد الأقصى","fr":"Max","bn":"সর্বোচ্চ","pt":"Máx.","ru":"Макс.","id":"Maks."}
+{"en":"OEM","hi":"OEM","es":"OEM","ar":"OEM","fr":"OEM","bn":"OEM","pt":"OEM","ru":"OEM","id":"OEM"}
+{"en":"Off","hi":"बंद","es":"Desactivado","ar":"إيقاف","fr":"Désactivé","bn":"বন্ধ","pt":"Desligado","ru":"Выкл.","id":"Nonaktif"}
+{"en":"PID","hi":"PID","es":"PID","ar":"PID","fr":"PID","bn":"PID","pt":"PID","ru":"PID","id":"PID"}
+{"en":"PM2","hi":"PM2","es":"PM2","ar":"PM2","fr":"PM2","bn":"PM2","pt":"PM2","ru":"PM2","id":"PM2"}
+{"en":"Pri","hi":"प्राथमिकता","es":"Pri","ar":"الأولوية","fr":"Pri","bn":"অগ্রাধিকার","pt":"Pri","ru":"Приоритет","id":"Pri"}
+{"en":"TTL","hi":"TTL","es":"TTL","ar":"TTL","fr":"TTL","bn":"TTL","pt":"TTL","ru":"TTL","id":"TTL"}
+{"en":"Try","hi":"प्रयास करें","es":"Intentar","ar":"جرّب","fr":"Essayer","bn":"চেষ্টা করুন","pt":"Tentar","ru":"Попробовать","id":"Coba"}
+{"en":"Yes","hi":"हाँ","es":"Sí","ar":"نعم","fr":"Oui","bn":"হ্যাঁ","pt":"Sim","ru":"Да","id":"Ya"}
+{"en":"You","hi":"आप","es":"Usted","ar":"أنت","fr":"Vous","bn":"আপনি","pt":"Você","ru":"Вы","id":"Anda"}
+{"en":"img","hi":"चित्र","es":"img","ar":"صورة","fr":"img","bn":"ছবি","pt":"img","ru":"изобр.","id":"img"}
+{"en":"Auth","hi":"प्रमाणीकरण","es":"Auth","ar":"المصادقة","fr":"Auth","bn":"প্রমাণীকরণ","pt":"Auth","ru":"Авторизация","id":"Auth"}
+{"en":"Chat","hi":"चैट","es":"Chat","ar":"الدردشة","fr":"Discussion","bn":"চ্যাট","pt":"Chat","ru":"Чат","id":"Obrolan"}
+{"en":"Conn","hi":"कनेक्शन","es":"Conn","ar":"الاتصال","fr":"Conn","bn":"সংযোগ","pt":"Conn","ru":"Соед.","id":"Koneksi"}
+{"en":"Copy","hi":"कॉपी","es":"Copiar","ar":"نسخ","fr":"Copier","bn":"কপি","pt":"Copiar","ru":"Копировать","id":"Salin"}
+{"en":"Cost","hi":"लागत","es":"Coste","ar":"التكلفة","fr":"Coût","bn":"খরচ","pt":"Custo","ru":"Стоимость","id":"Biaya"}
+{"en":"Dead","hi":"मृत","es":"Muerto","ar":"ميت","fr":"Mort","bn":"মৃত","pt":"Morto","ru":"Мёртвые","id":"Mati"}
+{"en":"Down","hi":"बंद","es":"Caído","ar":"متوقف","fr":"Hors service","bn":"বন্ধ","pt":"Inativo","ru":"Недоступен","id":"Down"}
+{"en":"Edit","hi":"संपादित करें","es":"Editar","ar":"تعديل","fr":"Modifier","bn":"সম্পাদনা","pt":"Editar","ru":"Изменить","id":"Sunting"}
+{"en":"File","hi":"फ़ाइल","es":"Archivo","ar":"ملف","fr":"Fichier","bn":"ফাইল","pt":"Ficheiro","ru":"Файл","id":"Berkas"}
+{"en":"Fork","hi":"फोर्क","es":"Bifurcar","ar":"تفرع","fr":"Dupliquer","bn":"ফর্ক","pt":"Bifurcar","ru":"Форк","id":"Fork"}
+{"en":"From","hi":"से","es":"Desde","ar":"من","fr":"Du","bn":"থেকে","pt":"De","ru":"С","id":"Dari"}
+{"en":"HTTP","hi":"HTTP","es":"HTTP","ar":"HTTP","fr":"HTTP","bn":"HTTP","pt":"HTTP","ru":"HTTP","id":"HTTP"}
+{"en":"High","hi":"उच्च","es":"Alto","ar":"مرتفع","fr":"Élevé","bn":"উচ্চ","pt":"Alto","ru":"Высокий","id":"Tinggi"}
+{"en":"Idle","hi":"निष्क्रिय","es":"Inactivo","ar":"خامل","fr":"Inactif","bn":"নিষ্ক্রিয়","pt":"Inativo","ru":"Простой","id":"Menganggur"}
+{"en":"Jobs","hi":"कार्य","es":"Trabajos","ar":"المهام","fr":"Tâches","bn":"কাজ","pt":"Tarefas","ru":"Задания","id":"Pekerjaan"}
+{"en":"Kind","hi":"प्रकार","es":"Tipo","ar":"النوع","fr":"Type","bn":"ধরন","pt":"Tipo","ru":"Тип","id":"Jenis"}
+{"en":"Live","hi":"लाइव","es":"En vivo","ar":"مباشر","fr":"En direct","bn":"লাইভ","pt":"Ao vivo","ru":"В эфире","id":"Langsung"}
+{"en":"Load","hi":"Load","es":"Load","ar":"Load","fr":"Load","bn":"Load","pt":"Load","ru":"Load","id":"Load"}
+{"en":"Logs","hi":"लॉग","es":"Registros","ar":"السجلات","fr":"Journaux","bn":"লগ","pt":"Registos","ru":"Журналы","id":"Log"}
+{"en":"MIME","hi":"MIME","es":"MIME","ar":"MIME","fr":"MIME","bn":"MIME","pt":"MIME","ru":"MIME","id":"MIME"}
+{"en":"Meta","hi":"मेटा","es":"Meta","ar":"البيانات الوصفية","fr":"Méta","bn":"মেটা","pt":"Meta","ru":"Мета","id":"Meta"}
+{"en":"Mode","hi":"मोड","es":"Modo","ar":"الوضع","fr":"Mode","bn":"মোড","pt":"Modo","ru":"Режим","id":"Mode"}
+{"en":"NEAR","hi":"NEAR","es":"NEAR","ar":"NEAR","fr":"NEAR","bn":"NEAR","pt":"NEAR","ru":"NEAR","id":"NEAR"}
+{"en":"Name","hi":"नाम","es":"Nombre","ar":"الاسم","fr":"Nom","bn":"নাম","pt":"Nome","ru":"Имя","id":"Nama"}
+{"en":"Need","hi":"आवश्यक","es":"Necesario","ar":"مطلوب","fr":"Requis","bn":"প্রয়োজন","pt":"Necessário","ru":"Нужно","id":"Perlu"}
+{"en":"Next","hi":"अगला","es":"Siguiente","ar":"التالي","fr":"Suivant","bn":"পরবর্তী","pt":"Seguinte","ru":"Далее","id":"Berikutnya"}
+{"en":"None","hi":"कोई नहीं","es":"Ninguno","ar":"لا شيء","fr":"Aucun","bn":"কিছুই না","pt":"Nenhum","ru":"Нет","id":"Tidak ada"}
+{"en":"Note","hi":"नोट","es":"Nota","ar":"ملاحظة","fr":"Note","bn":"নোট","pt":"Nota","ru":"Примечание","id":"Catatan"}
+{"en":"Page","hi":"पृष्ठ","es":"Página","ar":"الصفحة","fr":"Page","bn":"পৃষ্ঠা","pt":"Página","ru":"Страница","id":"Halaman"}
+{"en":"Path","hi":"पथ","es":"Ruta","ar":"المسار","fr":"Chemin","bn":"পথ","pt":"Caminho","ru":"Путь","id":"Jalur"}
+{"en":"Port","hi":"पोर्ट","es":"Puerto","ar":"المنفذ","fr":"Port","bn":"পোর্ট","pt":"Porto","ru":"Порт","id":"Port"}
+{"en":"Pull","hi":"Pull","es":"Pull","ar":"Pull","fr":"Pull","bn":"Pull","pt":"Pull","ru":"Pull","id":"Pull"}
+{"en":"Role","hi":"भूमिका","es":"Rol","ar":"الدور","fr":"Rôle","bn":"ভূমিকা","pt":"Função","ru":"Роль","id":"Peran"}
+{"en":"Rule","hi":"नियम","es":"Regla","ar":"القاعدة","fr":"Règle","bn":"নিয়ম","pt":"Regra","ru":"Правило","id":"Aturan"}
+{"en":"Save","hi":"सहेजें","es":"Guardar","ar":"حفظ","fr":"Enregistrer","bn":"সংরক্ষণ","pt":"Guardar","ru":"Сохранить","id":"Simpan"}
+{"en":"Send","hi":"भेजें","es":"Enviar","ar":"إرسال","fr":"Envoyer","bn":"পাঠান","pt":"Enviar","ru":"Отправить","id":"Kirim"}
+{"en":"Size","hi":"आकार","es":"Tamaño","ar":"الحجم","fr":"Taille","bn":"আকার","pt":"Tamanho","ru":"Размер","id":"Ukuran"}
+{"en":"Stop","hi":"रोकें","es":"Detener","ar":"إيقاف","fr":"Arrêter","bn":"থামান","pt":"Parar","ru":"Стоп","id":"Berhenti"}
+{"en":"Text","hi":"पाठ","es":"Texto","ar":"نص","fr":"Texte","bn":"পাঠ্য","pt":"Texto","ru":"Текст","id":"Teks"}
+{"en":"Time","hi":"समय","es":"Hora","ar":"الوقت","fr":"Heure","bn":"সময়","pt":"Hora","ru":"Время","id":"Waktu"}
+{"en":"VRAM","hi":"VRAM","es":"VRAM","ar":"VRAM","fr":"VRAM","bn":"VRAM","pt":"VRAM","ru":"VRAM","id":"VRAM"}
+{"en":"Wait","hi":"प्रतीक्षा","es":"Espera","ar":"انتظار","fr":"Attente","bn":"অপেক্ষা","pt":"Espera","ru":"Ожидание","id":"Tunggu"}
+{"en":"When","hi":"कब","es":"Cuándo","ar":"متى","fr":"Quand","bn":"কখন","pt":"Quando","ru":"Когда","id":"Kapan"}
+{"en":"dead","hi":"मृत","es":"muerto","ar":"ميت","fr":"mort","bn":"মৃত","pt":"morto","ru":"мёртвые","id":"mati"}
+{"en":"est.","hi":"अनु.","es":"est.","ar":"تقريبي","fr":"est.","bn":"আনু.","pt":"est.","ru":"прибл.","id":"perkir."}
+{"en":"file","hi":"फ़ाइल","es":"archivo","ar":"ملف","fr":"fichier","bn":"ফাইল","pt":"ficheiro","ru":"файл","id":"berkas"}
+{"en":"fork","hi":"फोर्क","es":"bifurcar","ar":"تفرع","fr":"dupliquer","bn":"ফর্ক","pt":"bifurcar","ru":"форк","id":"fork"}
+{"en":"hops","hi":"हॉप्स","es":"saltos","ar":"القفزات","fr":"sauts","bn":"হপস","pt":"saltos","ru":"прыжки","id":"hop"}
+{"en":"none","hi":"कोई नहीं","es":"ninguno","ar":"لا شيء","fr":"aucun","bn":"কিছুই না","pt":"nenhum","ru":"нет","id":"tidak ada"}
+{"en":"safe","hi":"सुरक्षित","es":"seguro","ar":"آمن","fr":"sûr","bn":"নিরাপদ","pt":"seguro","ru":"безопасный","id":"aman"}
+{"en":"v{v}","hi":"v{v}","es":"v{v}","ar":"v{v}","fr":"v{v}","bn":"v{v}","pt":"v{v}","ru":"v{v}","id":"v{v}"}
+{"en":"{n}%","hi":"{n}%","es":"{n}%","ar":"{n}%","fr":"{n}%","bn":"{n}%","pt":"{n}%","ru":"{n}%","id":"{n}%"}
+{"en":"Admin","hi":"एडमिन","es":"Admin","ar":"المسؤول","fr":"Admin","bn":"অ্যাডমিন","pt":"Admin","ru":"Админ","id":"Admin"}
+{"en":"Apply","hi":"लागू करें","es":"Aplicar","ar":"تطبيق","fr":"Appliquer","bn":"প্রয়োগ","pt":"Aplicar","ru":"Применить","id":"Terapkan"}
+{"en":"Clear","hi":"साफ़ करें","es":"Borrar","ar":"مسح","fr":"Effacer","bn":"মুছুন","pt":"Limpar","ru":"Очистить","id":"Hapus"}
+{"en":"Close","hi":"बंद करें","es":"Cerrar","ar":"إغلاق","fr":"Fermer","bn":"বন্ধ","pt":"Fechar","ru":"Закрыть","id":"Tutup"}
+{"en":"Count","hi":"संख्या","es":"Recuento","ar":"العدد","fr":"Nombre","bn":"সংখ্যা","pt":"Contagem","ru":"Число","id":"Jumlah"}
+{"en":"Depth","hi":"गहराई","es":"Profundidad","ar":"العمق","fr":"Profondeur","bn":"গভীরতা","pt":"Profundidade","ru":"Глубина","id":"Kedalaman"}
+{"en":"Draft","hi":"मसौदा","es":"Borrador","ar":"مسودة","fr":"Brouillon","bn":"খসড়া","pt":"Rascunho","ru":"Черновик","id":"Draf"}
+{"en":"Drain","hi":"ड्रेन","es":"Vaciar","ar":"التصريف","fr":"Vidange","bn":"ড্রেন","pt":"Esvaziar","ru":"Слив","id":"Drain"}
+{"en":"Error","hi":"त्रुटि","es":"Error","ar":"خطأ","fr":"Erreur","bn":"ত্রুটি","pt":"Erro","ru":"Ошибка","id":"Kesalahan"}
+{"en":"Image","hi":"छवि","es":"Imagen","ar":"صورة","fr":"Image","bn":"ছবি","pt":"Imagem","ru":"Изображение","id":"Gambar"}
+{"en":"Linux","hi":"Linux","es":"Linux","ar":"Linux","fr":"Linux","bn":"Linux","pt":"Linux","ru":"Linux","id":"Linux"}
+{"en":"Media","hi":"मीडिया","es":"Medios","ar":"الوسائط","fr":"Médias","bn":"মিডিয়া","pt":"Multimédia","ru":"Медиа","id":"Media"}
+{"en":"Model","hi":"मॉडल","es":"Modelo","ar":"النموذج","fr":"Modèle","bn":"মডেল","pt":"Modelo","ru":"Модель","id":"Model"}
+{"en":"Packs","hi":"पैक","es":"Paquetes","ar":"الحزم","fr":"Packs","bn":"প্যাক","pt":"Pacotes","ru":"Наборы","id":"Paket"}
+{"en":"Pause","hi":"रोकें","es":"Pausar","ar":"إيقاف مؤقت","fr":"Pause","bn":"বিরতি","pt":"Pausa","ru":"Пауза","id":"Jeda"}
+{"en":"Quant","hi":"क्वांट","es":"Quant","ar":"التكميم","fr":"Quant","bn":"কোয়ান্ট","pt":"Quant","ru":"Квант","id":"Quant"}
+{"en":"Queue","hi":"कतार","es":"Cola","ar":"الطابور","fr":"File","bn":"সারি","pt":"Fila","ru":"Очередь","id":"Antrean"}
+{"en":"Ready","hi":"तैयार","es":"Listo","ar":"جاهز","fr":"Prêt","bn":"প্রস্তুত","pt":"Pronto","ru":"Готово","id":"Siap"}
+{"en":"Reset","hi":"रीसेट","es":"Restablecer","ar":"إعادة تعيين","fr":"Réinitialiser","bn":"রিসেট","pt":"Repor","ru":"Сброс","id":"Reset"}
+{"en":"Saved","hi":"सहेजा गया","es":"Guardado","ar":"محفوظ","fr":"Enregistré","bn":"সংরক্ষিত","pt":"Guardado","ru":"Сохранено","id":"Tersimpan"}
+{"en":"State","hi":"स्थिति","es":"Estado","ar":"الحالة","fr":"État","bn":"অবস্থা","pt":"Estado","ru":"Состояние","id":"Status"}
+{"en":"Tools","hi":"उपकरण","es":"Herramientas","ar":"الأدوات","fr":"Outils","bn":"সরঞ্জাম","pt":"Ferramentas","ru":"Инструменты","id":"Alat"}
+{"en":"Total","hi":"कुल","es":"Total","ar":"الإجمالي","fr":"Total","bn":"মোট","pt":"Total","ru":"Всего","id":"Total"}
+{"en":"Unban","hi":"अनबैन","es":"Desbloquear","ar":"رفع الحظر","fr":"Débloquer","bn":"আনব্যান","pt":"Desbloquear","ru":"Разблокировать","id":"Buka blokir"}
+{"en":"Video","hi":"वीडियो","es":"Vídeo","ar":"فيديو","fr":"Vidéo","bn":"ভিডিও","pt":"Vídeo","ru":"Видео","id":"Video"}
+{"en":"Voice","hi":"आवाज़","es":"Voz","ar":"الصوت","fr":"Voix","bn":"কণ্ঠ","pt":"Voz","ru":"Голос","id":"Suara"}
+{"en":"Watch","hi":"देखें","es":"Ver","ar":"مراقبة","fr":"Surveiller","bn":"দেখুন","pt":"Ver","ru":"Смотреть","id":"Pantau"}
+{"en":"admin","hi":"एडमिन","es":"admin","ar":"مسؤول","fr":"admin","bn":"অ্যাডমিন","pt":"admin","ru":"админ","id":"admin"}
+{"en":"agent","hi":"एजेंट","es":"agente","ar":"وكيل","fr":"agent","bn":"এজেন্ট","pt":"agente","ru":"агент","id":"agen"}
+{"en":"cache","hi":"कैश","es":"caché","ar":"ذاكرة التخزين","fr":"cache","bn":"ক্যাশ","pt":"cache","ru":"кэш","id":"cache"}
+{"en":"error","hi":"त्रुटि","es":"error","ar":"خطأ","fr":"erreur","bn":"ত্রুটি","pt":"erro","ru":"ошибка","id":"kesalahan"}
+{"en":"macOS","hi":"macOS","es":"macOS","ar":"macOS","fr":"macOS","bn":"macOS","pt":"macOS","ru":"macOS","id":"macOS"}
+{"en":"(none)","hi":"(कोई नहीं)","es":"(ninguno)","ar":"(لا شيء)","fr":"(aucun)","bn":"(কিছুই না)","pt":"(nenhum)","ru":"(нет)","id":"(tidak ada)"}
+{"en":"1 hour","hi":"1 घंटा","es":"1 hora","ar":"ساعة واحدة","fr":"1 heure","bn":"১ ঘণ্টা","pt":"1 hora","ru":"1 час","id":"1 jam"}
+{"en":"7 days","hi":"7 दिन","es":"7 días","ar":"7 أيام","fr":"7 jours","bn":"৭ দিন","pt":"7 dias","ru":"7 дней","id":"7 hari"}
+{"en":"Action","hi":"क्रिया","es":"Acción","ar":"الإجراء","fr":"Action","bn":"কাজ","pt":"Ação","ru":"Действие","id":"Tindakan"}
+{"en":"Active","hi":"सक्रिय","es":"Activo","ar":"نشط","fr":"Actif","bn":"সক্রিয়","pt":"Ativo","ru":"Активно","id":"Aktif"}
+{"en":"Assets","hi":"संपत्ति","es":"Activos","ar":"الأصول","fr":"Ressources","bn":"অ্যাসেট","pt":"Recursos","ru":"Ресурсы","id":"Aset"}
+{"en":"Ban IP","hi":"आईपी प्रतिबंधित करें","es":"Bloquear IP","ar":"حظر IP","fr":"Bannir l’IP","bn":"আইপি নিষিদ্ধ","pt":"Banir IP","ru":"Забанить IP","id":"Blokir IP"}
+{"en":"Cancel","hi":"रद्द करें","es":"Cancelar","ar":"إلغاء","fr":"Annuler","bn":"বাতিল","pt":"Cancelar","ru":"Отмена","id":"Batal"}
+{"en":"Config","hi":"कॉन्फ़िग","es":"Config","ar":"الإعداد","fr":"Config","bn":"কনফিগ","pt":"Config","ru":"Конфиг","id":"Konfigurasi"}
+{"en":"Copied","hi":"कॉपी हो गया","es":"Copiado","ar":"تم النسخ","fr":"Copié","bn":"কপি হয়েছে","pt":"Copiado","ru":"Скопировано","id":"Disalin"}
+{"en":"Custom","hi":"कस्टम","es":"Personalizado","ar":"مخصص","fr":"Personnalisé","bn":"কাস্টম","pt":"Personalizado","ru":"Свой","id":"Kustom"}
+{"en":"Delete","hi":"हटाएँ","es":"Eliminar","ar":"حذف","fr":"Supprimer","bn":"মুছুন","pt":"Eliminar","ru":"Удалить","id":"Hapus"}
+{"en":"Effort","hi":"प्रयास","es":"Esfuerzo","ar":"الجهد","fr":"Effort","bn":"প্রচেষ্টা","pt":"Esforço","ru":"Усилие","id":"Upaya"}
+{"en":"Errors","hi":"त्रुटियाँ","es":"Errores","ar":"الأخطاء","fr":"Erreurs","bn":"ত্রুটি","pt":"Erros","ru":"Ошибки","id":"Kesalahan"}
+{"en":"Events","hi":"घटनाएँ","es":"Eventos","ar":"الأحداث","fr":"Événements","bn":"ঘটনা","pt":"Eventos","ru":"События","id":"Peristiwa"}
+{"en":"Failed","hi":"विफल","es":"Fallido","ar":"فشل","fr":"Échoué","bn":"ব্যর্থ","pt":"Falhou","ru":"Ошибка","id":"Gagal"}
+{"en":"IP ban","hi":"आईपी प्रतिबंध","es":"Bloqueo IP","ar":"حظر IP","fr":"Bannissement IP","bn":"আইপি নিষেধ","pt":"Banimento IP","ru":"Бан IP","id":"Blokir IP"}
+{"en":"Leased","hi":"लीज़्ड","es":"Arrendado","ar":"مؤجّر","fr":"Loué","bn":"লিজড","pt":"Alugado","ru":"В работе","id":"Disewa"}
+{"en":"Loaded","hi":"लोड किया गया","es":"Cargado","ar":"محمّل","fr":"Chargé","bn":"লোড হয়েছে","pt":"Carregado","ru":"Загружено","id":"Dimuat"}
+{"en":"Manual","hi":"मैन्युअल","es":"Manual","ar":"يدوي","fr":"Manuel","bn":"ম্যানুয়াল","pt":"Manual","ru":"Вручную","id":"Manual"}
+{"en":"Medium","hi":"मध्यम","es":"Medio","ar":"متوسط","fr":"Moyen","bn":"মাঝারি","pt":"Médio","ru":"Средний","id":"Sedang"}
+{"en":"Memory","hi":"मेमोरी","es":"Memoria","ar":"الذاكرة","fr":"Mémoire","bn":"মেমোরি","pt":"Memória","ru":"Память","id":"Memori"}
+{"en":"Method","hi":"विधि","es":"Método","ar":"الطريقة","fr":"Méthode","bn":"পদ্ধতি","pt":"Método","ru":"Метод","id":"Metode"}
+{"en":"Models","hi":"मॉडल","es":"Modelos","ar":"النماذج","fr":"Modèles","bn":"মডেল","pt":"Modelos","ru":"Модели","id":"Model"}
+{"en":"Notice","hi":"सूचना","es":"Aviso","ar":"تنبيه","fr":"Avis","bn":"বিজ্ঞপ্তি","pt":"Aviso","ru":"Уведомление","id":"Pemberitahuan"}
+{"en":"Paused","hi":"रोका गया","es":"En pausa","ar":"متوقف مؤقتًا","fr":"En pause","bn":"বিরতি","pt":"Em pausa","ru":"На паузе","id":"Dijeda"}
+{"en":"Policy","hi":"नीति","es":"Política","ar":"السياسة","fr":"Politique","bn":"নীতি","pt":"Política","ru":"Политика","id":"Kebijakan"}
+{"en":"Prompt","hi":"प्रॉम्प्ट","es":"Indicación","ar":"الموجه","fr":"Invite","bn":"প্রম্পট","pt":"Pedido","ru":"Промпт","id":"Prompt"}
+{"en":"Queued","hi":"कतार में","es":"En cola","ar":"في الانتظار","fr":"En file","bn":"সারিতে","pt":"Em fila","ru":"В очереди","id":"Mengantre"}
+{"en":"Reason","hi":"कारण","es":"Motivo","ar":"السبب","fr":"Raison","bn":"কারণ","pt":"Motivo","ru":"Причина","id":"Alasan"}
+{"en":"Reload","hi":"रीलोड","es":"Recargar","ar":"إعادة التحميل","fr":"Recharger","bn":"রিলোড","pt":"Recarregar","ru":"Обновить","id":"Muat ulang"}
+{"en":"Remove","hi":"हटाएँ","es":"Quitar","ar":"إزالة","fr":"Retirer","bn":"সরান","pt":"Remover","ru":"Убрать","id":"Hapus"}
+{"en":"Rename","hi":"नाम बदलें","es":"Renombrar","ar":"إعادة التسمية","fr":"Renommer","bn":"নাম পরিবর্তন","pt":"Mudar o nome","ru":"Переименовать","id":"Ganti nama"}
+{"en":"Resume","hi":"जारी रखें","es":"Reanudar","ar":"استئناف","fr":"Reprendre","bn":"পুনরায় শুরু","pt":"Retomar","ru":"Продолжить","id":"Lanjutkan"}
+{"en":"Revoke","hi":"रद्द करें","es":"Revocar","ar":"إلغاء","fr":"Révoquer","bn":"প্রত্যাহার","pt":"Revogar","ru":"Отозвать","id":"Cabut"}
+{"en":"Runner","hi":"रनर","es":"Ejecutor","ar":"المشغّل","fr":"Exécuteur","bn":"রানার","pt":"Executor","ru":"Исполнитель","id":"Runner"}
+{"en":"Safety","hi":"सुरक्षा","es":"Seguridad","ar":"السلامة","fr":"Sécurité","bn":"নিরাপত্তা","pt":"Segurança","ru":"Безопасность","id":"Keamanan"}
+{"en":"Script","hi":"स्क्रिप्ट","es":"Script","ar":"البرنامج النصي","fr":"Script","bn":"স্ক্রিপ্ট","pt":"Script","ru":"Скрипт","id":"Skrip"}
+{"en":"Search","hi":"खोजें","es":"Buscar","ar":"بحث","fr":"Rechercher","bn":"অনুসন্ধান","pt":"Pesquisar","ru":"Поиск","id":"Cari"}
+{"en":"Source","hi":"स्रोत","es":"Origen","ar":"المصدر","fr":"Source","bn":"উৎস","pt":"Origem","ru":"Источник","id":"Sumber"}
+{"en":"Speech","hi":"वाणी","es":"Voz","ar":"الكلام","fr":"Parole","bn":"বক্তৃতা","pt":"Fala","ru":"Речь","id":"Ucapan"}
+{"en":"Status","hi":"स्थिति","es":"Estado","ar":"الحالة","fr":"Statut","bn":"অবস্থা","pt":"Estado","ru":"Статус","id":"Status"}
+{"en":"Stream","hi":"स्ट्रीम","es":"Flujo","ar":"البث","fr":"Flux","bn":"স্ট্রিম","pt":"Fluxo","ru":"Поток","id":"Aliran"}
+{"en":"Strict","hi":"कठोर","es":"Estricto","ar":"صارم","fr":"Strict","bn":"কঠোর","pt":"Rigoroso","ru":"Строгий","id":"Ketat"}
+{"en":"Studio","hi":"स्टूडियो","es":"Estudio","ar":"الاستوديو","fr":"Studio","bn":"স্টুডিও","pt":"Estúdio","ru":"Студия","id":"Studio"}
+{"en":"System","hi":"सिस्टम","es":"Sistema","ar":"النظام","fr":"Système","bn":"সিস্টেম","pt":"Sistema","ru":"Система","id":"Sistem"}
+{"en":"Tokens","hi":"टोकन","es":"Tokens","ar":"الرموز","fr":"Jetons","bn":"টোকেন","pt":"Tokens","ru":"Токены","id":"Token"}
+{"en":"Unload","hi":"Unload","es":"Unload","ar":"Unload","fr":"Unload","bn":"Unload","pt":"Unload","ru":"Unload","id":"Unload"}
+{"en":"Upload","hi":"अपलोड","es":"Subir","ar":"رفع","fr":"Téléverser","bn":"আপলোড","pt":"Carregar","ru":"Загрузить","id":"Unggah"}
+{"en":"Uptime","hi":"अपटाइम","es":"Tiempo activo","ar":"مدة التشغيل","fr":"Disponibilité","bn":"আপটাইম","pt":"Tempo ativo","ru":"Аптайм","id":"Waktu aktif"}
+{"en":"Window","hi":"विंडो","es":"Ventana","ar":"النافذة","fr":"Fenêtre","bn":"উইন্ডো","pt":"Janela","ru":"Окно","id":"Jendela"}
+{"en":"Worker","hi":"वर्कर","es":"Trabajador","ar":"العامل","fr":"Worker","bn":"ওয়ার্কার","pt":"Trabalhador","ru":"Воркер","id":"Pekerja"}
+{"en":"X high","hi":"अत्यधिक","es":"Muy alto","ar":"مرتفع جدًا","fr":"Très élevé","bn":"অতি উচ্চ","pt":"Muito alto","ru":"Очень высокий","id":"Sangat tinggi"}
+{"en":"active","hi":"सक्रिय","es":"activo","ar":"نشط","fr":"actif","bn":"সক্রিয়","pt":"ativo","ru":"активно","id":"aktif"}
+{"en":"client","hi":"क्लाइंट","es":"cliente","ar":"عميل","fr":"client","bn":"ক্লায়েন্ট","pt":"cliente","ru":"клиент","id":"klien"}
+{"en":"failed","hi":"विफल","es":"fallido","ar":"فشل","fr":"échoué","bn":"ব্যর্থ","pt":"falhou","ru":"ошибка","id":"gagal"}
+{"en":"leased","hi":"लीज़्ड","es":"arrendado","ar":"مؤجّر","fr":"loué","bn":"লিজড","pt":"alugado","ru":"в работе","id":"disewa"}
+{"en":"online","hi":"ऑनलाइन","es":"en línea","ar":"متصل","fr":"en ligne","bn":"অনলাইন","pt":"online","ru":"онлайн","id":"daring"}
+{"en":"queued","hi":"कतार में","es":"en cola","ar":"في الانتظار","fr":"en file","bn":"সারিতে","pt":"em fila","ru":"в очереди","id":"mengantre"}
+{"en":"ysk.hk","hi":"ysk.hk","es":"ysk.hk","ar":"ysk.hk","fr":"ysk.hk","bn":"ysk.hk","pt":"ysk.hk","ru":"ysk.hk","id":"ysk.hk"}
+{"en":"{n} MB","hi":"{n} MB","es":"{n} MB","ar":"{n} MB","fr":"{n} Mo","bn":"{n} MB","pt":"{n} MB","ru":"{n} МБ","id":"{n} MB"}
+{"en":"{n} ms","hi":"{n} ms","es":"{n} ms","ar":"{n} مللي ثانية","fr":"{n} ms","bn":"{n} মিসে","pt":"{n} ms","ru":"{n} мс","id":"{n} md"}
+{"en":"--rules","hi":"--rules","es":"--rules","ar":"--rules","fr":"--rules","bn":"--rules","pt":"--rules","ru":"--rules","id":"--rules"}
+{"en":"1.2.3.4","hi":"1.2.3.4","es":"1.2.3.4","ar":"1.2.3.4","fr":"1.2.3.4","bn":"1.2.3.4","pt":"1.2.3.4","ru":"1.2.3.4","id":"1.2.3.4"}
+{"en":"24h use","hi":"24 घंटे उपयोग","es":"Uso 24 h","ar":"استخدام 24 ساعة","fr":"Usage 24 h","bn":"২৪ ঘণ্টা ব্যবহার","pt":"Uso 24 h","ru":"За 24 ч","id":"Pemakaian 24 jam"}
+{"en":"API Key","hi":"API कुंजी","es":"Clave API","ar":"مفتاح API","fr":"Clé API","bn":"API কী","pt":"Chave API","ru":"Ключ API","id":"Kunci API"}
+{"en":"API key","hi":"API कुंजी","es":"Clave API","ar":"مفتاح API","fr":"Clé API","bn":"API কী","pt":"Chave API","ru":"Ключ API","id":"Kunci API"}
+{"en":"Actions","hi":"क्रियाएँ","es":"Acciones","ar":"الإجراءات","fr":"Actions","bn":"কাজ","pt":"Ações","ru":"Действия","id":"Tindakan"}
+{"en":"Add ban","hi":"प्रतिबंध जोड़ें","es":"Añadir bloqueo","ar":"إضافة حظر","fr":"Ajouter un ban","bn":"নিষেধ যোগ","pt":"Adicionar ban","ru":"Добавить бан","id":"Tambah blokir"}
+{"en":"Address","hi":"पता","es":"Dirección","ar":"العنوان","fr":"Adresse","bn":"ঠিকানা","pt":"Endereço","ru":"Адрес","id":"Alamat"}
+{"en":"All IPs","hi":"सभी आईपी","es":"Todas las IP","ar":"كل عناوين IP","fr":"Toutes les IP","bn":"সব আইপি","pt":"Todos os IP","ru":"Все IP","id":"Semua IP"}
+{"en":"Applied","hi":"लागू","es":"Aplicado","ar":"مطبّق","fr":"Appliqué","bn":"প্রয়োগ হয়েছে","pt":"Aplicado","ru":"Применено","id":"Diterapkan"}
+{"en":"Ban for","hi":"प्रतिबंध अवधि","es":"Bloquear durante","ar":"الحظر لمدة","fr":"Bannir pour","bn":"নিষেধের মেয়াদ","pt":"Banir por","ru":"Бан на","id":"Blokir selama"}
+{"en":"Bundled","hi":"बंडल","es":"Incluido","ar":"مضمّن","fr":"Inclus","bn":"বান্ডল","pt":"Incluído","ru":"В комплекте","id":"Terbundel"}
+{"en":"Catalog","hi":"कैटलॉग","es":"Catálogo","ar":"الفهرس","fr":"Catalogue","bn":"ক্যাটালগ","pt":"Catálogo","ru":"Каталог","id":"Katalog"}
+{"en":"Confirm","hi":"पुष्टि करें","es":"Confirmar","ar":"تأكيد","fr":"Confirmer","bn":"নিশ্চিত করুন","pt":"Confirmar","ru":"Подтвердить","id":"Konfirmasi"}
+{"en":"Context","hi":"संदर्भ","es":"Contexto","ar":"السياق","fr":"Contexte","bn":"প্রসঙ্গ","pt":"Contexto","ru":"Контекст","id":"Konteks"}
+{"en":"Created","hi":"बनाया गया","es":"Creado","ar":"تاريخ الإنشاء","fr":"Créé","bn":"তৈরি","pt":"Criado","ru":"Создано","id":"Dibuat"}
+{"en":"Creator","hi":"निर्माता","es":"Creador","ar":"المنشئ","fr":"Créateur","bn":"স্রষ্টা","pt":"Criador","ru":"Автор","id":"Pembuat"}
+{"en":"Default","hi":"डिफ़ॉल्ट","es":"Predeterminado","ar":"افتراضي","fr":"Par défaut","bn":"ডিফল্ট","pt":"Predefinido","ru":"По умолчанию","id":"Default"}
+{"en":"Enabled","hi":"सक्षम","es":"Activado","ar":"مفعّل","fr":"Activé","bn":"সক্রিয়","pt":"Ativado","ru":"Включено","id":"Diaktifkan"}
+{"en":"Expires","hi":"समाप्ति","es":"Caduca","ar":"ينتهي","fr":"Expire","bn":"মেয়াদ শেষ","pt":"Expira","ru":"Истекает","id":"Kedaluwarsa"}
+{"en":"Formats","hi":"प्रारूप","es":"Formatos","ar":"الصيغ","fr":"Formats","bn":"ফরম্যাট","pt":"Formatos","ru":"Форматы","id":"Format"}
+{"en":"History","hi":"इतिहास","es":"Historial","ar":"السجل","fr":"Historique","bn":"ইতিহাস","pt":"Histórico","ru":"История","id":"Riwayat"}
+{"en":"Install","hi":"इंस्टॉल","es":"Instalar","ar":"تثبيت","fr":"Installer","bn":"ইনস্টল","pt":"Instalar","ru":"Установить","id":"Pasang"}
+{"en":"Log out","hi":"लॉग आउट","es":"Cerrar sesión","ar":"تسجيل الخروج","fr":"Se déconnecter","bn":"লগ আউট","pt":"Terminar sessão","ru":"Выйти","id":"Keluar"}
+{"en":"Minimal","hi":"न्यूनतम","es":"Mínimo","ar":"أدنى","fr":"Minimal","bn":"ন্যূনতম","pt":"Mínimo","ru":"Минимальный","id":"Minimal"}
+{"en":"Missing","hi":"अनुपस्थित","es":"Falta","ar":"مفقود","fr":"Manquant","bn":"অনুপস্থিত","pt":"Em falta","ru":"Отсутствует","id":"Hilang"}
+{"en":"Network","hi":"नेटवर्क","es":"Red","ar":"الشبكة","fr":"Réseau","bn":"নেটওয়ার্ক","pt":"Rede","ru":"Сеть","id":"Jaringan"}
+{"en":"New key","hi":"नई कुंजी","es":"Nueva clave","ar":"مفتاح جديد","fr":"Nouvelle clé","bn":"নতুন কী","pt":"Nova chave","ru":"Новый ключ","id":"Kunci baru"}
