@@ -1354,7 +1354,8 @@
     "percent": "{n}%",
     "ipLabel": "IP",
     "uaLabel": "UA",
-    "httpStatus": "HTTP"
+    "httpStatus": "HTTP",
+    "appVersion": "v{v}"
   },
   "errors": {
     "unauthorized": "Invalid or missing credentials. Please sign in again.",

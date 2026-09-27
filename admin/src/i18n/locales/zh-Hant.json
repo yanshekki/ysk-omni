@@ -1354,7 +1354,8 @@
     "percent": "{n}%",
     "ipLabel": "IP",
     "uaLabel": "UA",
-    "httpStatus": "HTTP"
+    "httpStatus": "HTTP",
+    "appVersion": "版本 {v}"
   },
   "errors": {
     "unauthorized": "憑證無效或缺失，請重新登入。",

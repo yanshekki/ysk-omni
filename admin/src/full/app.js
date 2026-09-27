@@ -1,4 +1,5 @@
 import { t, tf, hasT, getLocale, setLocale, langSwitchHtml, bindLangSwitch } from './i18n.js';
+import { APP_VERSION } from '../lib/app-version.ts';
 import { CHAT_ALLOWED_EXTENSIONS, CHAT_FILE_ACCEPT } from './allowed-extensions.js';
 
 const API = '/admin/api';
@@ -1085,6 +1086,7 @@ function shell(content) {
         ${nav('support', t('nav.support'))}
         ${nav('business', t('nav.business'))}
         <div class="sidebar-foot">
+          <div class="sidebar-version" title="YSK Omni">${escapeHtml(tf('common.appVersion', { v: APP_VERSION }))}</div>
           <button class="btn secondary sm logout-btn" id="btn-logout">${escapeHtml(t('logout'))}</button>
         </div>
       </aside>

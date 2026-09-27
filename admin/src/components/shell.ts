@@ -1,6 +1,7 @@
 import { NAV_ITEMS, type PageId } from '../config/constants';
 import { escapeHtml } from '../lib/dom';
-import { t, langSwitchHtml, bindLangSwitch } from '../i18n';
+import { t, tf, langSwitchHtml, bindLangSwitch } from '../i18n';
+import { APP_VERSION } from '../lib/app-version';
 import {
   getState,
   logout,
@@ -55,6 +56,7 @@ export function shell(content: string): string {
         ${langSwitchHtml()}
         ${navHtml}
         <div class="sidebar-foot">
+          <div class="sidebar-version" title="YSK Omni">${escapeHtml(tf('common.appVersion', { v: APP_VERSION }))}</div>
           <button class="btn secondary sm logout-btn" id="btn-logout">${escapeHtml(t('logout'))}</button>
         </div>
       </aside>

@@ -83,5 +83,6 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('lang-switch-btn');
     expect(boot).toContain('data-lang-switch');
     expect(boot).toContain('Traditional Chinese');
+    expect(boot).toContain('sidebar-version');
   });
 });

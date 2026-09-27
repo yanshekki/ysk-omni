@@ -565,6 +565,18 @@ body.nav-open .sidebar-backdrop {
   margin-top: auto;
   padding-top: 14px;
   border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sidebar-version {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  user-select: text;
 }
 .sidebar-foot .logout-btn {
   width: 100%;
