@@ -76,3 +76,66 @@ describe('Admin locale parity (top 10 languages)', () => {
     expect(String(en.get('keys.allowedModelsHint'))).toContain('Users list');
   });
 });
+
+const TARGET_LANGS = ['hi', 'es', 'ar', 'fr', 'bn', 'pt', 'ru', 'id'] as const;
+const PLACEHOLDER = /\{[^{}]+\}/g;
+
+function uniqueLeaves(obj: unknown): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const walk = (v: unknown): void => {
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      for (const child of Object.values(v as Record<string, unknown>)) walk(child);
+      return;
+    }
+    if (typeof v !== 'string' || !v.trim()) return;
+    if (seen.has(v)) return;
+    seen.add(v);
+    out.push(v);
+  };
+  walk(obj);
+  return out;
+}
+
+function loadUniqueJsonl(): Map<string, Record<string, string>> {
+  const raw = fs.readFileSync(path.join(LOCALE_DIR, 'unique.jsonl'), 'utf8');
+  const map = new Map<string, Record<string, string>>();
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue;
+    const row = JSON.parse(line) as Record<string, string>;
+    map.set(row.en, row);
+  }
+  return map;
+}
+
+describe('unique.jsonl covers every Admin English leaf', () => {
+  const leaves = uniqueLeaves(loadLocale('en'));
+  const rows = loadUniqueJsonl();
+
+  it('maps every unique non-empty en.json leaf into unique.jsonl', () => {
+    const missing = leaves.filter((s) => !rows.has(s));
+    expect(missing, missing.slice(0, 20).join('\n')).toEqual([]);
+  });
+
+  it('each mapped row has non-empty hi/es/ar/fr/bn/pt/ru/id and matching placeholders', () => {
+    const bad: string[] = [];
+    for (const en of leaves) {
+      const row = rows.get(en);
+      if (!row) continue;
+      const enPh = en.match(PLACEHOLDER) ?? [];
+      for (const lang of TARGET_LANGS) {
+        const tr = row[lang];
+        if (typeof tr !== 'string' || !tr.trim()) {
+          bad.push(`${lang} empty for: ${en.slice(0, 80)}`);
+          continue;
+        }
+        const trPh = tr.match(PLACEHOLDER) ?? [];
+        if (trPh.join('\0') !== enPh.join('\0')) {
+          bad.push(`${lang} placeholders ${trPh.join(',')} vs ${enPh.join(',')} for: ${en.slice(0, 80)}`);
+        }
+      }
+    }
+    expect(bad, bad.slice(0, 20).join('\n')).toEqual([]);
+  });
+});
+
