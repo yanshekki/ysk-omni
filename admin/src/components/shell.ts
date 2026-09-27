@@ -1,6 +1,6 @@
 import { NAV_ITEMS, type PageId } from '../config/constants';
 import { escapeHtml } from '../lib/dom';
-import { t, langSwitchHtml, setLocale } from '../i18n';
+import { t, langSwitchHtml, bindLangSwitch } from '../i18n';
 import {
   getState,
   logout,
@@ -101,14 +101,11 @@ export function bindShell(rerender: () => void): void {
     },
     { once: true },
   );
-  document.querySelectorAll('.lang-select').forEach((el) => {
-    (el as HTMLSelectElement).onchange = () => {
-      setLocale((el as HTMLSelectElement).value);
-      try {
-        rerender();
-      } catch (e) {
-        onErr(e);
-      }
-    };
+  bindLangSwitch(() => {
+    try {
+      rerender();
+    } catch (e) {
+      onErr(e);
+    }
   });
 }

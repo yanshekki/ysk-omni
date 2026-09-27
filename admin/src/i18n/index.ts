@@ -9,6 +9,7 @@ export {
   getLocale,
   setLocale,
   langSwitchHtml,
+  bindLangSwitch,
 } from './messages';
 
 import { t as tRaw } from './messages';

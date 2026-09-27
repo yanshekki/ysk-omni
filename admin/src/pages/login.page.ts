@@ -1,5 +1,5 @@
 import { appRoot, escapeHtml } from '../lib/dom';
-import { t, langSwitchHtml, setLocale } from '../i18n';
+import { t, langSwitchHtml, bindLangSwitch } from '../i18n';
 import { authService } from '../services/auth.service';
 import {
   getState,
@@ -39,11 +39,8 @@ export async function renderLoginPage(): Promise<void> {
     </div>
   `;
 
-  document.querySelectorAll('.lang-select').forEach((el) => {
-    (el as HTMLSelectElement).onchange = () => {
-      setLocale((el as HTMLSelectElement).value);
-      renderLoginPage().catch(onErr);
-    };
+  bindLangSwitch(() => {
+    renderLoginPage().catch(onErr);
   });
 
   document.getElementById('btn-copy-cmd')!.onclick = async () => {

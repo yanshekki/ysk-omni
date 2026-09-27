@@ -42,6 +42,21 @@ export const LOCALE_NATIVE: Record<LocaleId, string> = {
   id: 'Bahasa Indonesia',
 };
 
+/** English name shown as a second line so users can find their language. */
+export const LOCALE_EN: Record<LocaleId, string> = {
+  en: 'English',
+  'zh-Hant': 'Traditional Chinese',
+  'zh-Hans': 'Simplified Chinese',
+  hi: 'Hindi',
+  es: 'Spanish',
+  ar: 'Arabic',
+  fr: 'French',
+  bn: 'Bengali',
+  pt: 'Portuguese',
+  ru: 'Russian',
+  id: 'Indonesian',
+};
+
 const dict: Record<LocaleId, Record<string, unknown>> = {
   en: en as Record<string, unknown>,
   'zh-Hant': zhHant as Record<string, unknown>,
@@ -162,16 +177,130 @@ export function tf(path: string, vars: Record<string, unknown> = {}): string {
   return s;
 }
 
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const GLOBE_SVG = `<svg class="lang-switch-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.8 3.8 6 3.8 9s-1.3 6.2-3.8 9c-2.5-2.8-3.8-6-3.8-9s1.3-6.2 3.8-9z"/></svg>`;
+
+const CHEVRON_SVG = `<svg class="lang-switch-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`;
+
+const CHECK_SVG = `<svg class="lang-switch-check" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12.5l4.2 4.2L19 7.5"/></svg>`;
+
 export function langSwitchHtml(): string {
-  const aria = t('common.language') === 'common.language' ? 'Language' : t('common.language');
-  const opts = LOCALE_IDS.map(
-    (id) =>
-      `<option value="${id}" ${locale === id ? 'selected' : ''}>${LOCALE_NATIVE[id]}</option>`,
-  ).join('');
+  const aria =
+    t('common.language') === 'common.language' ? 'Language' : t('common.language');
+  const current = LOCALE_NATIVE[locale];
+  const items = LOCALE_IDS.map((id) => {
+    const selected = locale === id;
+    return `<li>
+      <button type="button" class="lang-switch-option${selected ? ' is-selected' : ''}" role="option" data-lang="${id}" aria-selected="${selected}">
+        <span class="lang-switch-option-text">
+          <span class="lang-switch-native">${esc(LOCALE_NATIVE[id])}</span>
+          <span class="lang-switch-en">${esc(LOCALE_EN[id])}</span>
+        </span>
+        ${selected ? CHECK_SVG : ''}
+      </button>
+    </li>`;
+  }).join('');
   return `
-  <div class="lang-switch" role="group" aria-label="${aria}">
-    <select class="lang-select" aria-label="${aria}">${opts}</select>
+  <div class="lang-switch" data-lang-switch>
+    <button type="button" class="lang-switch-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}">
+      ${GLOBE_SVG}
+      <span class="lang-switch-current">${esc(current)}</span>
+      ${CHEVRON_SVG}
+    </button>
+    <div class="lang-switch-panel" hidden>
+      <div class="lang-switch-heading">${esc(aria)}</div>
+      <ul class="lang-switch-list" role="listbox" aria-label="${esc(aria)}">${items}</ul>
+    </div>
   </div>`;
+}
+
+function closeAllLangSwitch(): void {
+  document.querySelectorAll('[data-lang-switch]').forEach((root) => {
+    root.classList.remove('is-open');
+    const btn = root.querySelector('.lang-switch-btn');
+    const panel = root.querySelector('.lang-switch-panel');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (panel) panel.setAttribute('hidden', '');
+  });
+}
+
+function placeLangPanel(root: Element): void {
+  const btn = root.querySelector('.lang-switch-btn') as HTMLElement | null;
+  const panel = root.querySelector('.lang-switch-panel') as HTMLElement | null;
+  if (!btn || !panel) return;
+  const r = btn.getBoundingClientRect();
+  const width = Math.min(280, Math.max(r.width, 228));
+  const left = Math.min(
+    Math.max(8, r.left),
+    Math.max(8, window.innerWidth - width - 8),
+  );
+  panel.style.width = `${width}px`;
+  panel.style.left = `${left}px`;
+  const spaceBelow = window.innerHeight - r.bottom;
+  if (spaceBelow < 260 && r.top > spaceBelow) {
+    panel.style.top = 'auto';
+    panel.style.bottom = `${window.innerHeight - r.top + 6}px`;
+  } else {
+    panel.style.top = `${r.bottom + 6}px`;
+    panel.style.bottom = 'auto';
+  }
+}
+
+export function bindLangSwitch(onChange: () => void): void {
+  document.querySelectorAll('[data-lang-switch]').forEach((root) => {
+    const btn = root.querySelector('.lang-switch-btn') as HTMLElement | null;
+    const panel = root.querySelector('.lang-switch-panel') as HTMLElement | null;
+    if (!btn || !panel) return;
+
+    const open = () => {
+      closeAllLangSwitch();
+      root.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      panel.removeAttribute('hidden');
+      placeLangPanel(root);
+    };
+    const close = () => {
+      root.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+      panel.setAttribute('hidden', '');
+    };
+
+    panel.addEventListener('click', (ev) => ev.stopPropagation());
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (root.classList.contains('is-open')) close();
+      else open();
+    });
+
+    root.querySelectorAll('[data-lang]').forEach((opt) => {
+      (opt as HTMLElement).addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const id = (opt as HTMLElement).getAttribute('data-lang') || '';
+        if (!isLocaleId(id) || id === locale) {
+          close();
+          return;
+        }
+        setLocale(id);
+        onChange();
+      });
+    });
+  });
+
+  if (!(window as { __yskLangSwitchBound?: boolean }).__yskLangSwitchBound) {
+    (window as { __yskLangSwitchBound?: boolean }).__yskLangSwitchBound = true;
+    document.addEventListener('click', () => closeAllLangSwitch());
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllLangSwitch();
+    });
+    window.addEventListener('resize', () => closeAllLangSwitch());
+  }
 }
 
 applyDocumentLocale(locale);

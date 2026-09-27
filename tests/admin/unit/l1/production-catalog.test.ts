@@ -80,6 +80,8 @@ describe('production Admin Catalog entry', () => {
     expect(boot).toContain('हिन्दी');
     expect(boot).toContain('繁體中文');
     expect(boot).toContain('简体中文');
-    expect(boot).toContain('lang-select');
+    expect(boot).toContain('lang-switch-btn');
+    expect(boot).toContain('data-lang-switch');
+    expect(boot).toContain('Traditional Chinese');
   });
 });

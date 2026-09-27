@@ -1,4 +1,4 @@
-import { t, tf, hasT, getLocale, setLocale, langSwitchHtml } from './i18n.js';
+import { t, tf, hasT, getLocale, setLocale, langSwitchHtml, bindLangSwitch } from './i18n.js';
 import { CHAT_ALLOWED_EXTENSIONS, CHAT_FILE_ACCEPT } from './allowed-extensions.js';
 
 const API = '/admin/api';
@@ -1123,11 +1123,8 @@ function bindShell() {
     },
     { once: true },
   );
-  document.querySelectorAll('.lang-select').forEach((el) => {
-    el.onchange = () => {
-      setLocale(el.value);
-      render().catch(onErr);
-    };
+  bindLangSwitch(() => {
+    render().catch(onErr);
   });
   enhanceResponsiveTables(document);
 }
@@ -1434,11 +1431,8 @@ async function renderLogin() {
       ${poweredByFooter()}
     </div>
   `;
-  document.querySelectorAll('.lang-select').forEach((el) => {
-    el.onchange = () => {
-      setLocale(el.value);
-      renderLogin().catch(onErr);
-    };
+  bindLangSwitch(() => {
+    renderLogin().catch(onErr);
   });
   document.getElementById('btn-copy-cmd').onclick = async () => {
     try {
