@@ -41,6 +41,11 @@ describe('Admin locale parity (top 10 languages)', () => {
     }
   });
 
+  it('loads in Node without a document element', async () => {
+    const { getLocale } = await import('../../../../admin/src/i18n/runtime');
+    expect(getLocale()).toBeTruthy();
+  });
+
   it('native names cover ten locales', () => {
     expect(LOCALE_IDS).toHaveLength(11);
     expect(LOCALE_NATIVE.ar).toBe('العربية');

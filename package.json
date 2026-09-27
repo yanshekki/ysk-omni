@@ -1,6 +1,6 @@
 {
   "name": "ysk-omni",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "YSK Omni — local models behind an OpenAI-compatible gateway, with Admin panel and CLI",
   "keywords": [
     "openai",

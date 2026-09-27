@@ -125,10 +125,12 @@ export function detectLocale(): LocaleId {
 let locale: LocaleId = detectLocale();
 
 export function applyDocumentLocale(next: LocaleId = locale): void {
-  if (typeof document === 'undefined') return;
-  document.documentElement.lang =
+  const root =
+    typeof document !== 'undefined' ? document.documentElement : null;
+  if (!root) return;
+  root.lang =
     next === 'zh-Hant' ? 'zh-Hant' : next === 'zh-Hans' ? 'zh-CN' : next;
-  document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr';
+  root.dir = next === 'ar' ? 'rtl' : 'ltr';
 }
 
 export function getLocale(): LocaleId {
