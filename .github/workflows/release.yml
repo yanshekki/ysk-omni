@@ -1,5 +1,11 @@
 name: Release
 
+# npm Trusted Publishing (OIDC) for ysk-omni.
+# The trusted publisher on npmjs.com must match this file exactly:
+#   owner yanshekki, repository ysk-omni, workflow filename release.yml,
+#   environment blank. Do not set a GitHub environment on this job.
+# Never add NPM_TOKEN, NODE_AUTH_TOKEN, or any other registry token.
+
 on:
   push:
     tags:
@@ -9,6 +15,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: write
     env:
       NODE_ENV: test
@@ -19,14 +26,42 @@ jobs:
       LOG_LEVEL: error
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Require OIDC trusted publishing
+        run: |
+          set -euo pipefail
+          if [ -n "${NODE_AUTH_TOKEN:-}" ] || [ -n "${NPM_TOKEN:-}" ]; then
+            echo "::error::An npm token is set. This workflow publishes with OIDC only."
+            exit 1
+          fi
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::OIDC token endpoint is missing. Set permissions: id-token: write."
+            exit 1
+          fi
+          node -e '
+            const [major, minor] = process.versions.node.split(".").map(Number);
+            if (major < 22 || (major === 22 && minor < 14)) {
+              console.error("::error::Node " + process.versions.node + " is below 22.14.0");
+              process.exit(1);
+            }
+          '
+          if [ -f .npmrc ]; then
+            grep -v -e '_authToken' -e '^always-auth=' .npmrc > .npmrc.oidc || true
+            if [ -s .npmrc.oidc ]; then
+              mv .npmrc.oidc .npmrc
+            else
+              rm -f .npmrc .npmrc.oidc
+            fi
+          fi
 
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -50,13 +85,84 @@ jobs:
         run: npm test
 
       - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${VERSION}."
+            exit 1
+          fi
+          npm_at_least() {
+            node -e '
+              const parts = process.argv[1].split("-")[0].split(".").map(Number);
+              const min = [11, 5, 1];
+              for (let i = 0; i < 3; i++) {
+                const got = parts[i] || 0;
+                if (got > min[i]) process.exit(0);
+                if (got < min[i]) process.exit(1);
+              }
+            ' "$1"
+          }
+          if ! npm_at_least "$(npm --version)"; then
+            npm install -g npm@11
+            hash -r
+          fi
+          if ! npm_at_least "$(npm --version)"; then
+            echo "::error::npm $(npm --version) is below 11.5.1, which trusted publishing requires."
+            exit 1
+          fi
+          echo "Node $(node --version), npm $(npm --version)"
+          if npm view "ysk-omni@${VERSION}" version >/dev/null 2>&1; then
+            echo "ysk-omni@${VERSION} is already on the registry; skipping npm publish."
+          else
+            if ! npm publish --access public --provenance; then
+              if npm view "ysk-omni@${VERSION}" version >/dev/null 2>&1; then
+                echo "Publish failed after ysk-omni@${VERSION} appeared; treating it as already published."
+              else
+                echo "::error::npm publish failed and ysk-omni@${VERSION} is not on the registry. The trusted publisher for release.yml (blank environment) must allow direct npm publish. This workflow will not use an npm token."
+                exit 1
+              fi
+            fi
+          fi
+
+      - name: Verify npm view
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          seen=""
+          for _ in 1 2 3 4 5 6; do
+            seen="$(npm view "ysk-omni@${VERSION}" version 2>/dev/null || true)"
+            if [ "${seen}" = "${VERSION}" ]; then
+              break
+            fi
+            sleep 10
+          done
+          echo "npm view ysk-omni@${VERSION} -> ${seen}"
+          if [ "${seen}" != "${VERSION}" ]; then
+            echo "::error::npm view ysk-omni@${VERSION} did not return ${VERSION}."
+            npm view "ysk-omni@${VERSION}" || true
+            exit 1
+          fi
+
+      - name: Release notes
+        id: notes
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          awk -v ver="${VERSION}" '
+            index($0, "## " ver " — ") == 1 { capture = 1 }
+            capture && index($0, "## ") == 1 && index($0, "## " ver " — ") != 1 { exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+          if ! grep -q . release-notes.md; then
+            echo "::error::CHANGELOG.md has no section for ${VERSION}."
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: YSK Omni ${{ steps.notes.outputs.version }}
+          body_path: release-notes.md
+          make_latest: true
