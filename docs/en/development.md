@@ -47,3 +47,15 @@ Live media (optional): `OMNI_LIVE_TINY=1` or `OMNI_LIVE_BEST=1` plus `OMNI_LIVE_
 | `prisma/` | SQLite schema + migrations |
 | `scripts/tiny-media-worker.py` | Local image/TTS/STT/video worker |
 | `docs/en` · `docs/zh` | Product documentation |
+
+## Releases and changelog
+
+Push an annotated tag `vX.Y.Z` whose version matches `package.json` `"version"`. [`.github/workflows/release.yml`](../../.github/workflows/release.yml) — that filename, with no GitHub environment — runs the tests, then publishes to npm with Trusted Publishing. Authentication is GitHub Actions OIDC (`id-token: write`), and the publish includes a provenance attestation. Do not add an npm token (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, or registry auth). If that version is already on the registry, the workflow skips publish, then runs `npm view ysk-omni@<version>` and creates or updates one GitHub Release.
+
+Changelog rule:
+
+- [`CHANGELOG.md`](../../CHANGELOG.md) and [`CHANGELOG.zh.md`](../../CHANGELOG.zh.md) record every version from 1.0.0, newest first.
+- Group each version by category, and omit empty categories. English: New features, Improvements, Fixes, Security, Dependency upgrades, Internal/CI. Chinese ([`CHANGELOG.zh.md`](../../CHANGELOG.zh.md), Hong Kong written Chinese): 新功能、改進、修正、安全、依賴升級、內部／CI.
+- Build entries from git history, tags, and GitHub Releases. Do not invent changes.
+- Map commit types as follows: `feat` → New features; `fix` → Fixes; `security` / `fix(security)` → Security; `refactor`, `perf`, `style`, `i18n` → Improvements; dependency bumps → Dependency upgrades; `docs`, `test`, `chore`, `build`, `ci` → Internal/CI.
+- [`README.md`](../../README.md) and [`README-ZH.md`](../../README-ZH.md) show only the latest three versions, in those same groups, and end with a link to the full changelog.
