@@ -34,6 +34,30 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 ## 更新日誌
 
+### 1.0.4 — 2026-10-11
+
+### 安全
+
+- `express` 4.22.3 更新 `path-to-regexp`，修復 CVE-2026-4867。
+- `prisma`／`@prisma/client` 6.19.3 更新 `effect` 依賴，修復安全漏洞。
+
+### 依賴升級
+
+- `pino-pretty` 13.1.3 → 13.2.0
+- `tsx` 4.23.1 → 4.23.15
+- `vite` 6.4.3 → 6.4.4
+- `typescript-eslint` 8.64.0 → 8.71.1
+- `prisma` 6.5.0 → 6.19.3
+- `@prisma/client` 6.5.0 → 6.19.3
+- `express` 4.22.2 → 4.22.3
+- `@types/node` 22.20.1 → 22.20.5
+
+### 內部／CI
+
+- 將套件版本升至 1.0.4、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.4。
+- Prisma CLI 版本釘選與 `prisma`／`@prisma/client` 6.19.3 同步。
+- 在 `typescript-eslint` 升級後通過 lint（case 區塊作用域、多餘自我賦值、generator `yield`、Admin ESLint glob）。
+
 ### 1.0.3 — 2026-10-05
 
 ### 安全
@@ -60,23 +84,6 @@ curl -sS http://127.0.0.1:3850/v1/models \
 ### 內部／CI
 
 - 將套件版本升至 1.0.2、更新測試 fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.2（`03b3b1b`）
-
-### 1.0.1 — 2026-09-27
-
-### 新功能
-
-- 在 Admin 登出按鈕上方顯示應用程式版本（`29f4a34`）
-- 將 Admin 語言選擇器改為自訂下拉選單（`c322086`）
-- Admin 語言選擇器支援 11 個語系，以及繁體中文與簡體中文（`7d10af6`）
-- 新增 Admin 商業合作頁（`9688907`）
-
-### 修正
-
-- 在 Node 測試略過 documentElement，並發佈 1.0.1（`7eef3f9`）
-
-### 內部／CI
-
-- 在 tsc 前清掉 dist，避免把過期建置產物打包進去（`e127ae9`）
 
 完整更新日誌：[CHANGELOG.zh.md](./CHANGELOG.zh.md)。
 

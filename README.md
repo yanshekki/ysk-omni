@@ -34,6 +34,30 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 
 ## Changelog
 
+### 1.0.4 — 2026-10-11
+
+### Security
+
+- `express` 4.22.3 updates `path-to-regexp` to fix CVE-2026-4867.
+- `prisma` / `@prisma/client` 6.19.3 update the `effect` dependency to resolve a security vulnerability.
+
+### Dependency upgrades
+
+- `pino-pretty` 13.1.3 → 13.2.0
+- `tsx` 4.23.1 → 4.23.15
+- `vite` 6.4.3 → 6.4.4
+- `typescript-eslint` 8.64.0 → 8.71.1
+- `prisma` 6.5.0 → 6.19.3
+- `@prisma/client` 6.5.0 → 6.19.3
+- `express` 4.22.2 → 4.22.3
+- `@types/node` 22.20.1 → 22.20.5
+
+### Internal/CI
+
+- Bump the package version to 1.0.4, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.4.
+- Keep Prisma CLI version pins in lockstep with `prisma` / `@prisma/client` 6.19.3.
+- Clear the lint gate after the `typescript-eslint` bump (case-block scope, unused self-assign, generator `yield`, Admin ESLint glob).
+
 ### 1.0.3 — 2026-10-05
 
 ### Security
@@ -60,23 +84,6 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 ### Internal/CI
 
 - Bump the package version, update fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.2 (`03b3b1b`)
-
-### 1.0.1 — 2026-09-27
-
-### New features
-
-- Show app version above the Admin logout button (`29f4a34`)
-- Redesign Admin language picker as a custom dropdown (`c322086`)
-- Admin language picker with 11 locales and Traditional/Simplified Chinese (`7d10af6`)
-- Add Admin Business partnership page (`9688907`)
-
-### Fixes
-
-- Skip documentElement in Node tests and release 1.0.1 (`7eef3f9`)
-
-### Internal/CI
-
-- Wipe dist before tsc so stale build artifacts are not packed (`e127ae9`)
 
 Full changelog: [CHANGELOG.md](./CHANGELOG.md).
 

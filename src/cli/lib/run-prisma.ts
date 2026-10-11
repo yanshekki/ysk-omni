@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 /** Keep in sync with package.json prisma / @prisma/client version */
-export const PRISMA_VERSION = '6.5.0';
+export const PRISMA_VERSION = '6.19.3';
 
 const requireFromHere = createRequire(__filename);
 

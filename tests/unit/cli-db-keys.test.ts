@@ -26,7 +26,7 @@ describe('cli db-keys', () => {
     const dbFile = path.join(dataDir, 'gateway.db');
     databaseUrl = `file:${dbFile}`;
     try {
-      execSync('npx prisma@6.5.0 migrate deploy', {
+      execSync('npx prisma@6.19.3 migrate deploy', {
         cwd: process.cwd(),
         env: { ...process.env, DATABASE_URL: databaseUrl },
         stdio: 'pipe',
