@@ -402,7 +402,6 @@ export class ChatService {
       const sessionHint =
         dto.session_id?.trim() || extra.resumeSessionId || '';
       extra.resumeSessionId = undefined;
-      extra.sessionId = extra.sessionId;
       extra.forkSession = Boolean(extra.forkSession && sessionHint);
       if (sessionHint) {
         const binding = await engineSessionMapService.resolve(

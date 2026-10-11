@@ -353,7 +353,7 @@ export function resolveAspectRatio(
       return '16:9';
     case '1024x1792':
       return '9:16';
-    default:
+    default: {
       // WxH → nearest common ratio when possible
       const m = s.match(/^(\d+)\s*[x×]\s*(\d+)$/i);
       if (m) {
@@ -371,5 +371,6 @@ export function resolveAspectRatio(
         }
       }
       return 'auto';
+    }
   }
 }

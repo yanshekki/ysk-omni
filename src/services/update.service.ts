@@ -14,7 +14,7 @@ import type { VersionInfo } from '../interfaces/version-info.interface';
 import type { VersionStatus } from '../interfaces/version-status.type';
 
 
-const PRISMA_VERSION = '6.5.0';
+const PRISMA_VERSION = '6.19.3';
 
 export const GITHUB_REPO = 'yanshekki/ysk-omni';
 export const NPM_PACKAGE = 'ysk-omni';

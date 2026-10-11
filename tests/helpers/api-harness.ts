@@ -30,7 +30,7 @@ export async function ensureMigrated(): Promise<boolean> {
   try {
     await prisma.$connect();
     await prisma.$queryRaw`SELECT 1`;
-    execSync('npx prisma@6.5.0 migrate deploy', {
+    execSync('npx prisma@6.19.3 migrate deploy', {
       stdio: 'pipe',
       env: process.env,
       cwd: process.cwd(),

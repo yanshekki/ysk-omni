@@ -3,6 +3,7 @@
  * Layer: pages/chat (uses services via deps.adminApi).
  * @ts-nocheck
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- ported SPA page, not typechecked
 // @ts-nocheck
 import {
   t,

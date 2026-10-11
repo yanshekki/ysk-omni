@@ -43,6 +43,7 @@ export class EngineSlotService {
     _options: EngineRunOptions,
   ): AsyncGenerator<EngineStreamEvent, void, unknown> {
     throw ExceptionFactory.engineUnconfigured();
+    yield undefined as never;
   }
 
   async isAvailable(): Promise<boolean> {

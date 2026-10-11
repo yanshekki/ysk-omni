@@ -9,7 +9,7 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**', 'public/**', 'coverage/**', 'data/**', 'storage/**'],
   },
   {
-    files: ['src/**/*.ts', 'tests/**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts', 'admin/src/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-namespace': 'off', // Express Request augmentation

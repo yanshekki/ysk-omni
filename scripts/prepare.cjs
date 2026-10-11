@@ -85,7 +85,7 @@ if (fs.existsSync(schema)) {
         run(npmBin, [
           'exec',
           '--yes',
-          '--package=prisma@6.5.0',
+          '--package=prisma@6.19.3',
           '--',
           'prisma',
           'generate',
@@ -97,6 +97,6 @@ if (fs.existsSync(schema)) {
     }
   } catch (e) {
     warn(`prisma generate failed: ${e instanceof Error ? e.message : e}`);
-    warn('You can retry: npx prisma@6.5.0 generate');
+    warn('You can retry: npx prisma@6.19.3 generate');
   }
 }
