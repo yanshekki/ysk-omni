@@ -34,6 +34,27 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 ## 更新日誌
 
+### 1.0.5 — 2026-10-25
+
+### 安全
+
+- 將 `multer` 由 1.4.5-lts 升至 2.5.0，修復 CVE-2026-77078（高危 multipart 欄位名拒絕服務）以及 2.x 至 2.5.0 的後續 multipart 修補，包括 CVE-2026-113872。上傳路由仍用 `memoryStorage`。Multer 上限錯誤改回 413／400，不再當 500。
+- 以 npm `overrides` 釘選傳遞依賴 `body-parser` 1.20.9（CVE-2026-111181／GHSA-27r3-jxmh-p828），讓 `express.json` 與 `urlencoded` 用上已修補的解析器。
+- 將 `vite` 由 6.4.4 升至 6.4.5（GHSA-8g5g-mxqh-grgj）。該公告只影響 Admin Vite **開發**伺服器；生產環境提供已建置的靜態 Admin。
+- 生產主機應使用 2026-10-21 Node.js 安全版本（22.23.4、24.22.1、26.12.1，或現行已修補 LTS），以覆蓋 CVE-2026-111497 等執行時期修補。套件 `engines` 維持 `>=20`。
+
+### 依賴升級
+
+- `multer` 1.4.5-lts.2 → 2.5.0
+- `@types/multer` 1.4.13 → 2.3.0
+- `body-parser` 1.20.8 → 1.20.9（override）
+- `vite` 6.4.4 → 6.4.5
+- `typescript-eslint` 8.71.1 → 8.72.0
+
+### 內部／CI
+
+- 將套件版本升至 1.0.5、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.5。
+
 ### 1.0.4 — 2026-10-11
 
 ### 安全
@@ -70,20 +91,6 @@ curl -sS http://127.0.0.1:3850/v1/models \
 - `README.md` 與 `README-ZH.md` 只列出最近三個版本，並按類別分組。`CHANGELOG.md` 與 `CHANGELOG.zh.md` 保留由 1.0.0 起的每個版本。
 - 開發文件記錄這條更新日誌規則。
 - CI 與發佈工作流程改用在 Node 24 上執行的 GitHub Actions（`actions/checkout@v7`、`actions/setup-node@v7`、`softprops/action-gh-release@v3`）。發佈工作使用 Node 24。
-
-### 1.0.2 — 2026-09-28
-
-### 改進
-
-- 完成其餘 Admin 字串的八種語言翻譯（`683a52f`）
-- 將 Admin 字串 600–799 譯成八種語言（`8f77c6e`）
-- 將 Admin 字串 400–599 譯成八種語言（`03c1bc3`）
-- 將 Admin 字串 200–399 譯成八種語言（`dfebb9e`）
-- 將首 200 條 Admin 字串譯成八種語言（`e891f6d`）
-
-### 內部／CI
-
-- 將套件版本升至 1.0.2、更新測試 fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.2（`03b3b1b`）
 
 完整更新日誌：[CHANGELOG.zh.md](./CHANGELOG.zh.md)。
 

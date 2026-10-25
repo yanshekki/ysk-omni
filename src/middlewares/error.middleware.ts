@@ -1,10 +1,23 @@
 import type { NextFunction, Request, Response } from 'express';
+import multer from 'multer';
+import { env } from '../config/env';
 import {
   HttpException,
   toProtocolErrorBody,
 } from '../exceptions/http.exception';
 import { ExceptionFactory } from '../exceptions/exception.factory';
 import { logger } from '../utils/logger';
+
+function toHttpException(err: unknown): HttpException | undefined {
+  if (err instanceof HttpException) return err;
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return ExceptionFactory.documentTooLarge(env.UPLOAD_MAX_BYTES);
+    }
+    return ExceptionFactory.validation(err.message);
+  }
+  return undefined;
+}
 
 function requestPath(req: Request): string {
   return req.originalUrl || req.url || req.path || '';
@@ -29,16 +42,17 @@ export function errorMiddleware(
     return;
   }
 
-  if (err instanceof HttpException) {
-    if (err.statusCode >= 500) {
+  const httpErr = toHttpException(err);
+  if (httpErr) {
+    if (httpErr.statusCode >= 500) {
       logger.error(
         { err, requestId: req.requestId, path: req.path },
-        err.message,
+        httpErr.message,
       );
     } else {
       logger.warn(
-        { code: err.code, requestId: req.requestId, path: req.path },
-        err.message,
+        { code: httpErr.code, requestId: req.requestId, path: req.path },
+        httpErr.message,
       );
     }
 
@@ -46,7 +60,7 @@ export function errorMiddleware(
       return;
     }
 
-    res.status(err.statusCode).json(toProtocolErrorBody(err, path));
+    res.status(httpErr.statusCode).json(toProtocolErrorBody(httpErr, path));
     return;
   }
 
@@ -56,6 +70,6 @@ export function errorMiddleware(
     return;
   }
 
-  const httpErr = ExceptionFactory.internal();
-  res.status(httpErr.statusCode).json(toProtocolErrorBody(httpErr, path));
+  const fallback = ExceptionFactory.internal();
+  res.status(fallback.statusCode).json(toProtocolErrorBody(fallback, path));
 }
