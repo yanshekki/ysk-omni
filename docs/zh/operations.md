@@ -11,6 +11,10 @@ curl -sS http://127.0.0.1:3850/ready
 
 `/ready` 檢查 SQLite，以及 `llama-server` 是否在 PATH。
 
+## Node.js 執行時期
+
+套件 `engines` 為 Node.js 20 或以上。2026-10-21 Node 安全版本之後，生產主機應使用已修補版本：**22.23.4**、**24.22.1**、**26.12.1**，或現行已修補 LTS。當中包括 Brotli 越界寫入（CVE-2026-111497）。
+
 ## 行程管理
 
 ```bash

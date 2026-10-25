@@ -4,6 +4,30 @@ Newest first. Every version from 1.0.0 is grouped by category. `README.md` shows
 
 Entries come from git history, tags, and GitHub Releases.
 
+## 1.0.5 — 2026-10-25
+
+### Security
+
+- Upgrade `multer` 1.4.5-lts to 2.5.0 to fix CVE-2026-77078 (High multipart field-name DoS) and later 2.x multipart fixes through 2.5.0, including CVE-2026-113872. Upload routes still use `memoryStorage`. Multer limit errors now return 413 / 400 instead of 500.
+- Pin transitive `body-parser` 1.20.9 (CVE-2026-111181 / GHSA-27r3-jxmh-p828) with an npm `overrides` entry so `express.json` and `urlencoded` get the patched parser.
+- Upgrade `vite` 6.4.4 → 6.4.5 (GHSA-8g5g-mxqh-grgj). The advisory applies to the Admin Vite **dev** server; production serves the built static Admin bundle.
+- Production hosts should run a Node.js build from the 2026-10-21 security releases (22.23.4, 24.22.1, 26.12.1, or current patched LTS) for CVE-2026-111497 and related runtime fixes. Package `engines` stay `>=20`.
+
+### Dependency upgrades
+
+- `multer` 1.4.5-lts.2 → 2.5.0
+- `@types/multer` 1.4.13 → 2.3.0
+- `body-parser` 1.20.8 → 1.20.9 (override)
+- `vite` 6.4.4 → 6.4.5
+- `typescript-eslint` 8.71.1 → 8.72.0
+
+### Internal/CI
+
+- Bump the package version to 1.0.5, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.5.
+
+GitHub Release: https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.5
+Compare: https://github.com/yanshekki/ysk-omni/compare/v1.0.4...v1.0.5
+
 ## 1.0.4 — 2026-10-11
 
 ### Security
