@@ -52,6 +52,8 @@ Live media (optional): `OMNI_LIVE_TINY=1` or `OMNI_LIVE_BEST=1` plus `OMNI_LIVE_
 
 Push an annotated tag `vX.Y.Z` whose version matches `package.json` `"version"`. [`.github/workflows/release.yml`](../../.github/workflows/release.yml) — that filename, with no GitHub environment — runs the tests, then publishes to npm with Trusted Publishing. Authentication is GitHub Actions OIDC (`id-token: write`), and the publish includes a provenance attestation. Do not add an npm token (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, or registry auth). If that version is already on the registry, the workflow skips publish, then runs `npm view ysk-omni@<version>` and creates or updates one GitHub Release.
 
+CI ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) installs Node 24 and runs the same build and test steps. Node 20 is end of life and is not used in CI. Package `engines` stay `>=20`; production should use the patched Node builds in [Operations](operations.md).
+
 Changelog rule:
 
 - [`CHANGELOG.md`](../../CHANGELOG.md) and [`CHANGELOG.zh.md`](../../CHANGELOG.zh.md) record every version from 1.0.0, newest first.

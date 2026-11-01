@@ -4,6 +4,26 @@ Newest first. Every version from 1.0.0 is grouped by category. `README.md` shows
 
 Entries come from git history, tags, and GitHub Releases.
 
+## 1.0.6 — 2026-11-01
+
+### Security
+
+- CI (`.github/workflows/ci.yml`) runs the test job on Node 24 instead of Node 20. Node 20 is end of life (final release 20.20.2) and has no fix for CVE-2026-111497 (Brotli out-of-bounds write). The release workflow already publishes on Node 24. Package `engines` stay `>=20`.
+- Production hosts should run Node ≥22.23.4, ≥24.22.1, or ≥26.12.1. As of 2026-11-01 the current builds on those lines are 22.23.4, 24.22.2, and 26.13.0.
+
+### Dependency upgrades
+
+- `typescript-eslint` 8.72.0 → 8.72.1, including the matching `@typescript-eslint/*` packages. Other direct dependencies were already at the latest within-major version in the lockfile and were not changed.
+
+### Internal/CI
+
+- Bump the package version to 1.0.6, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.6.
+- Getting started, operations, and development docs (English and 中文) record the Node 24 CI job and the production Node floor.
+- Type the Admin `formatApiError` fallback body as the error object so `npm run typecheck:admin` accepts `details.feature`, `details.flag`, and `details.reason`. Runtime behavior is unchanged.
+
+GitHub Release: https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.6
+Compare: https://github.com/yanshekki/ysk-omni/compare/v1.0.5...v1.0.6
+
 ## 1.0.5 — 2026-10-25
 
 ### Security
