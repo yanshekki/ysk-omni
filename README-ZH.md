@@ -34,6 +34,23 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 ## 更新日誌
 
+### 1.0.6 — 2026-11-01
+
+### 安全
+
+- CI（`.github/workflows/ci.yml`）改在 Node 24 上跑測試，不再使用 Node 20。Node 20 已結束支援（最後版本 20.20.2），沒有 CVE-2026-111497（Brotli 越界寫入）的修補。發佈工作流程本來已在 Node 24 上發佈。套件 `engines` 維持 `>=20`。
+- 生產主機應使用 Node ≥22.23.4、≥24.22.1 或 ≥26.12.1。截至 2026-11-01，這些線上的現行版本是 22.23.4、24.22.2 與 26.13.0。
+
+### 依賴升級
+
+- `typescript-eslint` 8.72.0 → 8.72.1，連同對應的 `@typescript-eslint/*`。其餘直接依賴在 lockfile 已是主版本內的最新版，沒有改動。
+
+### 內部／CI
+
+- 將套件版本升至 1.0.6、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.6。
+- 快速開始、維運與開發文件（英文與中文）記錄 CI 使用 Node 24，以及生產環境的 Node 下限。
+- 將 Admin `formatApiError` 的後備錯誤本體標成錯誤物件，讓 `npm run typecheck:admin` 接受 `details.feature`、`details.flag` 與 `details.reason`。執行時期行為不變。
+
 ### 1.0.5 — 2026-10-25
 
 ### 安全
@@ -78,19 +95,6 @@ curl -sS http://127.0.0.1:3850/v1/models \
 - 將套件版本升至 1.0.4、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.4。
 - Prisma CLI 版本釘選與 `prisma`／`@prisma/client` 6.19.3 同步。
 - 在 `typescript-eslint` 升級後通過 lint（case 區塊作用域、多餘自我賦值、generator `yield`、Admin ESLint glob）。
-
-### 1.0.3 — 2026-10-05
-
-### 安全
-
-- 由 GitHub Actions 以 npm Trusted Publishing（OIDC）發佈 `ysk-omni`，並附上 provenance 來源證明。發佈工作流程不使用 npm token。
-
-### 內部／CI
-
-- `.github/workflows/release.yml` 在版本標籤上執行測試；若套件庫尚未有該版本才發佈，然後以 `npm view ysk-omni@<version>` 核對，並建立一個 GitHub Release。
-- `README.md` 與 `README-ZH.md` 只列出最近三個版本，並按類別分組。`CHANGELOG.md` 與 `CHANGELOG.zh.md` 保留由 1.0.0 起的每個版本。
-- 開發文件記錄這條更新日誌規則。
-- CI 與發佈工作流程改用在 Node 24 上執行的 GitHub Actions（`actions/checkout@v7`、`actions/setup-node@v7`、`softprops/action-gh-release@v3`）。發佈工作使用 Node 24。
 
 完整更新日誌：[CHANGELOG.zh.md](./CHANGELOG.zh.md)。
 

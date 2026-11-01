@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js 20 or later
+- Node.js 20 or later (`engines`). Node 20 is end of life and has no fix for CVE-2026-111497. Production should run Node ≥22.23.4, ≥24.22.1, or ≥26.12.1. See [Operations](operations.md).
 - Text GGUF: `llama-server` on `PATH`, or `OMNI_LLAMA_SERVER`
 - Text safetensors: `vLLM` (`OMNI_VLLM`)
 - Image / speech / video: an OpenAI-shaped HTTP worker (see [Media](media.md))

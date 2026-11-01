@@ -34,6 +34,23 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 
 ## Changelog
 
+### 1.0.6 — 2026-11-01
+
+### Security
+
+- CI (`.github/workflows/ci.yml`) runs the test job on Node 24 instead of Node 20. Node 20 is end of life (final release 20.20.2) and has no fix for CVE-2026-111497 (Brotli out-of-bounds write). The release workflow already publishes on Node 24. Package `engines` stay `>=20`.
+- Production hosts should run Node ≥22.23.4, ≥24.22.1, or ≥26.12.1. As of 2026-11-01 the current builds on those lines are 22.23.4, 24.22.2, and 26.13.0.
+
+### Dependency upgrades
+
+- `typescript-eslint` 8.72.0 → 8.72.1, including the matching `@typescript-eslint/*` packages. Other direct dependencies were already at the latest within-major version in the lockfile and were not changed.
+
+### Internal/CI
+
+- Bump the package version to 1.0.6, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.6.
+- Getting started, operations, and development docs (English and 中文) record the Node 24 CI job and the production Node floor.
+- Type the Admin `formatApiError` fallback body as the error object so `npm run typecheck:admin` accepts `details.feature`, `details.flag`, and `details.reason`. Runtime behavior is unchanged.
+
 ### 1.0.5 — 2026-10-25
 
 ### Security
@@ -78,19 +95,6 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 - Bump the package version to 1.0.4, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.4.
 - Keep Prisma CLI version pins in lockstep with `prisma` / `@prisma/client` 6.19.3.
 - Clear the lint gate after the `typescript-eslint` bump (case-block scope, unused self-assign, generator `yield`, Admin ESLint glob).
-
-### 1.0.3 — 2026-10-05
-
-### Security
-
-- Publish `ysk-omni` from GitHub Actions with npm Trusted Publishing (OIDC) and a provenance attestation. The release workflow does not use an npm token.
-
-### Internal/CI
-
-- `.github/workflows/release.yml` runs the test suite on a version tag, publishes that version when it is not already on the registry, checks `npm view ysk-omni@<version>`, and creates one GitHub Release.
-- `README.md` and `README-ZH.md` list only the latest three versions, grouped by category. `CHANGELOG.md` and `CHANGELOG.zh.md` keep every version from 1.0.0.
-- Development docs record this changelog rule.
-- CI and the release workflow use GitHub Actions on the Node 24 runtime (`actions/checkout@v7`, `actions/setup-node@v7`, `softprops/action-gh-release@v3`). The publish job runs on Node 24.
 
 Full changelog: [CHANGELOG.md](./CHANGELOG.md).
 

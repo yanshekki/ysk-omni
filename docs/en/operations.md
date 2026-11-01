@@ -13,7 +13,9 @@ curl -sS http://127.0.0.1:3850/ready
 
 ## Node.js runtime
 
-The package `engines` field is Node.js 20 or later. After the 2026-10-21 Node security releases, production hosts should run a patched build: **22.23.4**, **24.22.1**, **26.12.1**, or the current patched LTS. That set includes the Brotli out-of-bounds write (CVE-2026-111497).
+The package `engines` field is Node.js 20 or later. Node 20 is end of life (final release 20.20.2) and has no fix for the Brotli out-of-bounds write (CVE-2026-111497). Production hosts should run at least **22.23.4**, **24.22.1**, or **26.12.1**. As of 2026-11-01 the current builds on those lines are 22.23.4, 24.22.2, and 26.13.0.
+
+GitHub Actions CI (`.github/workflows/ci.yml`) runs the suite on Node 24. The release workflow publishes on Node 24 as well.
 
 ## Process manager
 

@@ -2,7 +2,7 @@
 
 ## 前置要求
 
-- Node.js 20 或以上
+- Node.js 20 或以上（`engines`）。Node 20 已結束支援，沒有 CVE-2026-111497 的修補。生產環境應使用 Node ≥22.23.4、≥24.22.1 或 ≥26.12.1。見[維運](operations.md)。
 - 文字 GGUF：`PATH` 上的 `llama-server`，或 `OMNI_LLAMA_SERVER`
 - 文字 safetensors：`vLLM`（`OMNI_VLLM`）
 - 圖像／語音／影片：OpenAI 形狀的 HTTP worker（見[媒體](media.md)）

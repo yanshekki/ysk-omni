@@ -52,6 +52,8 @@ npm run test:registry
 
 推送附註標籤 `vX.Y.Z`，版本須與 `package.json` 的 `"version"` 相同。[`.github/workflows/release.yml`](../../.github/workflows/release.yml) 的檔名必須是這個，而且不要設定 GitHub environment。該工作流程先跑測試，再以 Trusted Publishing 發佈到 npm。認證只用 GitHub Actions OIDC（`id-token: write`），發佈附帶 provenance 來源證明。不要加入 npm token（`NPM_TOKEN`、`NODE_AUTH_TOKEN` 或套件庫認證）。若套件庫已有該版本，工作流程會略過發佈，然後執行 `npm view ysk-omni@<version>`，並建立或更新一個 GitHub Release。
 
+CI（[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)）安裝 Node 24，並執行相同的建置與測試。Node 20 已結束支援，CI 不再使用。套件 `engines` 維持 `>=20`；生產環境應使用[維運](operations.md)列出的已修補 Node 版本。
+
 更新日誌規則：
 
 - [`CHANGELOG.md`](../../CHANGELOG.md) 與 [`CHANGELOG.zh.md`](../../CHANGELOG.zh.md) 記錄由 1.0.0 起的每個版本，最新的在最前。

@@ -49,10 +49,11 @@ export function formatApiError(
   hasT: HasTranslateFn,
 ): string {
   const root = (data && typeof data === 'object' ? data : {}) as ApiErrorEnvelope;
-  const err =
+  type ApiErrorBody = NonNullable<ApiErrorEnvelope['error']>;
+  const err: ApiErrorBody =
     root.error && typeof root.error === 'object'
       ? root.error
-      : (root as { message?: string; code?: string; details?: ApiErrorEnvelope['error'] extends infer E ? E : never });
+      : (root as ApiErrorBody);
   const code = typeof err.code === 'string' ? err.code : '';
   const details =
     err.details && typeof err.details === 'object' ? err.details : {};

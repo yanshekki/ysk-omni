@@ -1,6 +1,6 @@
 {
   "name": "ysk-omni",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "YSK Omni — local models behind an OpenAI-compatible gateway, with Admin panel and CLI",
   "keywords": [
     "openai",
@@ -100,7 +100,7 @@
     "pino-pretty": "^13.2.0",
     "tsx": "^4.23.15",
     "typescript": "5.8",
-    "typescript-eslint": "^8.72.0",
+    "typescript-eslint": "^8.72.1",
     "vite": "^6.4.5",
     "vitest": "^3.0.9"
   },
