@@ -34,6 +34,18 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 ## 更新日誌
 
+### 1.0.7 — 2026-11-08
+
+### 安全
+
+- 用 `overrides` 把傳遞依賴 `qs` 釘在 **6.16.2**（express 與 body-parser 宣告 `~6.16.0`）。lockfile 先前是 6.16.0，落在 GHSA-6pq8-jhm2-2vcw／CVE-2026-110816（中等，`qs.stringify` 配 `arrayFormat: 'comma'` 遇到不可呼叫的自有 `toString` 會拋錯；6.16.1 已修）同 GHSA-w4cr-vjpx-p82q／CVE-2026-110910（低，`allowEmptyArrays` 沒有編碼空陣列的 key；6.16.2 已修）。qs 6.17.1 是 6.x 最新版，同樣沒有已知公告；此釘選與 GCtoAC 一致。
+- Admin 內嵌的 DOMPurify 由 **3.2.4** 升到 **3.4.17**（`public/admin/vendor/purify.min.js`）。3.2.4 落在 CVE-2025-15599（3.2.7 已修）同 CVE-2026-0540（3.3.2 已修）範圍內。3.4.17 是目前 npm 上的 3.x，沒有已知公告。對話 markdown 仍用 `USE_PROFILES: { html: true }` 消毒。
+
+### 內部／CI
+
+- 將套件版本升至 1.0.7、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.7。
+- 維運文件（英文與中文）於 2026-11-08 再核對 Node 現行版本：仍是 22.23.4、24.22.2 與 26.13.0。生產下限維持 ≥22.23.4、≥24.22.1 或 ≥26.12.1。
+
 ### 1.0.6 — 2026-11-01
 
 ### 安全
@@ -71,30 +83,6 @@ curl -sS http://127.0.0.1:3850/v1/models \
 ### 內部／CI
 
 - 將套件版本升至 1.0.5、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.5。
-
-### 1.0.4 — 2026-10-11
-
-### 安全
-
-- `express` 4.22.3 更新 `path-to-regexp`，修復 CVE-2026-4867。
-- `prisma`／`@prisma/client` 6.19.3 更新 `effect` 依賴，修復安全漏洞。
-
-### 依賴升級
-
-- `pino-pretty` 13.1.3 → 13.2.0
-- `tsx` 4.23.1 → 4.23.15
-- `vite` 6.4.3 → 6.4.4
-- `typescript-eslint` 8.64.0 → 8.71.1
-- `prisma` 6.5.0 → 6.19.3
-- `@prisma/client` 6.5.0 → 6.19.3
-- `express` 4.22.2 → 4.22.3
-- `@types/node` 22.20.1 → 22.20.5
-
-### 內部／CI
-
-- 將套件版本升至 1.0.4、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.4。
-- Prisma CLI 版本釘選與 `prisma`／`@prisma/client` 6.19.3 同步。
-- 在 `typescript-eslint` 升級後通過 lint（case 區塊作用域、多餘自我賦值、generator `yield`、Admin ESLint glob）。
 
 完整更新日誌：[CHANGELOG.zh.md](./CHANGELOG.zh.md)。
 

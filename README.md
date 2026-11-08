@@ -34,6 +34,18 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 
 ## Changelog
 
+### 1.0.7 — 2026-11-08
+
+### Security
+
+- Pin transitive `qs` at **6.16.2** via `overrides` (express and body-parser declare `~6.16.0`). Lockfile was 6.16.0, which is inside GHSA-6pq8-jhm2-2vcw / CVE-2026-110816 (moderate, `qs.stringify` with `arrayFormat: 'comma'` throws on a non-callable own `toString`; patched in 6.16.1) and GHSA-w4cr-vjpx-p82q / CVE-2026-110910 (low, `allowEmptyArrays` did not encode empty-array keys; patched in 6.16.2). qs 6.17.1 is the latest 6.x and is also clean; this pin matches GCtoAC.
+- Vendor Admin DOMPurify **3.2.4 → 3.4.17** (`public/admin/vendor/purify.min.js`). 3.2.4 is inside CVE-2025-15599 (fixed in 3.2.7) and CVE-2026-0540 (fixed in 3.3.2). 3.4.17 is the current npm 3.x with no known advisories. Chat markdown still sanitizes with `USE_PROFILES: { html: true }`.
+
+### Internal/CI
+
+- Bump the package version to 1.0.7, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.7.
+- Operations docs (English and 中文) re-check the Node current builds as of 2026-11-08: still 22.23.4, 24.22.2, and 26.13.0. Production floor stays ≥22.23.4, ≥24.22.1, or ≥26.12.1.
+
 ### 1.0.6 — 2026-11-01
 
 ### Security
@@ -71,30 +83,6 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 ### Internal/CI
 
 - Bump the package version to 1.0.5, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.5.
-
-### 1.0.4 — 2026-10-11
-
-### Security
-
-- `express` 4.22.3 updates `path-to-regexp` to fix CVE-2026-4867.
-- `prisma` / `@prisma/client` 6.19.3 update the `effect` dependency to resolve a security vulnerability.
-
-### Dependency upgrades
-
-- `pino-pretty` 13.1.3 → 13.2.0
-- `tsx` 4.23.1 → 4.23.15
-- `vite` 6.4.3 → 6.4.4
-- `typescript-eslint` 8.64.0 → 8.71.1
-- `prisma` 6.5.0 → 6.19.3
-- `@prisma/client` 6.5.0 → 6.19.3
-- `express` 4.22.2 → 4.22.3
-- `@types/node` 22.20.1 → 22.20.5
-
-### Internal/CI
-
-- Bump the package version to 1.0.4, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.4.
-- Keep Prisma CLI version pins in lockstep with `prisma` / `@prisma/client` 6.19.3.
-- Clear the lint gate after the `typescript-eslint` bump (case-block scope, unused self-assign, generator `yield`, Admin ESLint glob).
 
 Full changelog: [CHANGELOG.md](./CHANGELOG.md).
 

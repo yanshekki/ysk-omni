@@ -4,6 +4,21 @@ Newest first. Every version from 1.0.0 is grouped by category. `README.md` shows
 
 Entries come from git history, tags, and GitHub Releases.
 
+## 1.0.7 — 2026-11-08
+
+### Security
+
+- Pin transitive `qs` at **6.16.2** via `overrides` (express and body-parser declare `~6.16.0`). Lockfile was 6.16.0, which is inside GHSA-6pq8-jhm2-2vcw / CVE-2026-110816 (moderate, `qs.stringify` with `arrayFormat: 'comma'` throws on a non-callable own `toString`; patched in 6.16.1) and GHSA-w4cr-vjpx-p82q / CVE-2026-110910 (low, `allowEmptyArrays` did not encode empty-array keys; patched in 6.16.2). qs 6.17.1 is the latest 6.x and is also clean; this pin matches GCtoAC.
+- Vendor Admin DOMPurify **3.2.4 → 3.4.17** (`public/admin/vendor/purify.min.js`). 3.2.4 is inside CVE-2025-15599 (fixed in 3.2.7) and CVE-2026-0540 (fixed in 3.3.2). 3.4.17 is the current npm 3.x with no known advisories. Chat markdown still sanitizes with `USE_PROFILES: { html: true }`.
+
+### Internal/CI
+
+- Bump the package version to 1.0.7, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.7.
+- Operations docs (English and 中文) re-check the Node current builds as of 2026-11-08: still 22.23.4, 24.22.2, and 26.13.0. Production floor stays ≥22.23.4, ≥24.22.1, or ≥26.12.1.
+
+GitHub Release: https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.7
+Compare: https://github.com/yanshekki/ysk-omni/compare/v1.0.6...v1.0.7
+
 ## 1.0.6 — 2026-11-01
 
 ### Security
