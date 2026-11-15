@@ -4,6 +4,29 @@ Newest first. Every version from 1.0.0 is grouped by category. `README.md` shows
 
 Entries come from git history, tags, and GitHub Releases.
 
+## 1.0.8 — 2026-11-15
+
+### Security
+
+- Upgrade `vite` 6.4.5 → **6.4.6** for GHSA-p4f5-76q4-ffq7 (Critical). Unescaped `__vite-browser-external` / `__vite-optional-peer-dep` virtual module IDs allowed RCE when the Vite **dev** server is exposed (`--host` / `server.host`). Affected: Vite `>=4.0.0,<=6.4.5`. Production Admin is a built static bundle; `dev:admin` and the locked Vite version are patched. Changelog: 6.4.6 (2026-11-09) “fix: escape ids in resolve virtual modules”.
+- Vendor Admin DOMPurify **3.4.17 → 3.4.18** (`public/admin/vendor/purify.min.js`, official minified 3.4.18 build). 3.4.18 (2026-11-14) fixes a `SAFE_FOR_TEMPLATES` reparse bypass and hook allow-list leakage when a hook passes the config object back to `sanitize()`. Chat markdown still sanitizes with `USE_PROFILES: { html: true }`.
+- Production hosts should run Node ≥22.23.5, ≥24.22.3, or ≥26.13.1 (2026-11-11 security releases: CVE-2026-123863, CVE-2026-123864 and siblings). Package `engines` stay `>=20`. CI stays on Node 24.
+
+### Dependency upgrades
+
+- `vite` 6.4.5 → 6.4.6
+- `typescript-eslint` 8.72.1 → 8.72.2, including the matching `@typescript-eslint/*` packages (plugin bugfixes: prefer-string-starts-ends-with, no-deprecated circular aliases, no-unnecessary-type-assertion, prefer-nullish-coalescing)
+- Transitive `qs` override **6.16.2 → 6.17.1**. 6.16.2 is already OSV-clean for GHSA-6pq8-jhm2-2vcw / CVE-2026-110816 and GHSA-w4cr-vjpx-p82q / CVE-2026-110910; 6.17.1 is current 6.x. Matches GCtoAC 1.7.9.
+- Align package.json floors `cors` `^2.8.6` and `@types/cors` `^2.8.19` (lockfile already resolved those versions).
+
+### Internal/CI
+
+- Bump the package version to 1.0.8, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.8.
+- Getting started and operations docs (English and 中文) record the 2026-11-11 production Node floor. `engines` and CI Node 24 are unchanged.
+
+GitHub Release: https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.8
+Compare: https://github.com/yanshekki/ysk-omni/compare/v1.0.7...v1.0.8
+
 ## 1.0.7 — 2026-11-08
 
 ### Security

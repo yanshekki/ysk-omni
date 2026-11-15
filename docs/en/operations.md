@@ -13,7 +13,7 @@ curl -sS http://127.0.0.1:3850/ready
 
 ## Node.js runtime
 
-The package `engines` field is Node.js 20 or later. Node 20 is end of life (final release 20.20.2) and has no fix for the Brotli out-of-bounds write (CVE-2026-111497). Production hosts should run at least **22.23.4**, **24.22.1**, or **26.12.1**. As of 2026-11-08 the current builds on those lines are 22.23.4, 24.22.2, and 26.13.0.
+The package `engines` field is Node.js 20 or later. Node 20 is end of life (final release 20.20.2) and has no fix for the Brotli out-of-bounds write (CVE-2026-111497) or the 2026-11-11 runtime issues. Production hosts should run at least **22.23.5**, **24.22.3**, or **26.13.1** (2026-11-11 security releases: CVE-2026-123863, CVE-2026-123864 and siblings). As of 2026-11-15 those are the current builds on those lines.
 
 GitHub Actions CI (`.github/workflows/ci.yml`) runs the suite on Node 24. The release workflow publishes on Node 24 as well.
 

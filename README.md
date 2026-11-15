@@ -34,6 +34,26 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 
 ## Changelog
 
+### 1.0.8 — 2026-11-15
+
+### Security
+
+- Upgrade `vite` 6.4.5 → **6.4.6** for GHSA-p4f5-76q4-ffq7 (Critical). Unescaped `__vite-browser-external` / `__vite-optional-peer-dep` virtual module IDs allowed RCE when the Vite **dev** server is exposed (`--host` / `server.host`). Affected: Vite `>=4.0.0,<=6.4.5`. Production Admin is a built static bundle; `dev:admin` and the locked Vite version are patched. Changelog: 6.4.6 (2026-11-09) “fix: escape ids in resolve virtual modules”.
+- Vendor Admin DOMPurify **3.4.17 → 3.4.18** (`public/admin/vendor/purify.min.js`, official minified 3.4.18 build). 3.4.18 (2026-11-14) fixes a `SAFE_FOR_TEMPLATES` reparse bypass and hook allow-list leakage when a hook passes the config object back to `sanitize()`. Chat markdown still sanitizes with `USE_PROFILES: { html: true }`.
+- Production hosts should run Node ≥22.23.5, ≥24.22.3, or ≥26.13.1 (2026-11-11 security releases: CVE-2026-123863, CVE-2026-123864 and siblings). Package `engines` stay `>=20`. CI stays on Node 24.
+
+### Dependency upgrades
+
+- `vite` 6.4.5 → 6.4.6
+- `typescript-eslint` 8.72.1 → 8.72.2, including the matching `@typescript-eslint/*` packages (plugin bugfixes: prefer-string-starts-ends-with, no-deprecated circular aliases, no-unnecessary-type-assertion, prefer-nullish-coalescing)
+- Transitive `qs` override **6.16.2 → 6.17.1**. 6.16.2 is already OSV-clean for GHSA-6pq8-jhm2-2vcw / CVE-2026-110816 and GHSA-w4cr-vjpx-p82q / CVE-2026-110910; 6.17.1 is current 6.x. Matches GCtoAC 1.7.9.
+- Align package.json floors `cors` `^2.8.6` and `@types/cors` `^2.8.19` (lockfile already resolved those versions).
+
+### Internal/CI
+
+- Bump the package version to 1.0.8, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.8.
+- Getting started and operations docs (English and 中文) record the 2026-11-11 production Node floor. `engines` and CI Node 24 are unchanged.
+
 ### 1.0.7 — 2026-11-08
 
 ### Security
@@ -62,27 +82,6 @@ Full CLI, API, Admin, Catalog, Runtimes, keys, and operations: **[Documentation]
 - Bump the package version to 1.0.6, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.6.
 - Getting started, operations, and development docs (English and 中文) record the Node 24 CI job and the production Node floor.
 - Type the Admin `formatApiError` fallback body as the error object so `npm run typecheck:admin` accepts `details.feature`, `details.flag`, and `details.reason`. Runtime behavior is unchanged.
-
-### 1.0.5 — 2026-10-25
-
-### Security
-
-- Upgrade `multer` 1.4.5-lts to 2.5.0 to fix CVE-2026-77078 (High multipart field-name DoS) and later 2.x multipart fixes through 2.5.0, including CVE-2026-113872. Upload routes still use `memoryStorage`. Multer limit errors now return 413 / 400 instead of 500.
-- Pin transitive `body-parser` 1.20.9 (CVE-2026-111181 / GHSA-27r3-jxmh-p828) with an npm `overrides` entry so `express.json` and `urlencoded` get the patched parser.
-- Upgrade `vite` 6.4.4 → 6.4.5 (GHSA-8g5g-mxqh-grgj). The advisory applies to the Admin Vite **dev** server; production serves the built static Admin bundle.
-- Production hosts should run a Node.js build from the 2026-10-21 security releases (22.23.4, 24.22.1, 26.12.1, or current patched LTS) for CVE-2026-111497 and related runtime fixes. Package `engines` stay `>=20`.
-
-### Dependency upgrades
-
-- `multer` 1.4.5-lts.2 → 2.5.0
-- `@types/multer` 1.4.13 → 2.3.0
-- `body-parser` 1.20.8 → 1.20.9 (override)
-- `vite` 6.4.4 → 6.4.5
-- `typescript-eslint` 8.71.1 → 8.72.0
-
-### Internal/CI
-
-- Bump the package version to 1.0.5, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.5.
 
 Full changelog: [CHANGELOG.md](./CHANGELOG.md).
 

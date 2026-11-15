@@ -4,6 +4,29 @@
 
 條目來自 git 歷史、標籤與 GitHub Release。
 
+## 1.0.8 — 2026-11-15
+
+### 安全
+
+- 將 `vite` 由 6.4.5 升至 **6.4.6**，修復 GHSA-p4f5-76q4-ffq7（危急）。未跳脫的 `__vite-browser-external`／`__vite-optional-peer-dep` 虛擬模組 ID，在 Vite **開發**伺服器對外開放（`--host`／`server.host`）時可遠端執行程式碼。受影響範圍：Vite `>=4.0.0,<=6.4.5`。生產環境 Admin 是已建置的靜態檔；`dev:admin` 與 lockfile 中的 Vite 已修補。變更日誌：6.4.6（2026-11-09）「fix: escape ids in resolve virtual modules」。
+- Admin 內嵌的 DOMPurify 由 **3.4.17** 升到 **3.4.18**（`public/admin/vendor/purify.min.js`，官方 3.4.18 壓縮檔）。3.4.18（2026-11-14）修復 `SAFE_FOR_TEMPLATES` 再解析繞過，以及 hook 把 config 物件交回 `sanitize()` 時允許清單外洩。對話 markdown 仍用 `USE_PROFILES: { html: true }` 消毒。
+- 生產主機應使用 Node ≥22.23.5、≥24.22.3 或 ≥26.13.1（2026-11-11 安全版本：CVE-2026-123863、CVE-2026-123864 及同批）。套件 `engines` 維持 `>=20`。CI 仍用 Node 24。
+
+### 依賴升級
+
+- `vite` 6.4.5 → 6.4.6
+- `typescript-eslint` 8.72.1 → 8.72.2，連同對應的 `@typescript-eslint/*`（外掛修正：prefer-string-starts-ends-with、no-deprecated 循環別名、no-unnecessary-type-assertion、prefer-nullish-coalescing）
+- 傳遞依賴 `qs` 的 override 由 **6.16.2** 改為 **6.17.1**。6.16.2 已不在 GHSA-6pq8-jhm2-2vcw／CVE-2026-110816 與 GHSA-w4cr-vjpx-p82q／CVE-2026-110910 範圍內；6.17.1 是目前 6.x。與 GCtoAC 1.7.9 一致。
+- 對齊 package.json 下限 `cors` `^2.8.6` 與 `@types/cors` `^2.8.19`（lockfile 本來已解析到這些版本）。
+
+### 內部／CI
+
+- 將套件版本升至 1.0.8、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.8。
+- 快速開始與維運文件（英文與中文）記錄 2026-11-11 的生產 Node 下限。`engines` 與 CI 的 Node 24 不變。
+
+GitHub Release：https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.8
+比較：https://github.com/yanshekki/ysk-omni/compare/v1.0.7...v1.0.8
+
 ## 1.0.7 — 2026-11-08
 
 ### 安全
