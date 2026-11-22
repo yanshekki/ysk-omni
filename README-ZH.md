@@ -34,6 +34,21 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 ## 更新日誌
 
+### 1.0.9 — 2026-11-22
+
+### 修正
+
+- 佇列 worker 停止時排空進行中的工作，並吞掉 Prisma `$disconnect` 之後的寫入，避免測試 teardown 變成未處理拒絕。共用核心（OTP 登入、Admin、佇列、API 金鑰、DDoS）；GCtoAC 應一併移植。
+
+### 依賴升級
+
+- `typescript-eslint` 8.72.2 → 8.73.0，連同對應的 `@typescript-eslint/*`（`consistent-type-imports` 報告位置收窄；新規則 `no-unsafe-class-instance-assignment`；`typescript-estree` 的 `projectService.EXPERIMENTAL_backend` 供 TypeScript 7.1 使用 — 未啟用）。其餘直接依賴在 lockfile 已是主版本內的最新版，沒有改動。
+
+### 內部／CI
+
+- 將套件版本升至 1.0.9、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.9。
+- 維運文件（英文與中文）於 2026-11-22 再核對 Node 現行版本：仍是 22.23.5、24.22.3 與 26.13.1。生產下限維持 ≥22.23.5、≥24.22.3 或 ≥26.13.1。`engines` 與 CI 的 Node 24 不變。
+
 ### 1.0.8 — 2026-11-15
 
 ### 安全
@@ -65,23 +80,6 @@ curl -sS http://127.0.0.1:3850/v1/models \
 
 - 將套件版本升至 1.0.7、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.7。
 - 維運文件（英文與中文）於 2026-11-08 再核對 Node 現行版本：仍是 22.23.4、24.22.2 與 26.13.0。生產下限維持 ≥22.23.4、≥24.22.1 或 ≥26.12.1。
-
-### 1.0.6 — 2026-11-01
-
-### 安全
-
-- CI（`.github/workflows/ci.yml`）改在 Node 24 上跑測試，不再使用 Node 20。Node 20 已結束支援（最後版本 20.20.2），沒有 CVE-2026-111497（Brotli 越界寫入）的修補。發佈工作流程本來已在 Node 24 上發佈。套件 `engines` 維持 `>=20`。
-- 生產主機應使用 Node ≥22.23.4、≥24.22.1 或 ≥26.12.1。截至 2026-11-01，這些線上的現行版本是 22.23.4、24.22.2 與 26.13.0。
-
-### 依賴升級
-
-- `typescript-eslint` 8.72.0 → 8.72.1，連同對應的 `@typescript-eslint/*`。其餘直接依賴在 lockfile 已是主版本內的最新版，沒有改動。
-
-### 內部／CI
-
-- 將套件版本升至 1.0.6、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.6。
-- 快速開始、維運與開發文件（英文與中文）記錄 CI 使用 Node 24，以及生產環境的 Node 下限。
-- 將 Admin `formatApiError` 的後備錯誤本體標成錯誤物件，讓 `npm run typecheck:admin` 接受 `details.feature`、`details.flag` 與 `details.reason`。執行時期行為不變。
 
 完整更新日誌：[CHANGELOG.zh.md](./CHANGELOG.zh.md)。
 

@@ -4,6 +4,24 @@ Newest first. Every version from 1.0.0 is grouped by category. `README.md` shows
 
 Entries come from git history, tags, and GitHub Releases.
 
+## 1.0.9 — 2026-11-22
+
+### Fixes
+
+- Drain in-flight chat-queue jobs when the worker stops, and swallow Prisma writes that happen after `$disconnect`, so test teardown does not become an unhandled rejection. Shared-core (OTP login, admin panel, queue, API keys, DDoS); GCtoAC should port.
+
+### Dependency upgrades
+
+- `typescript-eslint` 8.72.2 → 8.73.0, including the matching `@typescript-eslint/*` packages (`consistent-type-imports` narrower report location; new rule `no-unsafe-class-instance-assignment`; `typescript-estree` `projectService.EXPERIMENTAL_backend` for TypeScript 7.1 — not enabled). Other direct dependencies were already at the latest within-major version in the lockfile and were not changed.
+
+### Internal/CI
+
+- Bump the package version to 1.0.9, update Admin fixtures, and rebuild the Admin bundle so the sidebar shows v1.0.9.
+- Operations docs (English and 中文) re-check the Node current builds as of 2026-11-22: still 22.23.5, 24.22.3, and 26.13.1. Production floor stays ≥22.23.5, ≥24.22.3, or ≥26.13.1. `engines` and CI Node 24 are unchanged.
+
+GitHub Release: https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.9
+Compare: https://github.com/yanshekki/ysk-omni/compare/v1.0.8...v1.0.9
+
 ## 1.0.8 — 2026-11-15
 
 ### Security
