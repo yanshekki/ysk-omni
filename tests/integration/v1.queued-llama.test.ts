@@ -8,7 +8,7 @@ import {
   stopHarness,
   type Harness,
 } from '../helpers/api-harness';
-import { SETTING_KEYS } from '../../src/config/constants';
+import { CHAT_JOB_STATUS, SETTING_KEYS } from '../../src/config/constants';
 import { prisma } from '../../src/config/database';
 import {
   defaultQueuePolicy,
@@ -59,6 +59,17 @@ describe('v1 queued llama chat', () => {
 
     h = await startHarness('qllama');
     if (!h) return;
+    await prisma.chatJob.deleteMany({
+      where: {
+        status: {
+          in: [
+            CHAT_JOB_STATUS.QUEUED,
+            CHAT_JOB_STATUS.LEASED,
+            CHAT_JOB_STATUS.RUNNING,
+          ],
+        },
+      },
+    });
     const policy = { ...defaultQueuePolicy(), enabled: true, paused: false };
     await prisma.setting.upsert({
       where: { key: SETTING_KEYS.QUEUE_POLICY },
@@ -74,6 +85,7 @@ describe('v1 queued llama chat', () => {
 
   afterAll(async () => {
     chatWorkerService.stop();
+    await chatWorkerService.drain();
     await engineManager.unloadAll();
     vramScheduler.reset();
     if (prevHome) process.env.OMNI_HOME = prevHome;

@@ -69,6 +69,14 @@ export class ChatWorkerService {
     }
   }
 
+  /** Wait until in-flight runJob calls finish (or timeout). */
+  async drain(timeoutMs = 5_000): Promise<void> {
+    const start = Date.now();
+    while (this.active > 0 && Date.now() - start < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+  }
+
   private async tick(): Promise<void> {
     if (!this.running) return;
     const policy = await queuePolicyService.get();
@@ -79,9 +87,13 @@ export class ChatWorkerService {
       const jobId = await chatQueueService.claimNext(policy);
       if (!jobId) break;
       this.active += 1;
-      void this.runJob(jobId).finally(() => {
-        this.active -= 1;
-      });
+      void this.runJob(jobId)
+        .catch((err) => {
+          logger.error({ err, jobId }, 'Chat job runner rejected');
+        })
+        .finally(() => {
+          this.active -= 1;
+        });
     }
 
     jobWaiterRegistry.purgeOlderThan(policy.maxWaitMs + 60_000);
@@ -147,12 +159,19 @@ export class ChatWorkerService {
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       logger.error({ err: error, jobId }, 'Chat job failed');
-      const row = await prisma.chatJob.findUnique({
-        where: { id: jobId },
-        select: { attempt: true, maxAttempts: true },
-      });
-      const dead = !row || row.attempt >= row.maxAttempts;
-      await chatQueueService.markFailed(jobId, error, dead);
+      try {
+        const row = await prisma.chatJob.findUnique({
+          where: { id: jobId },
+          select: { attempt: true, maxAttempts: true },
+        });
+        const dead = !row || row.attempt >= row.maxAttempts;
+        await chatQueueService.markFailed(jobId, error, dead);
+      } catch (markErr) {
+        logger.error(
+          { err: markErr, jobId },
+          'Chat job failed and could not record failure',
+        );
+      }
       jobWaiterRegistry.emitError(jobId, error);
     } finally {
       clearInterval(hb);

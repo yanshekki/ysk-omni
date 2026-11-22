@@ -5,6 +5,7 @@ import {
 } from '../../src/services/queue/queue-backend.factory';
 import { parseQueueBackendKind } from '../../src/services/queue/queue-backend.interface';
 import { chatQueueService } from '../../src/services/queue/chat-queue.service';
+import { chatWorkerService } from '../../src/services/queue/chat-worker.service';
 
 describe('queue backend', () => {
   it('parseQueueBackendKind defaults and normalizes', () => {
@@ -27,5 +28,11 @@ describe('queue backend', () => {
   it('createQueueBackend(redis|kafka) throws until implemented', () => {
     expect(() => createQueueBackend('redis')).toThrow(/not implemented/i);
     expect(() => createQueueBackend('kafka')).toThrow(/not implemented/i);
+  });
+
+  it('chat worker drain resolves when idle', async () => {
+    chatWorkerService.stop();
+    await chatWorkerService.drain(100);
+    expect(chatWorkerService.getActiveCount()).toBe(0);
   });
 });

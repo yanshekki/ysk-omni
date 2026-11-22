@@ -4,6 +4,24 @@
 
 條目來自 git 歷史、標籤與 GitHub Release。
 
+## 1.0.9 — 2026-11-22
+
+### 修正
+
+- 佇列 worker 停止時排空進行中的工作，並吞掉 Prisma `$disconnect` 之後的寫入，避免測試 teardown 變成未處理拒絕。共用核心（OTP 登入、Admin、佇列、API 金鑰、DDoS）；GCtoAC 應一併移植。
+
+### 依賴升級
+
+- `typescript-eslint` 8.72.2 → 8.73.0，連同對應的 `@typescript-eslint/*`（`consistent-type-imports` 報告位置收窄；新規則 `no-unsafe-class-instance-assignment`；`typescript-estree` 的 `projectService.EXPERIMENTAL_backend` 供 TypeScript 7.1 使用 — 未啟用）。其餘直接依賴在 lockfile 已是主版本內的最新版，沒有改動。
+
+### 內部／CI
+
+- 將套件版本升至 1.0.9、更新 Admin fixtures，並重建 Admin bundle，讓側欄顯示 v1.0.9。
+- 維運文件（英文與中文）於 2026-11-22 再核對 Node 現行版本：仍是 22.23.5、24.22.3 與 26.13.1。生產下限維持 ≥22.23.5、≥24.22.3 或 ≥26.13.1。`engines` 與 CI 的 Node 24 不變。
+
+GitHub Release：https://github.com/yanshekki/ysk-omni/releases/tag/v1.0.9
+比較：https://github.com/yanshekki/ysk-omni/compare/v1.0.8...v1.0.9
+
 ## 1.0.8 — 2026-11-15
 
 ### 安全
